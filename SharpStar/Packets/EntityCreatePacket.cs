@@ -7,44 +7,35 @@ using SharpStar.Networking;
 
 namespace SharpStar.Packets
 {
-    public class EntityCreatePacket : ServerPacket
+    public class EntityCreatePacket : IPacket
     {
 
-        public override byte PacketId
+        public byte PacketId
         {
             get
             {
                 return 40;
             }
-            set
-            {
-            }
         }
 
-        public override bool Ignore { get; set; }
+        public bool Ignore { get; set; }
 
-        public Entity[] Entities { get; set; }
+        public List<Entity> Entities { get; set; }
 
         public EntityCreatePacket()
         {
-            Entities = new Entity[0];
+            Entities = new List<Entity>();
         }
 
-        public override void Read(StarboundStream stream)
+        public void Read(StarboundStream stream)
         {
-
-            var entities = new List<Entity>();
-
             while ((stream.Length - stream.Position) > 0)
             {
-                entities.Add(Entity.FromStream(stream));
+                Entities.Add(Entity.FromStream(stream));
             }
-
-            Entities = entities.ToArray();
-
         }
 
-        public override void Write(StarboundStream stream)
+        public void Write(StarboundStream stream)
         {
             foreach (var entity in Entities)
             {

@@ -4,7 +4,7 @@ using SharpStar.Server;
 
 namespace SharpStar.Packets.Handlers
 {
-    public class ClientConnectPacketHandler : ClientPacketHandler<ClientConnectPacket>
+    public class ClientConnectPacketHandler : PacketHandler<ClientConnectPacket>
     {
         public override void Handle(ClientConnectPacket packet, StarboundClient client)
         {

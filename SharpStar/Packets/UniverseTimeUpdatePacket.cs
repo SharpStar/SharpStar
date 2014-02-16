@@ -6,22 +6,19 @@ using SharpStar.Networking;
 
 namespace SharpStar.Packets
 {
-    public class UniverseTimeUpdatePacket : ServerPacket
+    public class UniverseTimeUpdatePacket : IPacket
     {
 
-        public override byte PacketId
+        public byte PacketId
         {
             get
             {
                 return 5;
             }
-            set
-            {
-            }
         }
 
 
-        public override bool Ignore { get; set; }
+        public bool Ignore { get; set; }
 
         private long Time { get; set; }
 
@@ -30,13 +27,13 @@ namespace SharpStar.Packets
             Time = 0L;
         }
 
-        public override void Read(StarboundStream stream)
+        public void Read(StarboundStream stream)
         {
             int discarded;
             Time = stream.ReadSignedVLQ(out discarded);
         }
 
-        public override void Write(StarboundStream stream)
+        public void Write(StarboundStream stream)
         {
             stream.WriteSignedVLQ(Time);
         }

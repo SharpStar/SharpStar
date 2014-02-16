@@ -6,7 +6,7 @@ using SharpStar.Server;
 
 namespace SharpStar.Packets.Handlers
 {
-    public class DisconnectResponsePacketHandler : ServerPacketHandler<DisconnectResponsePacket>
+    public class DisconnectResponsePacketHandler : PacketHandler<DisconnectResponsePacket>
     {
         public override void Handle(DisconnectResponsePacket packet, StarboundClient client)
         {

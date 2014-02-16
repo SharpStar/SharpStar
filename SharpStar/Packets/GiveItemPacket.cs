@@ -5,20 +5,17 @@ using SharpStar.Networking;
 
 namespace SharpStar.Packets
 {
-    public class GiveItemPacket : ServerPacket
+    public class GiveItemPacket : IPacket
     {
-        public override byte PacketId
+        public byte PacketId
         {
             get
             {
                 return 19;
             }
-            set
-            {
-            }
         }
 
-        public override bool Ignore { get; set; }
+        public bool Ignore { get; set; }
 
         public string ItemName { get; set; }
 
@@ -32,7 +29,7 @@ namespace SharpStar.Packets
             ItemProperties = new VariantDict();
         }
 
-        public override void Read(StarboundStream stream)
+        public void Read(StarboundStream stream)
         {
 
             int discarded;
@@ -43,7 +40,7 @@ namespace SharpStar.Packets
 
         }
 
-        public override void Write(StarboundStream stream)
+        public void Write(StarboundStream stream)
         {
             stream.WriteString(ItemName);
             stream.WriteVLQ(Count);

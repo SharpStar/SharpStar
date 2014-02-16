@@ -6,20 +6,17 @@ using SharpStar.Networking;
 
 namespace SharpStar.Packets
 {
-    public class WorldStopPacket : ServerPacket
+    public class WorldStopPacket : IPacket
     {
-        public override byte PacketId
+        public byte PacketId
         {
             get
             {
                 return 13;
             }
-            set
-            {
-            }
         }
 
-        public override bool Ignore { get; set; }
+        public bool Ignore { get; set; }
 
 
         public string Status { get; set; }
@@ -29,12 +26,12 @@ namespace SharpStar.Packets
             Status = String.Empty;
         }
 
-        public override void Read(StarboundStream stream)
+        public void Read(StarboundStream stream)
         {
             Status = stream.ReadString();
         }
 
-        public override void Write(StarboundStream stream)
+        public void Write(StarboundStream stream)
         {
             stream.WriteString(Status);
         }

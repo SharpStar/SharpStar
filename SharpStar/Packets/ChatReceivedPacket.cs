@@ -3,17 +3,14 @@ using SharpStar.Networking;
 
 namespace SharpStar.Packets
 {
-    public class ChatReceivedPacket : ServerPacket
+    public class ChatReceivedPacket : IPacket
     {
-        public override byte PacketId
+        public byte PacketId
         {
             get { return 4; }
-            set
-            {
-            }
         }
 
-        public override bool Ignore { get; set; }
+        public bool Ignore { get; set; }
 
         public byte Channel { get; set; }
 
@@ -32,7 +29,7 @@ namespace SharpStar.Packets
             Message = String.Empty;
         }
 
-        public override void Read(StarboundStream stream)
+        public void Read(StarboundStream stream)
         {
             Channel = stream.ReadUInt8();
             World = stream.ReadString();
@@ -41,7 +38,7 @@ namespace SharpStar.Packets
             Message = stream.ReadString();
         }
 
-        public override void Write(StarboundStream stream)
+        public void Write(StarboundStream stream)
         {
             stream.WriteUInt8(Channel);
             stream.WriteString(World);

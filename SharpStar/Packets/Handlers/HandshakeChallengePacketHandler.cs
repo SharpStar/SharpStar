@@ -6,7 +6,7 @@ using SharpStar.Server;
 
 namespace SharpStar.Packets.Handlers
 {
-    public class HandshakeChallengePacketHandler : ServerPacketHandler<HandshakeChallengePacket>
+    public class HandshakeChallengePacketHandler : PacketHandler<HandshakeChallengePacket>
     {
         public override void Handle(HandshakeChallengePacket packet, StarboundClient client)
         {

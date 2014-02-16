@@ -3,25 +3,26 @@
 namespace SharpStar.Packets
 {
     //Credit to StarNet (https://github.com/SirCmpwn/StarNet)
-    public class ConnectionResponsePacket : ServerPacket
+    public class ConnectionResponsePacket : IPacket
     {
-        public override byte PacketId
+        public byte PacketId
         {
             get
             {
                 return 1;
             }
-            set
-            {
-            }
         }
-        public override bool Ignore { get; set; }
+
+        public bool Ignore { get; set; }
 
         public bool Success { get; set; }
+
         public ulong ClientId { get; set; }
+
         public string RejectionReason { get; set; }
 
-        public override void Read(StarboundStream stream)
+
+        public void Read(StarboundStream stream)
         {
             int discarded;
             Success = stream.ReadBoolean();
@@ -29,7 +30,7 @@ namespace SharpStar.Packets
             RejectionReason = stream.ReadString();
         }
 
-        public override void Write(StarboundStream stream)
+        public void Write(StarboundStream stream)
         {
             stream.WriteBoolean(Success);
             stream.WriteVLQ(ClientId);

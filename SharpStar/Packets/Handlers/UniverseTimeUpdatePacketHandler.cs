@@ -6,7 +6,7 @@ using SharpStar.Server;
 
 namespace SharpStar.Packets.Handlers
 {
-    public class UniverseTimeUpdatePacketHandler : ServerPacketHandler<UniverseTimeUpdatePacket>
+    public class UniverseTimeUpdatePacketHandler : PacketHandler<UniverseTimeUpdatePacket>
     {
         public override void Handle(UniverseTimeUpdatePacket packet, StarboundClient client)
         {

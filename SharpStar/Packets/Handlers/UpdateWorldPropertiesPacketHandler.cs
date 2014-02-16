@@ -6,7 +6,7 @@ using SharpStar.Server;
 
 namespace SharpStar.Packets.Handlers
 {
-    public class UpdateWorldPropertiesPacketHandler : ServerPacketHandler<UpdateWorldPropertiesPacket>
+    public class UpdateWorldPropertiesPacketHandler : PacketHandler<UpdateWorldPropertiesPacket>
     {
         public override void Handle(UpdateWorldPropertiesPacket packet, StarboundClient client)
         {

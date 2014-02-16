@@ -6,7 +6,7 @@ using SharpStar.Server;
 
 namespace SharpStar.Packets.Handlers
 {
-    public class RequestDropPacketHandler : ClientPacketHandler<RequestDropPacket>
+    public class RequestDropPacketHandler : PacketHandler<RequestDropPacket>
     {
         public override void Handle(RequestDropPacket packet, StarboundClient client)
         {

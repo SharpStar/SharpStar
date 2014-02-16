@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Timers;
 using Ionic.Zlib;
 using SharpStar.DataTypes;
 using SharpStar.Entities;
@@ -42,11 +41,15 @@ namespace SharpStar.Server
 
         public PacketReader PacketReader { get; set; }
 
+        public Direction Direction { get; private set; }
+
 
         private readonly List<IPacketHandler> _packetHandlers;
 
-        public StarboundClient(Socket socket)
+        public StarboundClient(Socket socket, Direction dir)
         {
+
+            Direction = dir;
 
             _packetHandlers = new List<IPacketHandler>();
 
@@ -77,6 +80,29 @@ namespace SharpStar.Server
             PacketReader.RegisterPacketType(42, typeof(EntityDestroyPacket));
             PacketReader.RegisterPacketType(43, typeof(DamageNotificationPacket));
             PacketReader.RegisterPacketType(45, typeof(UpdateWorldPropertiesPacket));
+
+            RegisterPacketHandler(new UnknownPacketHandler());
+            RegisterPacketHandler(new ClientConnectPacketHandler());
+            RegisterPacketHandler(new ChatSentPacketHandler());
+            RegisterPacketHandler(new RequestDropPacketHandler());
+            RegisterPacketHandler(new WarpCommandPacketHandler());
+            RegisterPacketHandler(new OpenContainerPacketHandler());
+            RegisterPacketHandler(new CloseContainerPacketHandler());
+            RegisterPacketHandler(new DamageNotificationPacketHandler());
+            RegisterPacketHandler(new ConnectionResponsePacketHandler());
+            RegisterPacketHandler(new HandshakeChallengePacketHandler());
+            RegisterPacketHandler(new DisconnectResponsePacketHandler());
+            RegisterPacketHandler(new ChatReceivedPacketHandler());
+            RegisterPacketHandler(new EntityInteractResultPacketHandler());
+            RegisterPacketHandler(new UniverseTimeUpdatePacketHandler());
+            RegisterPacketHandler(new ClientContextUpdatePacketHandler());
+            RegisterPacketHandler(new WorldStartPacketHandler());
+            RegisterPacketHandler(new TileDamageUpdatePacketHandler());
+            RegisterPacketHandler(new GiveItemPacketHandler());
+            RegisterPacketHandler(new EntityCreatePacketHandler());
+            RegisterPacketHandler(new EntityUpdatePacketHandler());
+            RegisterPacketHandler(new EntityDestroyPacketHandler());
+            RegisterPacketHandler(new UpdateWorldPropertiesPacketHandler());
 
         }
 
@@ -135,7 +161,7 @@ namespace SharpStar.Server
                     foreach (var handler in _packetHandlers)
                     {
                         if (packet.GetType() == handler.GetPacketType())
-                            handler.Handle(packet, OtherClient);
+                            handler.Handle(packet, this);
                     }
 
                     if (!packet.Ignore)
@@ -153,7 +179,7 @@ namespace SharpStar.Server
                     foreach (var handler in _packetHandlers)
                     {
                         if (packet.GetType() == handler.GetPacketType())
-                            handler.HandleAfter(packet, OtherClient);
+                            handler.HandleAfter(packet, this);
                     }
 
                     if (packet is DisconnectResponsePacket)

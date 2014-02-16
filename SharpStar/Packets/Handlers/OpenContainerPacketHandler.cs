@@ -6,7 +6,7 @@ using SharpStar.Server;
 
 namespace SharpStar.Packets.Handlers
 {
-    public class OpenContainerPacketHandler : ClientPacketHandler<OpenContainerPacket>
+    public class OpenContainerPacketHandler : PacketHandler<OpenContainerPacket>
     {
         public override void Handle(OpenContainerPacket packet, StarboundClient client)
         {

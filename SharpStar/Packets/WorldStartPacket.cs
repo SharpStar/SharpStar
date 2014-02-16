@@ -7,9 +7,9 @@ using SharpStar.DataTypes;
 
 namespace SharpStar.Packets
 {
-    public class WorldStartPacket : ServerPacket
+    public class WorldStartPacket : IPacket
     {
-        public override byte PacketId
+        public byte PacketId
         {
             get
             {
@@ -20,7 +20,7 @@ namespace SharpStar.Packets
             }
         }
 
-        public override bool Ignore { get; set; }
+        public bool Ignore { get; set; }
 
 
         public Variant Planet { get; set; }
@@ -45,7 +45,7 @@ namespace SharpStar.Packets
         {
         }
 
-        public override void Read(StarboundStream stream)
+        public void Read(StarboundStream stream)
         {
             Planet = stream.ReadVariant();
             WorldStructure = stream.ReadVariant();
@@ -58,7 +58,7 @@ namespace SharpStar.Packets
             Local = stream.ReadBoolean();
         }
 
-        public override void Write(StarboundStream stream)
+        public void Write(StarboundStream stream)
         {
             stream.WriteVariant(Planet);
             stream.WriteVariant(WorldStructure);

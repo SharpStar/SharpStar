@@ -6,9 +6,9 @@ using SharpStar.Networking;
 
 namespace SharpStar.Packets
 {
-    public class ClientContextUpdatePacket : ServerPacket
+    public class ClientContextUpdatePacket : IPacket
     {
-        public override byte PacketId
+        public byte PacketId
         {
             get
             {
@@ -19,7 +19,7 @@ namespace SharpStar.Packets
             }
         }
 
-        public override bool Ignore { get; set; }
+        public bool Ignore { get; set; }
 
         public byte[] Unknown { get; set; }
 
@@ -28,12 +28,12 @@ namespace SharpStar.Packets
             Unknown = new byte[0];
         }
 
-        public override void Read(StarboundStream stream)
+        public void Read(StarboundStream stream)
         {
             Unknown = stream.ReadUInt8Array();
         }
 
-        public override void Write(StarboundStream stream)
+        public void Write(StarboundStream stream)
         {
             stream.WriteUInt8Array(Unknown);
         }

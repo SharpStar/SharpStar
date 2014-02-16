@@ -6,7 +6,7 @@ using SharpStar.Server;
 
 namespace SharpStar.Packets.Handlers
 {
-    class HeartbeatPacketHandler : ServerPacketHandler<HeartbeatPacket>
+    class HeartbeatPacketHandler : PacketHandler<HeartbeatPacket>
     {
         public override void Handle(HeartbeatPacket packet, StarboundClient client)
         {

@@ -6,9 +6,9 @@ using SharpStar.Networking;
 
 namespace SharpStar.Packets
 {
-    public class OpenContainerPacket : ClientPacket
+    public class OpenContainerPacket : IPacket
     {
-        public override byte PacketId
+        public byte PacketId
         {
             get
             {
@@ -18,11 +18,11 @@ namespace SharpStar.Packets
             {
             }
         }
-        public override bool Ignore { get; set; }
+        public bool Ignore { get; set; }
 
         public long EntityId { get; set; }
 
-        public override void Read(StarboundStream stream)
+        public void Read(StarboundStream stream)
         {
 
             int discarded;
@@ -31,7 +31,7 @@ namespace SharpStar.Packets
         
         }
 
-        public override void Write(StarboundStream stream)
+        public void Write(StarboundStream stream)
         {
             stream.WriteSignedVLQ(EntityId);
         }

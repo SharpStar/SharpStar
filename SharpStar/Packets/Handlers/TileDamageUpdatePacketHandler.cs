@@ -2,7 +2,7 @@
 
 namespace SharpStar.Packets.Handlers
 {
-    public class TileDamageUpdatePacketHandler : ServerPacketHandler<TileDamageUpdatePacket>
+    public class TileDamageUpdatePacketHandler : PacketHandler<TileDamageUpdatePacket>
     {
         public override void Handle(TileDamageUpdatePacket packet, StarboundClient client)
         {

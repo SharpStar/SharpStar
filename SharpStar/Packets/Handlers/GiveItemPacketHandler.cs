@@ -2,7 +2,7 @@
 
 namespace SharpStar.Packets.Handlers
 {
-    public class GiveItemPacketHandler : ServerPacketHandler<GiveItemPacket>
+    public class GiveItemPacketHandler : PacketHandler<GiveItemPacket>
     {
         public override void Handle(GiveItemPacket packet, StarboundClient client)
         {

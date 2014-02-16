@@ -6,7 +6,7 @@ using SharpStar.Server;
 
 namespace SharpStar.Packets.Handlers
 {
-    public class DamageNotificationPacketHandler : ClientPacketHandler<DamageNotificationPacket>
+    public class DamageNotificationPacketHandler : PacketHandler<DamageNotificationPacket>
     {
         public override void Handle(DamageNotificationPacket packet, StarboundClient client)
         {

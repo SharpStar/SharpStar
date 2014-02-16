@@ -6,7 +6,7 @@ using SharpStar.Server;
 
 namespace SharpStar.Packets.Handlers
 {
-    public class ClientContextUpdatePacketHandler : ServerPacketHandler<ClientContextUpdatePacket>
+    public class ClientContextUpdatePacketHandler : PacketHandler<ClientContextUpdatePacket>
     {
         public override void Handle(ClientContextUpdatePacket packet, StarboundClient client)
         {

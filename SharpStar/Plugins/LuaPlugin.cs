@@ -55,6 +55,8 @@ namespace SharpStar.Plugins
                 _lua.DoString(String.Format("{0}=luanet.import_type('{1}')", type.Name, type.FullName));
             }
 
+            _lua.DoString(String.Format("Direction=luanet.import_type('{0}')", typeof(Direction).FullName));
+
             _lua.DoString(String.Format("WarpType=luanet.import_type('{0}')", typeof(WarpType).FullName));
 
             _lua.DoString(String.Format("PluginProperties=luanet.import_type('{0}')", typeof(PluginProperties).FullName));
@@ -89,7 +91,7 @@ namespace SharpStar.Plugins
             return SharpStarMain.Instance.Server.Clients.Select(p => p.ServerClient).ToArray();
         }
 
-        public void SendClientPacketToAll(ClientPacket packet)
+        public void SendClientPacketToAll(IPacket packet)
         {
 
             if (!Enabled)
@@ -102,7 +104,7 @@ namespace SharpStar.Plugins
 
         }
 
-        public void SendServerPacketToAll(ServerPacket packet)
+        public void SendServerPacketToAll(IPacket packet)
         {
 
             if (!Enabled)

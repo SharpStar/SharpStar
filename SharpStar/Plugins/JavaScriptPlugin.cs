@@ -41,8 +41,8 @@ namespace SharpStar.Plugins
             _engine.SetFunction("WriteToConsole", new Action<object>(Console.WriteLine));
             _engine.SetFunction("SubscribeToEvent", new Action<string, JsFunction>(SubscribeToEvent));
             _engine.SetFunction("SendPacket", new Action<StarboundClient, IPacket>(SendPacket));
-            _engine.SetFunction("SendClientPacketToAll", new Action<ClientPacket>(SendClientPacketToAll));
-            _engine.SetFunction("SendServerPacketToAll", new Action<ServerPacket>(SendServerPacketToAll));
+            _engine.SetFunction("SendClientPacketToAll", new Action<IPacket>(SendClientPacketToAll));
+            _engine.SetFunction("SendServerPacketToAll", new Action<IPacket>(SendServerPacketToAll));
             _engine.SetFunction("GetPlayerClients", new Func<StarboundClient[]>(GetPlayerClients));
             _engine.SetFunction("GetServerClients", new Func<StarboundClient[]>(GetServerClients));
 
@@ -107,7 +107,7 @@ namespace SharpStar.Plugins
 
         }
 
-        public void SendClientPacketToAll(ClientPacket packet)
+        public void SendClientPacketToAll(IPacket packet)
         {
 
             if (!Enabled)
@@ -120,7 +120,7 @@ namespace SharpStar.Plugins
 
         }
 
-        public void SendServerPacketToAll(ServerPacket packet)
+        public void SendServerPacketToAll(IPacket packet)
         {
 
             if (!Enabled)

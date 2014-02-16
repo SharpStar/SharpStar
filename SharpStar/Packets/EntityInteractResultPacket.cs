@@ -7,19 +7,17 @@ using SharpStar.DataTypes;
 
 namespace SharpStar.Packets
 {
-    public class EntityInteractResultPacket : ServerPacket
+    public class EntityInteractResultPacket : IPacket
     {
-        public override byte PacketId
+        public byte PacketId
         {
             get
             {
                 return 22;
             }
-            set
-            {
-            }
         }
-        public override bool Ignore { get; set; }
+
+        public bool Ignore { get; set; }
 
         public uint ClientId { get; set; }
 
@@ -27,14 +25,14 @@ namespace SharpStar.Packets
 
         public Variant Results { get; set; }
 
-        public override void Read(StarboundStream stream)
+        public void Read(StarboundStream stream)
         {
             ClientId = stream.ReadUInt32();
             EntityId = stream.ReadInt32();
             Results = stream.ReadVariant();
         }
 
-        public override void Write(StarboundStream stream)
+        public void Write(StarboundStream stream)
         {
             stream.WriteUInt32(ClientId);
             stream.WriteInt32(EntityId);

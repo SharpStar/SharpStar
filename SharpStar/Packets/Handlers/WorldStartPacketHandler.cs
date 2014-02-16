@@ -7,7 +7,7 @@ using SharpStar.DataTypes;
 
 namespace SharpStar.Packets.Handlers
 {
-    public class WorldStartPacketHandler : ServerPacketHandler<WorldStartPacket>
+    public class WorldStartPacketHandler : PacketHandler<WorldStartPacket>
     {
         public override void Handle(WorldStartPacket packet, StarboundClient client)
         {

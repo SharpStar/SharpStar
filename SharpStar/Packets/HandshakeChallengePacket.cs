@@ -6,20 +6,17 @@ using SharpStar.Networking;
 
 namespace SharpStar.Packets
 {
-    public class HandshakeChallengePacket : ServerPacket
+    public class HandshakeChallengePacket : IPacket
     {
-        public override byte PacketId
+        public byte PacketId
         {
             get
             {
                 return 3;
             }
-            set
-            {
-            }
         }
 
-        public override bool Ignore { get; set; }
+        public bool Ignore { get; set; }
 
         public string Claim { get; set; }
 
@@ -34,14 +31,14 @@ namespace SharpStar.Packets
             Rounds = 5000;
         }
         
-        public override void Read(StarboundStream stream)
+        public void Read(StarboundStream stream)
         {
             Claim = stream.ReadString();
             Salt = stream.ReadString();
             Rounds = stream.ReadInt32();
         }
 
-        public override void Write(StarboundStream stream)
+        public void Write(StarboundStream stream)
         {
             stream.WriteString(Claim);
             stream.WriteString(Salt);

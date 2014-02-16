@@ -117,6 +117,7 @@
     <Compile Include="Packets\WorldStartPacket.cs" />
     <Compile Include="Packets\WorldStopPacket.cs" />
     <Compile Include="Plugins\PluginProperties.cs" />
+    <Compile Include="Server\Direction.cs" />
     <Compile Include="Server\StarboundServerClient.cs" />
     <Compile Include="DataTypes\Variant.cs" />
     <Compile Include="Server\IClient.cs" />
@@ -124,17 +125,13 @@
     <Compile Include="Packets\ChatReceivedPacket.cs" />
     <Compile Include="Packets\ChatSentPacket.cs" />
     <Compile Include="Packets\ClientConnectPacket.cs" />
-    <Compile Include="Packets\ClientPacket.cs" />
     <Compile Include="Packets\Handlers\ChatReceivedPacketHandler.cs" />
     <Compile Include="Packets\Handlers\ChatSentPacketHandler.cs" />
-    <Compile Include="Packets\Handlers\ClientPacketHandler.cs" />
     <Compile Include="Packets\Handlers\IPacketHandler.cs" />
     <Compile Include="Packets\Handlers\PacketHandler.cs" />
-    <Compile Include="Packets\Handlers\ServerPacketHandler.cs" />
     <Compile Include="Packets\IPacket.cs" />
     <Compile Include="Packets\PacketReader.cs" />
     <Compile Include="Packets\ProtocolVersionPacket.cs" />
-    <Compile Include="Packets\ServerPacket.cs" />
     <Compile Include="Packets\UnknownPacket.cs" />
     <Compile Include="Plugins\IPlugin.cs" />
     <Compile Include="Plugins\IPluginManager.cs" />

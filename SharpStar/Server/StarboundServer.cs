@@ -65,15 +65,7 @@ namespace SharpStar.Server
 
                 Console.WriteLine("Connection from {0}", socket.RemoteEndPoint);
 
-                StarboundClient sc = new StarboundClient(socket);
-                sc.RegisterPacketHandler(new UnknownPacketHandler());
-                sc.RegisterPacketHandler(new ClientConnectPacketHandler());
-                sc.RegisterPacketHandler(new ChatSentPacketHandler());
-                sc.RegisterPacketHandler(new RequestDropPacketHandler());
-                sc.RegisterPacketHandler(new WarpCommandPacketHandler());
-                sc.RegisterPacketHandler(new OpenContainerPacketHandler());
-                sc.RegisterPacketHandler(new CloseContainerPacketHandler());
-                sc.RegisterPacketHandler(new DamageNotificationPacketHandler());
+                StarboundClient sc = new StarboundClient(socket, Direction.Client);
 
 
                 StarboundServerClient ssc = new StarboundServerClient(sc);
@@ -87,7 +79,6 @@ namespace SharpStar.Server
 
                             Console.WriteLine("Player {0} disconnected", ssc.Player.Name);
 
-
                             Clients.Remove(ssc);
 
                             ssc.Dispose();
@@ -96,22 +87,6 @@ namespace SharpStar.Server
                     }
 
                 };
-
-                ssc.ServerClient.RegisterPacketHandler(new UnknownPacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new ConnectionResponsePacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new HandshakeChallengePacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new DisconnectResponsePacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new ChatReceivedPacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new EntityInteractResultPacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new UniverseTimeUpdatePacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new ClientContextUpdatePacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new WorldStartPacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new TileDamageUpdatePacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new GiveItemPacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new EntityCreatePacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new EntityUpdatePacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new EntityDestroyPacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new UpdateWorldPropertiesPacketHandler());
 
                 ssc.Connect(_serverPort);
 

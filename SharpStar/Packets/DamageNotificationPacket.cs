@@ -6,21 +6,18 @@ using SharpStar.Networking;
 
 namespace SharpStar.Packets
 {
-    public class DamageNotificationPacket : ClientPacket
+    public class DamageNotificationPacket : IPacket
     {
 
-        public override byte PacketId
+        public byte PacketId
         {
             get
             {
                 return 43;
             }
-            set
-            {
-            }
         }
 
-        public override bool Ignore { get; set; }
+        public bool Ignore { get; set; }
 
         public long CauseEntityId { get; set; }
 
@@ -40,7 +37,7 @@ namespace SharpStar.Packets
 
         public byte HitResultKind { get; set; }
 
-        public override void Read(StarboundStream stream)
+        public void Read(StarboundStream stream)
         {
 
             int discarded;
@@ -57,7 +54,7 @@ namespace SharpStar.Packets
 
         }
 
-        public override void Write(StarboundStream stream)
+        public void Write(StarboundStream stream)
         {
             stream.WriteSignedVLQ(CauseEntityId);
             stream.WriteSignedVLQ(TargetEntityId);

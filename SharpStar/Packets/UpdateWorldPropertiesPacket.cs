@@ -7,20 +7,17 @@ using SharpStar.Networking;
 
 namespace SharpStar.Packets
 {
-    public class UpdateWorldPropertiesPacket : ServerPacket
+    public class UpdateWorldPropertiesPacket : IPacket
     {
-        public override byte PacketId
+        public byte PacketId
         {
             get
             {
                 return 45;
             }
-            set
-            {
-            }
         }
 
-        public override bool Ignore { get; set; }
+        public bool Ignore { get; set; }
 
         public byte NumPairs { get; set; }
 
@@ -28,14 +25,14 @@ namespace SharpStar.Packets
 
         public Variant PropertyValue { get; set; }
 
-        public override void Read(StarboundStream stream)
+        public void Read(StarboundStream stream)
         {
             NumPairs = stream.ReadUInt8();
             PropertyName = stream.ReadString();
             PropertyValue = stream.ReadVariant();
         }
 
-        public override void Write(StarboundStream stream)
+        public void Write(StarboundStream stream)
         {
             stream.WriteUInt8(NumPairs);
             stream.WriteString(PropertyName);

@@ -2,7 +2,7 @@
 
 namespace SharpStar.Packets.Handlers
 {
-    public class ChatReceivedPacketHandler : ServerPacketHandler<ChatReceivedPacket>
+    public class ChatReceivedPacketHandler : PacketHandler<ChatReceivedPacket>
     {
         public override void Handle(ChatReceivedPacket packet, StarboundClient client)
         {

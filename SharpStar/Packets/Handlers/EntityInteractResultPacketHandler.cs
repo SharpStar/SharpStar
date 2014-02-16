@@ -6,7 +6,7 @@ using SharpStar.Server;
 
 namespace SharpStar.Packets.Handlers
 {
-    public class EntityInteractResultPacketHandler : ServerPacketHandler<EntityInteractResultPacket>
+    public class EntityInteractResultPacketHandler : PacketHandler<EntityInteractResultPacket>
     {
         public override void Handle(EntityInteractResultPacket packet, StarboundClient client)
         {

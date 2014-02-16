@@ -6,21 +6,18 @@ using SharpStar.Networking;
 
 namespace SharpStar.Packets
 {
-    public class ClientDisconnectPacket : ClientPacket
+    public class ClientDisconnectPacket : IPacket
     {
 
-        public override byte PacketId
+        public byte PacketId
         {
             get
             {
                 return 7;
             }
-            set
-            {
-            }
         }
 
-        public override bool Ignore { get; set; }
+        public bool Ignore { get; set; }
 
         public byte Unknown { get; set; }
 
@@ -29,12 +26,12 @@ namespace SharpStar.Packets
             Unknown = 0;
         }
 
-        public override void Read(StarboundStream stream)
+        public void Read(StarboundStream stream)
         {
             Unknown = stream.ReadUInt8();
         }
 
-        public override void Write(StarboundStream stream)
+        public void Write(StarboundStream stream)
         {
             stream.WriteUInt8(Unknown);
         }

@@ -2,7 +2,7 @@
 
 namespace SharpStar.Packets.Handlers
 {
-    public class ConnectionResponsePacketHandler : ServerPacketHandler<ConnectionResponsePacket>
+    public class ConnectionResponsePacketHandler : PacketHandler<ConnectionResponsePacket>
     {
         public override void Handle(ConnectionResponsePacket packet, StarboundClient client)
         {

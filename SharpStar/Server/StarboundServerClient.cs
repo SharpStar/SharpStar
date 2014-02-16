@@ -34,7 +34,7 @@ namespace SharpStar.Server
 
             ServerTcpClient = new TcpClient();
 
-            ServerClient = new StarboundClient(ServerTcpClient.Client);
+            ServerClient = new StarboundClient(ServerTcpClient.Client, Direction.Server);
             ServerClient.OtherClient = PlayerClient;
             ServerClient.Server = this;
 

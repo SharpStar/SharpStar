@@ -2,7 +2,7 @@
 
 namespace SharpStar.Packets.Handlers
 {
-    public class WarpCommandPacketHandler : ClientPacketHandler<WarpCommandPacket>
+    public class WarpCommandPacketHandler : PacketHandler<WarpCommandPacket>
     {
         public override void Handle(WarpCommandPacket packet, StarboundClient client)
         {

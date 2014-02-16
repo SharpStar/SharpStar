@@ -5,7 +5,7 @@ using SharpStar.Networking;
 namespace SharpStar.Packets
 {
 
-    public class WarpCommandPacket : ServerPacket
+    public class WarpCommandPacket : ClientPacket
     {
         public override byte PacketId
         {

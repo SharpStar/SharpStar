@@ -24,12 +24,12 @@ namespace SharpStar.Packets
 
         public ulong Count { get; set; }
 
-        public Dictionary<string, Variant> ItemProperties { get; set; }
+        public VariantDict ItemProperties { get; set; }
 
         public GiveItemPacket()
         {
             ItemName = String.Empty;
-            ItemProperties = new Dictionary<string, Variant>();
+            ItemProperties = new VariantDict();
         }
 
         public override void Read(StarboundStream stream)
@@ -39,7 +39,7 @@ namespace SharpStar.Packets
 
             ItemName = stream.ReadString();
             Count = stream.ReadVLQ(out discarded);
-            ItemProperties = (Dictionary<string, Variant>)stream.ReadVariant().Value;
+            ItemProperties = (VariantDict)stream.ReadVariant().Value;
 
         }
 

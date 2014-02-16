@@ -24,7 +24,7 @@ namespace SharpStar.DataTypes
                   value is ushort ||
                   value is byte ||
                   value is Variant[] ||
-                  value is Dictionary<string, Variant>))
+                  value is VariantDict))
             {
                 throw new InvalidCastException(string.Format("Variants are unable to represent {0}.", value.GetType()));
             }
@@ -62,7 +62,7 @@ namespace SharpStar.DataTypes
                     variant.Value = array;
                     break;
                 case 7:
-                    var dict = new Dictionary<string, Variant>();
+                    var dict = new VariantDict();
                     var length = stream.ReadVLQ(out discarded);
                     while (length-- > 0)
                         dict[stream.ReadString()] = Variant.FromStream(stream);
@@ -100,7 +100,7 @@ namespace SharpStar.DataTypes
                 stream.WriteInt8(5);
                 stream.WriteString((string)Value);
             }
-            else if (Value.GetType() == typeof(Variant[]))
+            else if (Value is Variant[])
             {
                 stream.WriteInt8(6);
                 var array = (Variant[])Value;
@@ -108,10 +108,10 @@ namespace SharpStar.DataTypes
                 for (int i = 0; i < array.Length; i++)
                     array[i].WriteTo(stream);
             }
-            else if (Value.GetType() == typeof(Dictionary<string, Variant>))
+            else if (Value is VariantDict)
             {
                 stream.WriteInt8(7);
-                var dict = (Dictionary<string, Variant>)Value;
+                var dict = (VariantDict)Value;
                 stream.WriteVLQ((ulong)dict.Count);
                 foreach (var kvp in dict)
                 {

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Linq;
+using System.Text.RegularExpressions;
 using NLua;
-using SharpStar.DataTypes;
 using SharpStar.Packets;
 using SharpStar.Server;
 
@@ -13,7 +13,7 @@ namespace SharpStar.Plugins
     public class LuaPlugin : IPlugin
     {
 
-        private readonly Dictionary<string, string> _registeredEvents;
+        private readonly Dictionary<string, LuaFunction> _registeredEvents;
 
         public string PluginFile { get; private set; }
 
@@ -28,32 +28,44 @@ namespace SharpStar.Plugins
 
             PluginFile = fileName;
 
-            _registeredEvents = new Dictionary<string, string>();
+            _registeredEvents = new Dictionary<string, LuaFunction>();
 
         }
 
         private void RegisterTypes()
         {
 
-            _lua.DoString("luanet.load_assembly('mscorlib')");
-            _lua.DoString("luanet.load_assembly('SharpStar')");
-
             var assm = Assembly.GetExecutingAssembly();
-            Type[] types = assm.GetTypes().Where(p => String.Equals(p.Namespace, "SharpStar.Packets", StringComparison.Ordinal) && typeof(IPacket).IsAssignableFrom(p)).ToArray();
 
-            foreach (Type type in types)
+            _lua.DoString(String.Format("luanet.load_assembly('{0}')", assm.GetName().Name));
+
+
+            Type[] packetTypes = assm.GetTypes().Where(p => String.Equals(p.Namespace, "SharpStar.Packets", StringComparison.Ordinal) && typeof(IPacket).IsAssignableFrom(p)).ToArray();
+
+            foreach (Type type in packetTypes)
             {
                 _lua.DoString(String.Format("{0}=luanet.import_type('{1}')", type.Name, type.FullName));
             }
 
-            _lua.DoString(String.Format("WorldCoordinate=luanet.import_type('{0}')", typeof(WorldCoordinate).FullName));
+            Type[] otherTypes = assm.GetTypes().Where(p => String.Equals(p.Namespace, "SharpStar.DataTypes", StringComparison.Ordinal)
+                || String.Equals(p.Namespace, "SharpStar.Misc")).ToArray();
+
+            foreach (Type type in otherTypes)
+            {
+                _lua.DoString(String.Format("{0}=luanet.import_type('{1}')", type.Name, type.FullName));
+            }
+
             _lua.DoString(String.Format("WarpType=luanet.import_type('{0}')", typeof(WarpType).FullName));
-            _lua.DoString(String.Format("Variant=luanet.import_type('{0}')", typeof(Variant).FullName));
+
+            _lua.DoString(String.Format("PluginProperties=luanet.import_type('{0}')", typeof(PluginProperties).FullName));
+
+            _lua.DoString("ctype, enum = luanet.ctype, luanet.enum");
 
         }
 
         private void RegisterFunctions()
         {
+
             _lua.RegisterFunction("WriteToConsole", this, this.GetType().GetMethod("WriteToConsole"));
             _lua.RegisterFunction("SubscribeToEvent", this, this.GetType().GetMethod("SubscribeToEvent"));
             _lua.RegisterFunction("SendPacket", this, this.GetType().GetMethod("SendPacket"));
@@ -61,6 +73,10 @@ namespace SharpStar.Plugins
             _lua.RegisterFunction("SendServerPacketToAll", this, this.GetType().GetMethod("SendServerPacketToAll"));
             _lua.RegisterFunction("GetPlayerClients", this, this.GetType().GetMethod("GetPlayerClients"));
             _lua.RegisterFunction("GetServerClients", this, this.GetType().GetMethod("GetServerClients"));
+
+            _lua.RegisterFunction("SplitString", this.GetType().GetMethod("SplitString"));
+            _lua.RegisterFunction("ToArray", this.GetType().GetMethod("LuaTableToArray"));
+
         }
 
         public StarboundClient[] GetPlayerClients()
@@ -105,13 +121,14 @@ namespace SharpStar.Plugins
             if (!Enabled)
                 return;
 
-            client.SendPacket(packet);
+            if (client != null)
+                client.SendPacket(packet);
 
         }
 
-        public void SubscribeToEvent(string evtName, string funcName)
+        public void SubscribeToEvent(string evtName, LuaFunction func)
         {
-            _registeredEvents.Add(evtName, funcName);
+            _registeredEvents.Add(evtName, func);
         }
 
         public void UnsubscribeFromEvent(string eventName)
@@ -129,7 +146,7 @@ namespace SharpStar.Plugins
             {
                 try
                 {
-                    _lua.GetFunction(_registeredEvents[evtName]).Call(args);
+                    _registeredEvents[evtName].Call(args);
                 }
                 catch (Exception ex)
                 {
@@ -153,6 +170,7 @@ namespace SharpStar.Plugins
             _lua.LoadCLRPackage();
 
             _lua["properties"] = Properties;
+            _lua["plugindir"] = PluginManager.PluginDirectoryPath;
 
             RegisterTypes();
             RegisterFunctions();
@@ -162,7 +180,16 @@ namespace SharpStar.Plugins
             LuaFunction onLoad = _lua.GetFunction("onLoad");
 
             if (onLoad != null)
-                onLoad.Call();
+            {
+                try
+                {
+                    onLoad.Call();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Plugin {0} caused error: {1}", Path.GetFileName(PluginFile), ex.Message);
+                }
+            }
 
         }
 
@@ -172,7 +199,16 @@ namespace SharpStar.Plugins
             LuaFunction onUnload = _lua.GetFunction("onUnload");
 
             if (onUnload != null)
-                onUnload.Call();
+            {
+                try
+                {
+                    onUnload.Call();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Plugin {0} caused error: {1}", Path.GetFileName(PluginFile), ex.Message);
+                }
+            }
 
             _registeredEvents.Clear();
 
@@ -180,9 +216,33 @@ namespace SharpStar.Plugins
 
         }
 
-        public void WriteToConsole(string write)
+        public void WriteToConsole(object write)
         {
             Console.WriteLine(write);
+        }
+
+        public static object[] LuaTableToArray(LuaTable table)
+        {
+
+            var objArr = new object[table.Values.Count];
+
+            int ctr = 0;
+            foreach (var value in table.Values)
+            {
+
+                objArr[ctr] = value;
+
+                ctr++;
+
+            }
+
+            return objArr;
+
+        }
+
+        public static string[] SplitString(string str, string pattern)
+        {
+            return Regex.Split(str, pattern);
         }
 
         public void Dispose()

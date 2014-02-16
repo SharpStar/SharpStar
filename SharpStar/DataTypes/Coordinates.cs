@@ -183,4 +183,31 @@ namespace SharpStar.DataTypes
 
     }
 
+    public class PlanetCoordinate
+    {
+
+        public string Sector { get; set; }
+
+        public ulong X { get; set; }
+
+        public ulong Y { get; set; }
+
+        public ulong Z { get; set; }
+
+        public ulong Planet { get; set; }
+
+        public ulong Satellite { get; set; }
+
+        public PlanetCoordinate()
+        {
+            Sector = String.Empty;
+            X = 0;
+            Y = 0;
+            Z = 0;
+            Planet = 0;
+            Satellite = 0;
+        }
+
+    }
+
 }

@@ -9,7 +9,7 @@ namespace SharpStar.Server
     public class StarboundServer : IDisposable
     {
 
-        private static readonly object _clientLocker = new object();
+        private static readonly object ClientLocker = new object();
 
         private bool _disposed;
 
@@ -69,16 +69,31 @@ namespace SharpStar.Server
                 sc.RegisterPacketHandler(new UnknownPacketHandler());
                 sc.RegisterPacketHandler(new ClientConnectPacketHandler());
                 sc.RegisterPacketHandler(new ChatSentPacketHandler());
+                sc.RegisterPacketHandler(new RequestDropPacketHandler());
+                sc.RegisterPacketHandler(new WarpCommandPacketHandler());
+                sc.RegisterPacketHandler(new OpenContainerPacketHandler());
+                sc.RegisterPacketHandler(new CloseContainerPacketHandler());
+                sc.RegisterPacketHandler(new DamageNotificationPacketHandler());
 
 
                 StarboundServerClient ssc = new StarboundServerClient(sc);
                 ssc.Disconnected += (sender, args) =>
                 {
 
-                    lock (_clientLocker)
-                        Clients.Remove(ssc);
+                    lock (ClientLocker)
+                    {
+                        if (Clients.Contains(ssc))
+                        {
 
-                    ssc.Dispose();
+                            Console.WriteLine("Player {0} disconnected", ssc.Player.Name);
+
+
+                            Clients.Remove(ssc);
+
+                            ssc.Dispose();
+
+                        }
+                    }
 
                 };
 
@@ -87,24 +102,29 @@ namespace SharpStar.Server
                 ssc.ServerClient.RegisterPacketHandler(new HandshakeChallengePacketHandler());
                 ssc.ServerClient.RegisterPacketHandler(new DisconnectResponsePacketHandler());
                 ssc.ServerClient.RegisterPacketHandler(new ChatReceivedPacketHandler());
+                ssc.ServerClient.RegisterPacketHandler(new EntityInteractResultPacketHandler());
                 ssc.ServerClient.RegisterPacketHandler(new UniverseTimeUpdatePacketHandler());
-                ssc.ServerClient.RegisterPacketHandler(new WarpCommandPacketHandler());
                 ssc.ServerClient.RegisterPacketHandler(new ClientContextUpdatePacketHandler());
                 ssc.ServerClient.RegisterPacketHandler(new WorldStartPacketHandler());
                 ssc.ServerClient.RegisterPacketHandler(new TileDamageUpdatePacketHandler());
                 ssc.ServerClient.RegisterPacketHandler(new GiveItemPacketHandler());
+                ssc.ServerClient.RegisterPacketHandler(new EntityCreatePacketHandler());
+                ssc.ServerClient.RegisterPacketHandler(new EntityUpdatePacketHandler());
+                ssc.ServerClient.RegisterPacketHandler(new EntityDestroyPacketHandler());
                 ssc.ServerClient.RegisterPacketHandler(new UpdateWorldPropertiesPacketHandler());
 
                 ssc.Connect(_serverPort);
 
-                lock (_clientLocker)
+                lock (ClientLocker)
                     Clients.Add(ssc);
-
-                Listener.BeginAcceptSocket(AcceptClient, null);
 
             }
             catch (Exception)
             {
+            }
+            finally
+            {
+                Listener.BeginAcceptSocket(AcceptClient, null);
             }
 
         }

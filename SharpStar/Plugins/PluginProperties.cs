@@ -30,19 +30,104 @@ namespace SharpStar.Plugins
 
         }
 
-        public void Put(string key, string value)
+        public void PutString(string key, string value)
         {
             _properties[key] = new JValue(value);
         }
 
-        public string Get(string key)
+        public string GetString(string key)
         {
 
             if (_properties[key] == null)
                 return String.Empty;
 
             return _properties[key].ToObject<string>();
-        
+
+        }
+
+        public void PutArray(string key, object[] value)
+        {
+            _properties[key] = JArray.FromObject(value);
+        }
+
+        public string[] GetArray(string key)
+        {
+
+            if (_properties[key] == null)
+                return null;
+
+            return _properties[key].ToObject<string[]>();
+
+        }
+
+        public void AppendArray(string key, object val)
+        {
+
+            if (_properties[key] == null)
+                _properties[key] = new JArray();
+
+            JArray arr = _properties[key].ToObject<JArray>();
+
+            arr.Add(val);
+
+            _properties[key] = arr;
+
+        }
+
+        public bool Remove(string key, object val)
+        {
+
+            if (_properties[key] == null)
+                return false;
+
+            if (_properties[key].Type == JTokenType.Array && _properties[key].HasValues)
+            {
+
+                var values = _properties[key].Values().ToList();
+
+                for (int i = 0; i < values.Count; i++)
+                {
+
+                    JToken token = values[i];
+
+                    if (token.Value<string>() == val.ToString())
+                        token.Remove();
+
+                }
+
+                return true;
+
+            }
+
+            return false;
+
+        }
+
+        public bool Remove(string key)
+        {
+
+            if (_properties[key] == null)
+                return false;
+
+            _properties[key].Remove();
+
+            return true;
+
+        }
+
+        public bool Contains(string key, object val)
+        {
+
+            if (_properties[key] == null)
+                return false;
+
+            if (_properties[key].Type == JTokenType.Array)
+            {
+                return _properties[key].Any(p => p.Value<string>() == val.ToString());
+            }
+
+            return false;
+
         }
 
         public void Save()

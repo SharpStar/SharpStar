@@ -2,17 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using SharpStar.DataTypes;
 
 namespace SharpStar.Entities
 {
-    public class StarboundPlayer : IEntity
+    public class StarboundPlayer
     {
 
         public string Name { get; private set; }
 
-        public Guid UUID { get; set; }
+        public string UUID { get; set; }
 
-        public StarboundPlayer(string name, Guid uuid)
+        public PlanetCoordinate Coordinates { get; set; }
+
+        public bool OnShip { get; set; }
+
+        public StarboundPlayer(string name, string uuid)
         {
             Name = name;
             UUID = uuid;

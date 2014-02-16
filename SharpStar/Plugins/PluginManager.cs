@@ -55,7 +55,8 @@ namespace SharpStar.Plugins
 
                 plugin.OnLoad();
 
-                _plugins.Add(plugin);
+                lock (_pluginLocker)
+                    _plugins.Add(plugin);
 
                 Console.WriteLine("Loaded JavaScript plugin {0}", fInfo.Name);
 
@@ -67,7 +68,8 @@ namespace SharpStar.Plugins
 
                 plugin.OnLoad();
 
-                _plugins.Add(plugin);
+                lock (_pluginLocker)
+                    _plugins.Add(plugin);
 
                 Console.WriteLine("Loaded Lua plugin {0}", fInfo.Name);
 
@@ -93,10 +95,19 @@ namespace SharpStar.Plugins
 
             if (plugin != null)
             {
-                
-                plugin.OnUnload();
-               
-                _plugins.Remove(plugin);
+
+                try
+                {
+                    plugin.OnUnload();
+                }
+                catch (Exception)
+                {
+                }
+
+                lock (_pluginLocker)
+                {
+                    _plugins.Remove(plugin);
+                }
 
                 Console.WriteLine("Unloaded plugin {0}", Path.GetFileName(file));
 
@@ -113,11 +124,18 @@ namespace SharpStar.Plugins
 
             foreach (IPlugin plugin in _plugins)
             {
-                plugin.OnUnload();
-                plugin.Dispose();
+                try
+                {
+                    plugin.OnUnload();
+                    plugin.Dispose();
+                }
+                catch (Exception)
+                {
+                }
             }
 
-            _plugins.Clear();
+            lock (_pluginLocker)
+                _plugins.Clear();
 
             Console.WriteLine("All plugins have been unloaded!");
 

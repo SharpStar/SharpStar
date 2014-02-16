@@ -3,7 +3,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
+using System.Timers;
 using Ionic.Zlib;
 using SharpStar.DataTypes;
 using SharpStar.Entities;
@@ -18,6 +20,19 @@ namespace SharpStar.Server
     {
 
         public Socket Socket { get; set; }
+
+        public string IPAddress
+        {
+            get
+            {
+
+                if (Socket == null)
+                    return String.Empty;
+
+                return ((IPEndPoint)Socket.RemoteEndPoint).Address.ToString();
+
+            }
+        }
 
         public ConcurrentQueue<IPacket> PacketQueue { get; set; }
 
@@ -53,6 +68,14 @@ namespace SharpStar.Server
             PacketReader.RegisterPacketType(13, typeof(WorldStopPacket));
             PacketReader.RegisterPacketType(17, typeof(TileDamageUpdatePacket));
             PacketReader.RegisterPacketType(19, typeof(GiveItemPacket));
+            PacketReader.RegisterPacketType(22, typeof(EntityInteractResultPacket));
+            PacketReader.RegisterPacketType(26, typeof(RequestDropPacket));
+            PacketReader.RegisterPacketType(31, typeof(OpenContainerPacket));
+            PacketReader.RegisterPacketType(32, typeof(CloseContainerPacket));
+            PacketReader.RegisterPacketType(40, typeof(EntityCreatePacket));
+            PacketReader.RegisterPacketType(41, typeof(EntityUpdatePacket));
+            PacketReader.RegisterPacketType(42, typeof(EntityDestroyPacket));
+            PacketReader.RegisterPacketType(43, typeof(DamageNotificationPacket));
             PacketReader.RegisterPacketType(45, typeof(UpdateWorldPropertiesPacket));
 
         }
@@ -107,6 +130,8 @@ namespace SharpStar.Server
                 foreach (var packet in packets)
                 {
 
+                    SharpStarMain.Instance.PluginManager.CallEvent("packetReceived", packet, OtherClient);
+
                     foreach (var handler in _packetHandlers)
                     {
                         if (packet.GetType() == handler.GetPacketType())
@@ -122,6 +147,8 @@ namespace SharpStar.Server
 
                 foreach (var packet in packets)
                 {
+
+                    SharpStarMain.Instance.PluginManager.CallEvent("afterPacketReceived", packet, OtherClient);
 
                     foreach (var handler in _packetHandlers)
                     {
@@ -156,39 +183,48 @@ namespace SharpStar.Server
             while (PacketQueue.Count > 0)
             {
 
-                IPacket next;
-
-                while (!PacketQueue.TryDequeue(out next))
+                try
                 {
+
+                    IPacket next;
+
+                    while (!PacketQueue.TryDequeue(out next))
+                    {
+                    }
+
+                    var memoryStream = new MemoryStream();
+
+                    var stream = new StarboundStream(memoryStream);
+                    next.Write(stream);
+                    byte[] buffer = memoryStream.ToArray();
+
+                    int length = buffer.Length;
+                    var compressed = ZlibStream.CompressBuffer(buffer);
+                    if (compressed.Length < buffer.Length)
+                    {
+                        buffer = compressed;
+                        length = -buffer.Length;
+                    }
+
+                    var finalMemStream = new MemoryStream();
+                    var finalStream = new StarboundStream(finalMemStream);
+
+                    finalStream.WriteUInt8(next.PacketId);
+                    finalStream.WriteSignedVLQ(length);
+                    finalStream.Write(buffer, 0, buffer.Length);
+
+                    byte[] toSend = finalMemStream.ToArray();
+
+                    Socket.BeginSend(toSend, 0, toSend.Length, SocketFlags.None, PacketSent, null);
+
+                    stream.Dispose();
+                    finalStream.Dispose();
+
                 }
-
-                var memoryStream = new MemoryStream();
-
-                var stream = new StarboundStream(memoryStream);
-                next.Write(stream);
-                byte[] buffer = memoryStream.ToArray();
-
-                int length = buffer.Length;
-                var compressed = ZlibStream.CompressBuffer(buffer);
-                if (compressed.Length < buffer.Length)
+                catch (Exception)
                 {
-                    buffer = compressed;
-                    length = -buffer.Length;
+                    ForceDisconnect();
                 }
-
-                var finalMemStream = new MemoryStream();
-                var finalStream = new StarboundStream(finalMemStream);
-
-                finalStream.WriteUInt8(next.PacketId);
-                finalStream.WriteSignedVLQ(length);
-                finalStream.Write(buffer, 0, buffer.Length);
-
-                byte[] toSend = finalMemStream.ToArray();
-
-                Socket.BeginSend(toSend, 0, toSend.Length, SocketFlags.None, PacketSent, null);
-
-                stream.Dispose();
-                finalStream.Dispose();
 
             }
         }
@@ -237,6 +273,11 @@ namespace SharpStar.Server
         public void SendChatMessage(string message, int channel, string world, string name)
         {
             Server.PlayerClient.SendPacket(new ChatReceivedPacket { Message = message, Channel = (byte)channel, ClientId = 0, Name = name, World = world });
+        }
+
+        public void Disconnect()
+        {
+            Server.ServerClient.SendPacket(new ClientDisconnectPacket());
         }
 
         #endregion

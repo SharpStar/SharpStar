@@ -9,7 +9,7 @@ namespace SharpStar.Packets.Handlers
         public override void Handle(ClientConnectPacket packet, StarboundClient client)
         {
 
-            client.Server.Player = new StarboundPlayer(packet.PlayerName, new Guid(packet.UUID));
+            client.Server.Player = new StarboundPlayer(packet.PlayerName, BitConverter.ToString(packet.UUID, 0).Replace("-", String.Empty).ToLower());
 
             SharpStarMain.Instance.PluginManager.CallEvent("clientConnected", packet, client);
         

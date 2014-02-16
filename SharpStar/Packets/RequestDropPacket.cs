@@ -6,13 +6,13 @@ using SharpStar.Networking;
 
 namespace SharpStar.Packets
 {
-    public class HeartbeatPacket : ServerPacket
+    public class RequestDropPacket : ClientPacket
     {
         public override byte PacketId
         {
             get
             {
-                return 46;
+                return 26;
             }
             set
             {
@@ -21,20 +21,20 @@ namespace SharpStar.Packets
 
         public override bool Ignore { get; set; }
 
-        public ulong CurrentStep { get; set; }
-
+        public long EntityId { get; set; }
+        
         public override void Read(StarboundStream stream)
         {
 
             int discarded;
 
-            CurrentStep = stream.ReadVLQ(out discarded);
-        
+            EntityId = stream.ReadSignedVLQ(out discarded);
+
         }
 
         public override void Write(StarboundStream stream)
         {
-            stream.WriteVLQ(CurrentStep);
+            stream.WriteSignedVLQ(EntityId);
         }
     }
 }

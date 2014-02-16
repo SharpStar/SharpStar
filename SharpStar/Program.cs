@@ -14,7 +14,7 @@ namespace SharpStar
 
             Version ver = Assembly.GetExecutingAssembly().GetName().Version;
 
-            Console.WriteLine("SharpStar Version {0}.{1}", ver.Major, ver.Minor);
+            Console.WriteLine("SharpStar Version {0}.{1}.{2}", ver.Major, ver.Minor, ver.Build);
 
             m.Start();
 

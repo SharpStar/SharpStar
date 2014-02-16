@@ -14,6 +14,7 @@ namespace SharpStar.Plugins
     {
 
         public string PluginFile { get; private set; }
+
         public bool Enabled { get; private set; }
 
         public PluginProperties Properties { get; set; }
@@ -35,6 +36,7 @@ namespace SharpStar.Plugins
             Properties.Load();
 
             _engine.SetParameter("properties", Properties);
+            _engine.SetParameter("plugindir", PluginManager.PluginDirectoryPath);
 
             _engine.SetFunction("WriteToConsole", new Action<object>(Console.WriteLine));
             _engine.SetFunction("SubscribeToEvent", new Action<string, JsFunction>(SubscribeToEvent));
@@ -44,8 +46,10 @@ namespace SharpStar.Plugins
             _engine.SetFunction("GetPlayerClients", new Func<StarboundClient[]>(GetPlayerClients));
             _engine.SetFunction("GetServerClients", new Func<StarboundClient[]>(GetServerClients));
 
+            _engine.SetFunction("ToArray", new Func<JsArray, object[]>(JsArrayToArray));
+
             _registeredEvents = new Dictionary<string, JsFunction>();
-        
+
         }
 
         public void OnLoad()
@@ -56,10 +60,10 @@ namespace SharpStar.Plugins
                 _engine.Run(File.ReadAllText(PluginFile));
 
                 Enabled = true;
-                
+
                 _engine.Run("onLoad();");
             }
-            catch
+            catch (Exception)
             {
             }
 
@@ -72,7 +76,7 @@ namespace SharpStar.Plugins
             {
                 _engine.Run("onUnload();");
             }
-            catch
+            catch (Exception)
             {
             }
 
@@ -97,10 +101,10 @@ namespace SharpStar.Plugins
 
             if (!Enabled)
                 return;
-            
+
             client.PacketQueue.Enqueue(packet);
             client.FlushPackets();
-        
+
         }
 
         public void SendClientPacketToAll(ClientPacket packet)
@@ -113,7 +117,7 @@ namespace SharpStar.Plugins
             {
                 SendPacket(client.ServerClient, packet);
             }
-        
+
         }
 
         public void SendServerPacketToAll(ServerPacket packet)
@@ -126,7 +130,7 @@ namespace SharpStar.Plugins
             {
                 SendPacket(client.PlayerClient, packet);
             }
-        
+
         }
 
         public void CallEvent(string evtName, params object[] args)
@@ -146,7 +150,7 @@ namespace SharpStar.Plugins
                     Console.WriteLine("Plugin {0} caused error: {1}", Path.GetFileName(PluginFile), ex.Message);
                 }
             }
-        
+
         }
 
         public void SubscribeToEvent(string eventName, JsFunction func)
@@ -159,13 +163,32 @@ namespace SharpStar.Plugins
             _registeredEvents.Remove(eventName);
         }
 
+        public static object[] JsArrayToArray(JsArray array)
+        {
+
+            var objArr = new object[array.Length];
+
+            int ctr = 0;
+            foreach (JsInstance inst in array.GetValues())
+            {
+
+                objArr[ctr] = inst.ToObject();
+
+                ctr++;
+
+            }
+
+            return objArr;
+
+        }
+
         public void Dispose()
         {
 
             Dispose(true);
 
             GC.SuppressFinalize(this);
-            
+
         }
 
         protected virtual void Dispose(bool disposing)

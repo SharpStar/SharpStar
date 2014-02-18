@@ -9,7 +9,7 @@ namespace SharpStar.Plugins
     public class PluginManager : IPluginManager
     {
 
-        private static readonly object _pluginLocker = new object();
+        private readonly object _pluginLocker = new object();
 
         public const string PluginDirectory = "plugins";
 

@@ -21,13 +21,21 @@ namespace SharpStar.Packets
 
         public string RejectionReason { get; set; }
 
+        public byte[] Unknown { get; set; }
+
 
         public void Read(StarboundStream stream)
         {
+
             int discarded;
             Success = stream.ReadBoolean();
             ClientId = stream.ReadVLQ(out discarded);
             RejectionReason = stream.ReadString();
+
+            Unknown = new byte[stream.Length - stream.Position];
+
+            stream.Read(Unknown, 0, (int)(stream.Length - stream.Position));
+
         }
 
         public void Write(StarboundStream stream)
@@ -35,6 +43,7 @@ namespace SharpStar.Packets
             stream.WriteBoolean(Success);
             stream.WriteVLQ(ClientId);
             stream.WriteString(RejectionReason);
+            stream.Write(Unknown, 0, Unknown.Length);
         }
     }
 }

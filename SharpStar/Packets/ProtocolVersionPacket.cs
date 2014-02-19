@@ -6,7 +6,13 @@ namespace SharpStar.Packets
     public class ProtocolVersionPacket : IPacket
     {
 
-        public byte PacketId { get { return 0; } }
+        public byte PacketId
+        {
+            get
+            {
+                return 0;
+            }
+        }
         public bool Ignore { get; set; }
 
         public uint ProtocolVersion { get; set; }

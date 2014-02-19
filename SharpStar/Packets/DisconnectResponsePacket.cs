@@ -13,8 +13,9 @@ namespace SharpStar.Packets
             get
             {
                 return 2;
-            }        }
-        
+            }
+        }
+
         public bool Ignore { get; set; }
 
         public byte Unknown { get; set; }

@@ -15,29 +15,33 @@ namespace SharpStar.Packets.Handlers
             Variant planet = packet.Planet;
             VariantDict planetDict = (VariantDict)planet.Value;
 
-            if (planetDict.ContainsKey("config") && planetDict["config"].Value is VariantDict)
+            if (planetDict.ContainsKey("celestialParameters"))
             {
 
-                var configDict = (VariantDict)planetDict["config"].Value;
-                var coordinateDict = (VariantDict)configDict["coordinate"].Value;
+                var celestParamsDict = (VariantDict)planetDict["celestialParameters"].Value;
 
-                if (coordinateDict != null)
+                if (celestParamsDict != null)
                 {
 
-                    var parentSystem = (VariantDict)coordinateDict["parentSystem"].Value;
+                    var coordinateDict = (VariantDict)celestParamsDict["coordinate"].Value;
 
-                    var loc = (Variant[])parentSystem["location"].Value;
+                    if (coordinateDict != null)
+                    {
 
-                    var coords = new PlanetCoordinate();
-                    coords.Sector = (string)parentSystem["sector"].Value;
-                    coords.X = (ulong)loc[0].Value;
-                    coords.Y = (ulong)loc[1].Value;
-                    coords.Z = (ulong)loc[2].Value;
-                    coords.Planet = (ulong)coordinateDict["planetaryOrbitNumber"].Value;
-                    coords.Satellite = (ulong)coordinateDict["satelliteOrbitNumber"].Value;
+                        var loc = (Variant[])coordinateDict["location"].Value;
 
-                    client.Server.Player.OnShip = false;
-                    client.Server.Player.Coordinates = coords;
+                        var coords = new PlanetCoordinate();
+                        coords.Sector = (string)coordinateDict["sector"].Value;
+                        coords.X = (ulong)loc[0].Value;
+                        coords.Y = (ulong)loc[1].Value;
+                        coords.Z = (ulong)loc[2].Value;
+                        coords.Planet = (ulong)coordinateDict["planet"].Value;
+                        coords.Satellite = (ulong)coordinateDict["satellite"].Value;
+
+                        client.Server.Player.OnShip = false;
+                        client.Server.Player.Coordinates = coords;
+
+                    }
 
                 }
                 else

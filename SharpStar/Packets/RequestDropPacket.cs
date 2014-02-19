@@ -12,7 +12,7 @@ namespace SharpStar.Packets
         {
             get
             {
-                return 26;
+                return 28;
             }
         }
 

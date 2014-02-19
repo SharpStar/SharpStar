@@ -63,23 +63,25 @@ namespace SharpStar.Server
             PacketReader.RegisterPacketType(3, typeof(HandshakeChallengePacket));
             PacketReader.RegisterPacketType(4, typeof(ChatReceivedPacket));
             PacketReader.RegisterPacketType(5, typeof(UniverseTimeUpdatePacket));
-            PacketReader.RegisterPacketType(6, typeof(ClientConnectPacket));
-            PacketReader.RegisterPacketType(9, typeof(WarpCommandPacket));
-            PacketReader.RegisterPacketType(10, typeof(ChatSentPacket));
-            PacketReader.RegisterPacketType(11, typeof(ClientContextUpdatePacket));
-            PacketReader.RegisterPacketType(12, typeof(WorldStartPacket));
-            PacketReader.RegisterPacketType(13, typeof(WorldStopPacket));
-            PacketReader.RegisterPacketType(17, typeof(TileDamageUpdatePacket));
-            PacketReader.RegisterPacketType(19, typeof(GiveItemPacket));
-            PacketReader.RegisterPacketType(22, typeof(EntityInteractResultPacket));
-            PacketReader.RegisterPacketType(26, typeof(RequestDropPacket));
-            PacketReader.RegisterPacketType(31, typeof(OpenContainerPacket));
-            PacketReader.RegisterPacketType(32, typeof(CloseContainerPacket));
-            PacketReader.RegisterPacketType(40, typeof(EntityCreatePacket));
-            PacketReader.RegisterPacketType(41, typeof(EntityUpdatePacket));
-            PacketReader.RegisterPacketType(42, typeof(EntityDestroyPacket));
-            PacketReader.RegisterPacketType(43, typeof(DamageNotificationPacket));
-            PacketReader.RegisterPacketType(45, typeof(UpdateWorldPropertiesPacket));
+            PacketReader.RegisterPacketType(7, typeof(ClientConnectPacket));
+            PacketReader.RegisterPacketType(8, typeof(ClientDisconnectPacket));
+            PacketReader.RegisterPacketType(10, typeof(WarpCommandPacket));
+            PacketReader.RegisterPacketType(11, typeof(ChatSentPacket));
+            PacketReader.RegisterPacketType(13, typeof(ClientContextUpdatePacket));
+            PacketReader.RegisterPacketType(14, typeof(WorldStartPacket));
+            PacketReader.RegisterPacketType(15, typeof(WorldStopPacket));
+            PacketReader.RegisterPacketType(19, typeof(TileDamageUpdatePacket));
+            PacketReader.RegisterPacketType(21, typeof(GiveItemPacket));
+            PacketReader.RegisterPacketType(24, typeof(EntityInteractResultPacket));
+            PacketReader.RegisterPacketType(28, typeof(RequestDropPacket));
+            PacketReader.RegisterPacketType(33, typeof(OpenContainerPacket));
+            PacketReader.RegisterPacketType(34, typeof(CloseContainerPacket));
+            PacketReader.RegisterPacketType(42, typeof(EntityCreatePacket));
+            PacketReader.RegisterPacketType(43, typeof(EntityUpdatePacket));
+            PacketReader.RegisterPacketType(44, typeof(EntityDestroyPacket));
+            PacketReader.RegisterPacketType(45, typeof(DamageNotificationPacket));
+            PacketReader.RegisterPacketType(47, typeof(UpdateWorldPropertiesPacket));
+            PacketReader.RegisterPacketType(48, typeof(HeartbeatPacket));
 
             RegisterPacketHandler(new UnknownPacketHandler());
             RegisterPacketHandler(new ClientConnectPacketHandler());
@@ -103,6 +105,7 @@ namespace SharpStar.Server
             RegisterPacketHandler(new EntityUpdatePacketHandler());
             RegisterPacketHandler(new EntityDestroyPacketHandler());
             RegisterPacketHandler(new UpdateWorldPropertiesPacketHandler());
+            RegisterPacketHandler(new HeartbeatPacketHandler());
 
         }
 

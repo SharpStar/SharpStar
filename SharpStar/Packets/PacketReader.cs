@@ -78,9 +78,9 @@ namespace SharpStar.Packets
                                 WorkingLength = -WorkingLength;
                             if (WorkingLength > MaxPacketLength)
                                 throw new IOException("Packet exceeded maximum permissible length.");
-                        
+
                             break;
-                        
+
                         }
                     }
                     if (i == 5)
@@ -107,7 +107,9 @@ namespace SharpStar.Packets
                     return packets;
                 }
             }
+
             return new List<IPacket>();
+
         }
 
         public IEnumerable<IPacket> Decode(byte packetId, byte[] payload)
@@ -115,30 +117,25 @@ namespace SharpStar.Packets
 
             var memoryStream = new MemoryStream(payload);
             var stream = new StarboundStream(memoryStream);
-            List<IPacket> packets = new List<IPacket>();
+            var packets = new List<IPacket>();
 
-            while (stream.Position < stream.Length)
+            IPacket packet;
+
+            if (_registeredPacketTypes.ContainsKey(packetId))
+            {
+                packet = _registeredPacketTypes[packetId]();
+            }
+            else
+            {
+                packet = new UnknownPacket(Compressed, payload.Length, packetId);
+            }
+
+            if (packet != null)
             {
 
-                IPacket packet;
+                packet.Read(stream);
 
-                if (_registeredPacketTypes.ContainsKey(packetId))
-                {
-                    packet = _registeredPacketTypes[packetId]();
-                }
-                else
-                {
-                    packet = new UnknownPacket(Compressed, payload.Length, packetId);
-                }
-
-                if (packet != null)
-                {
-
-                    packet.Read(stream);
-
-                    packets.Add(packet);
-
-                }
+                packets.Add(packet);
 
             }
 

@@ -30,11 +30,6 @@ namespace SharpStar.Plugins
 
         }
 
-        public void PutString(string key, string value)
-        {
-            _properties[key] = new JValue(value);
-        }
-
         public string GetString(string key)
         {
 
@@ -43,6 +38,26 @@ namespace SharpStar.Plugins
 
             return _properties[key].ToObject<string>();
 
+        }
+
+        public void PutString(string key, string value)
+        {
+            _properties[key] = new JValue(value);
+        }
+
+        public bool GetBool(string key)
+        {
+
+            if (_properties[key] == null)
+                return false;
+
+            return _properties[key].ToObject<bool>();
+
+        }
+
+        public void PutBool(string key, bool boolean)
+        {
+            _properties[key] = new JValue(boolean);
         }
 
         public void PutArray(string key, object[] value)

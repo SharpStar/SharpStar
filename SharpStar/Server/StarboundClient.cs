@@ -77,7 +77,7 @@ namespace SharpStar.Server
             PacketReader.RegisterPacketType(33, typeof(OpenContainerPacket));
             PacketReader.RegisterPacketType(34, typeof(CloseContainerPacket));
             PacketReader.RegisterPacketType(42, typeof(EntityCreatePacket));
-            PacketReader.RegisterPacketType(43, typeof(EntityUpdatePacket));
+            //PacketReader.RegisterPacketType(43, typeof(EntityUpdatePacket));
             PacketReader.RegisterPacketType(44, typeof(EntityDestroyPacket));
             PacketReader.RegisterPacketType(45, typeof(DamageNotificationPacket));
             PacketReader.RegisterPacketType(47, typeof(UpdateWorldPropertiesPacket));
@@ -102,7 +102,7 @@ namespace SharpStar.Server
             RegisterPacketHandler(new TileDamageUpdatePacketHandler());
             RegisterPacketHandler(new GiveItemPacketHandler());
             RegisterPacketHandler(new EntityCreatePacketHandler());
-            RegisterPacketHandler(new EntityUpdatePacketHandler());
+            //RegisterPacketHandler(new EntityUpdatePacketHandler());
             RegisterPacketHandler(new EntityDestroyPacketHandler());
             RegisterPacketHandler(new UpdateWorldPropertiesPacketHandler());
             RegisterPacketHandler(new HeartbeatPacketHandler());

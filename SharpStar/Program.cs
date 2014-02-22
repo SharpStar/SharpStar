@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using SharpStar.Plugins;
 
@@ -89,6 +90,12 @@ namespace SharpStar
                         m.Shutdown();
 
                         running = false;
+
+                        break;
+
+                    default:
+
+                        m.PluginManager.CallEvent("consoleCommand", cmd[0], new string(line.Skip(cmd[0].Length + 1).ToArray()));
 
                         break;
 

@@ -13,7 +13,7 @@ namespace SharpStar.Plugins
 
         public string PropertiesFile { get; set; }
 
-        private JObject _properties;
+        public JObject Properties { get; protected set; }
 
         public PluginProperties(string pluginName, string saveDir)
         {
@@ -24,81 +24,145 @@ namespace SharpStar.Plugins
         {
 
             if (!File.Exists(PropertiesFile))
-                _properties = new JObject();
+                Properties = new JObject();
             else
-                _properties = JObject.Parse(File.ReadAllText(PropertiesFile));
+                Properties = JObject.Parse(File.ReadAllText(PropertiesFile));
 
         }
 
         public string GetString(string key)
         {
 
-            if (_properties[key] == null)
+            if (Properties[key] == null)
                 return String.Empty;
 
-            return _properties[key].ToObject<string>();
+            return Properties[key].ToObject<string>();
 
         }
 
         public void PutString(string key, string value)
         {
-            _properties[key] = new JValue(value);
+            Properties[key] = new JValue(value);
         }
 
         public bool GetBool(string key)
         {
 
-            if (_properties[key] == null)
+            if (Properties[key] == null)
                 return false;
 
-            return _properties[key].ToObject<bool>();
+            return Properties[key].ToObject<bool>();
 
         }
 
         public void PutBool(string key, bool boolean)
         {
-            _properties[key] = new JValue(boolean);
+            Properties[key] = new JValue(boolean);
         }
 
         public void PutArray(string key, object[] value)
         {
-            _properties[key] = JArray.FromObject(value);
+            Properties[key] = JArray.FromObject(value);
         }
 
-        public string[] GetArray(string key)
+        public object[] GetArray(string key)
         {
 
-            if (_properties[key] == null)
+            if (Properties[key] == null)
                 return null;
 
-            return _properties[key].ToObject<string[]>();
+            return Properties[key].ToObject<object[]>();
 
+        }
+
+        public object Get(string key)
+        {
+
+            if (Properties[key] == null)
+                return null;
+
+            return Properties[key].ToObject<object>();
+
+        }
+
+        public JToken GetByIndex(JArray array, int index)
+        {
+            return array[index];
+        }
+
+        public JProperty GetProperty(string key)
+        {
+
+            if (Properties[key] == null)
+                return null;
+
+            return (JProperty)Properties[key];
+
+        }
+
+        public JArray GetPropertyArray(string key) 
+        {
+
+            if (Properties[key] == null)
+                return null;
+            
+            return (JArray)Properties[key];
+        
+        }
+
+        public JObject GetPropertyObject(string key)
+        {
+            if (Properties[key] == null)
+                return null;
+
+            return (JObject)Properties[key];
+        
+        }
+
+        public JToken GetPropertyValue(JProperty property)
+        {
+            return property.Value;
+        }
+
+        public void SetObject(JObject obj, object key, object value)
+        {
+            obj[key] = new JValue(value);
+        }
+
+        public void SetProperty(JProperty property, object key, JToken value)
+        {
+            property[key] = value;
+        }
+
+        public void Put(string key, object value)
+        {
+            Properties[key] = JToken.FromObject(value);
         }
 
         public void AppendArray(string key, object val)
         {
 
-            if (_properties[key] == null)
-                _properties[key] = new JArray();
+            if (Properties[key] == null)
+                Properties[key] = new JArray();
 
-            JArray arr = _properties[key].ToObject<JArray>();
+            var arr = Properties[key].ToObject<JArray>();
 
             arr.Add(val);
 
-            _properties[key] = arr;
+            Properties[key] = arr;
 
         }
 
         public bool Remove(string key, object val)
         {
 
-            if (_properties[key] == null)
+            if (Properties[key] == null)
                 return false;
 
-            if (_properties[key].Type == JTokenType.Array && _properties[key].HasValues)
+            if (Properties[key].Type == JTokenType.Array && Properties[key].HasValues)
             {
 
-                var values = _properties[key].Values().ToList();
+                var values = Properties[key].Values().ToList();
 
                 for (int i = 0; i < values.Count; i++)
                 {
@@ -121,10 +185,10 @@ namespace SharpStar.Plugins
         public bool Remove(string key)
         {
 
-            if (_properties[key] == null)
+            if (Properties[key] == null)
                 return false;
 
-            _properties[key].Remove();
+            Properties[key].Remove();
 
             return true;
 
@@ -133,12 +197,12 @@ namespace SharpStar.Plugins
         public bool Contains(string key, object val)
         {
 
-            if (_properties[key] == null)
+            if (Properties[key] == null)
                 return false;
 
-            if (_properties[key].Type == JTokenType.Array)
+            if (Properties[key].Type == JTokenType.Array)
             {
-                return _properties[key].Any(p => p.Value<string>() == val.ToString());
+                return Properties[key].Any(p => p.Value<string>() == val.ToString());
             }
 
             return false;
@@ -147,7 +211,7 @@ namespace SharpStar.Plugins
 
         public void Save()
         {
-            File.WriteAllText(PropertiesFile, _properties.ToString(Formatting.Indented));
+            File.WriteAllText(PropertiesFile, Properties.ToString(Formatting.Indented));
         }
 
     }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 using NLua;
 using SharpStar.Packets;
 using SharpStar.Server;
@@ -38,7 +39,7 @@ namespace SharpStar.Plugins
             var assm = Assembly.GetExecutingAssembly();
 
             _lua.DoString(String.Format("luanet.load_assembly('{0}')", assm.GetName().Name));
-
+            _lua.DoString(String.Format("luanet.load_assembly('{0}')", typeof(JObject).Assembly.GetName().Name));
 
             Type[] packetTypes = assm.GetTypes().Where(p => String.Equals(p.Namespace, "SharpStar.Packets", StringComparison.Ordinal) && typeof(IPacket).IsAssignableFrom(p)).ToArray();
 
@@ -60,6 +61,11 @@ namespace SharpStar.Plugins
             _lua.DoString(String.Format("WarpType=luanet.import_type('{0}')", typeof(WarpType).FullName));
 
             _lua.DoString(String.Format("PluginProperties=luanet.import_type('{0}')", typeof(PluginProperties).FullName));
+
+            _lua.DoString(String.Format("PluginProperty=luanet.import_type('{0}')", typeof(PluginProperty).FullName));
+            _lua.DoString(String.Format("PluginPropertyArray=luanet.import_type('{0}')", typeof(PluginPropertyArray).FullName));
+            _lua.DoString(String.Format("PluginPropertyObject=luanet.import_type('{0}')", typeof(PluginPropertyObject).FullName));
+            _lua.DoString(String.Format("PluginPropertyValue=luanet.import_type('{0}')", typeof(PluginPropertyValue).FullName));
 
             _lua.DoString("ctype, enum = luanet.ctype, luanet.enum");
 

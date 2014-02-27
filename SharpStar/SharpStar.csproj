@@ -120,6 +120,10 @@
     <Compile Include="Packets\WorldStartPacket.cs" />
     <Compile Include="Packets\WorldStopPacket.cs" />
     <Compile Include="Plugins\PluginProperties.cs" />
+    <Compile Include="Plugins\PluginProperty.cs" />
+    <Compile Include="Plugins\PluginPropertyArray.cs" />
+    <Compile Include="Plugins\PluginPropertyObject.cs" />
+    <Compile Include="Plugins\PluginPropertyValue.cs" />
     <Compile Include="Server\Direction.cs" />
     <Compile Include="Server\StarboundServerClient.cs" />
     <Compile Include="DataTypes\Variant.cs" />

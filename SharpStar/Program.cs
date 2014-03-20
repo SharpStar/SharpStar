@@ -2,15 +2,15 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using SharpStar.Plugins;
+using SharpStar.Lib;
+using SharpStar.Lib.Plugins;
 
 namespace SharpStar
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-
             SharpStarMain m = SharpStarMain.Instance;
 
             Version ver = Assembly.GetExecutingAssembly().GetName().Version;
@@ -22,7 +22,6 @@ namespace SharpStar
             bool running = true;
             while (running)
             {
-
                 string line = Console.ReadLine();
 
                 string[] cmd = line.Split(' ');
@@ -32,12 +31,12 @@ namespace SharpStar
 
                 switch (cmd[0])
                 {
-
                     case "loadplugin":
 
                         if (cmd.Length != 2)
                         {
-                            Console.WriteLine("Syntax: loadplugin <file> (where file is in the \"{0}\" folder)", PluginManager.PluginDirectory);
+                            Console.WriteLine("Syntax: loadplugin <file> (where file is in the \"{0}\" folder)",
+                                PluginManager.PluginDirectory);
                         }
                         else
                         {
@@ -95,15 +94,12 @@ namespace SharpStar
 
                     default:
 
-                        m.PluginManager.CallEvent("consoleCommand", cmd[0], new string(line.Skip(cmd[0].Length + 1).ToArray()));
+                        m.PluginManager.PassChatCommand(null, cmd[0],
+                            new string(line.Skip(cmd[0].Length + 1).ToArray()).Split(' '));
 
                         break;
-
                 }
-
             }
-
-            
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using SharpStar.Lib.Config;
+using SharpStar.Lib.Misc;
 using SharpStar.Lib.Plugins;
 using SharpStar.Lib.Server;
 
@@ -60,6 +61,18 @@ namespace SharpStar.Lib
             else
             {
                 Config = SharpStarConfig.Load(configFile);
+            }
+
+            if (string.IsNullOrEmpty(Config.ConfigFile.PythonLibLocation))
+            {
+
+                string pythonLoc = Python.GetPythonInstallDir();
+
+                if (!string.IsNullOrEmpty(pythonLoc))
+                    Config.ConfigFile.PythonLibLocation = Path.Combine(pythonLoc, "Lib");
+
+                Config.Save(configFile);
+
             }
 
             PluginManager = new PluginManager();

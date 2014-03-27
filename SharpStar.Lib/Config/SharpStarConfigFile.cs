@@ -10,5 +10,9 @@ namespace SharpStar.Lib.Config
 
         [JsonProperty("serverPort")]
         public int ServerPort { get; set; }
+
+        [JsonProperty("PythonLibLocation")]
+        public string PythonLibLocation { get; set; }
+
     }
 }

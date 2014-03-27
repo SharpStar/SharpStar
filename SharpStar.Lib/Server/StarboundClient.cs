@@ -304,6 +304,11 @@ namespace SharpStar.Lib.Server
             });
         }
 
+        public void SendChatMessage(string name, string message)
+        {
+            SendChatMessage(message, 0, String.Empty, name);
+        }
+
         public void SendChatMessage(string message, int channel, string world, string name)
         {
             Server.PlayerClient.SendPacket(new ChatReceivedPacket

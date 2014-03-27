@@ -77,6 +77,20 @@ namespace SharpStar.Lib.Plugins
 
                 Console.WriteLine("Loaded Lua plugin {0}", fInfo.Name);
             }
+            else if (fInfo.Extension == ".py")
+            {
+
+                IPlugin plugin = new PyPlugin(fInfo.FullName);
+
+                plugin.OnLoad();
+
+                lock (_pluginLocker)
+                    _plugins.Add(plugin);
+
+                Console.WriteLine("Loaded Python plugin {0}", fInfo.Name);
+
+            }
+
         }
 
         public void CallEvent(string evtName, IPacket packet, StarboundClient client, params object[] args)

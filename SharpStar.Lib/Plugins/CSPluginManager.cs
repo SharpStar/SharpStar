@@ -84,27 +84,30 @@ namespace SharpStar.Lib.Plugins
         private void OnExtensionChanged(object sender, ExtensionNodeEventArgs args)
         {
 
-            var plugin = (ICSPlugin)args.ExtensionObject;
+            var plugin = args.ExtensionObject as ICSPlugin;
 
-            if (args.Change == ExtensionChange.Add)
+            if (plugin != null)
             {
+                if (args.Change == ExtensionChange.Add)
+                {
 
-                plugin.OnLoad();
+                    plugin.OnLoad();
 
-                _csPlugins.Add(Addin.GetFullId(null, args.ExtensionNode.Addin.Id, args.ExtensionNode.Addin.Version), plugin);
+                    _csPlugins.Add(Addin.GetFullId(null, args.ExtensionNode.Addin.Id, args.ExtensionNode.Addin.Version), plugin);
 
-                Console.WriteLine("Loaded CSharp Plugin \"{0}\"", plugin.Name);
+                    Console.WriteLine("Loaded CSharp Plugin \"{0}\"", plugin.Name);
 
-            }
-            else if (args.Change == ExtensionChange.Remove)
-            {
+                }
+                else if (args.Change == ExtensionChange.Remove)
+                {
 
-                plugin.OnUnload();
+                    plugin.OnUnload();
 
-                _csPlugins.Remove(Addin.GetFullId(null, args.ExtensionNode.Addin.Id, args.ExtensionNode.Addin.Version));
+                    _csPlugins.Remove(Addin.GetFullId(null, args.ExtensionNode.Addin.Id, args.ExtensionNode.Addin.Version));
 
-                Console.WriteLine("Unloaded CSharp Plugin \"{0}\"", plugin.Name);
+                    Console.WriteLine("Unloaded CSharp Plugin \"{0}\"", plugin.Name);
 
+                }
             }
 
         }

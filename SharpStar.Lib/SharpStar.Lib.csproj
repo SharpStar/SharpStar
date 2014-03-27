@@ -23,6 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -34,11 +35,39 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="IronPython">
+      <HintPath>..\packages\IronPython.2.7.4\lib\Net40\IronPython.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="IronPython.Modules">
+      <HintPath>..\packages\IronPython.2.7.4\lib\Net40\IronPython.Modules.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="IronPython.SQLite">
+      <HintPath>..\packages\IronPython.2.7.4\lib\Net40\IronPython.SQLite.dll</HintPath>
+    </Reference>
+    <Reference Include="IronPython.Wpf">
+      <HintPath>..\packages\IronPython.2.7.4\lib\Net40\IronPython.Wpf.dll</HintPath>
+    </Reference>
     <Reference Include="Jint">
       <HintPath>..\Lib\Jint.dll</HintPath>
     </Reference>
     <Reference Include="KeraLua">
       <HintPath>..\packages\NLua.1.3.0.2\lib\net40\x86\KeraLua.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamic">
+      <HintPath>..\packages\IronPython.2.7.4\lib\Net40\Microsoft.Dynamic.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Scripting">
+      <HintPath>..\packages\IronPython.2.7.4\lib\Net40\Microsoft.Scripting.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Scripting.AspNet">
+      <HintPath>..\packages\IronPython.2.7.4\lib\Net40\Microsoft.Scripting.AspNet.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Scripting.Metadata">
+      <HintPath>..\packages\IronPython.2.7.4\lib\Net40\Microsoft.Scripting.Metadata.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Addins, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -72,7 +101,19 @@
     <Compile Include="Entities\Entity.cs" />
     <Compile Include="Entities\StarboundPlayer.cs" />
     <Compile Include="Extensions\SocketExtensions.cs" />
+    <Compile Include="Misc\OS.cs" />
+    <Compile Include="Misc\Python.cs" />
+    <Compile Include="Plugins\PyPlugin.cs" />
+    <Compile Include="Starbound\Block.cs" />
+    <Compile Include="Starbound\BlockSignature.cs" />
+    <Compile Include="Starbound\BTreeDb4.cs" />
     <Compile Include="Misc\EntityType.cs" />
+    <Compile Include="Starbound\Document.cs" />
+    <Compile Include="Starbound\Key.cs" />
+    <Compile Include="Starbound\LeafReader.cs" />
+    <Compile Include="Starbound\Metadata.cs" />
+    <Compile Include="Starbound\SBBF02.cs" />
+    <Compile Include="Mono\DataConverter.cs" />
     <Compile Include="Networking\IStarboundStream.cs" />
     <Compile Include="Networking\StarboundStream.cs" />
     <Compile Include="Packets\ChatReceivedPacket.cs" />
@@ -151,6 +192,10 @@
     <Compile Include="Server\StarboundServer.cs" />
     <Compile Include="Server\StarboundServerClient.cs" />
     <Compile Include="SharpStarMain.cs" />
+    <Compile Include="Starbound\Tile.cs" />
+    <Compile Include="Starbound\VariantDatabase.cs" />
+    <Compile Include="Starbound\VLQ.cs" />
+    <Compile Include="Starbound\World.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

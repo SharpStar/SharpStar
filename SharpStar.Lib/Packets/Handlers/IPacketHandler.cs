@@ -12,5 +12,7 @@ namespace SharpStar.Lib.Packets.Handlers
 
         void HandleAfter(IPacket packet, IClient client);
 
+        int PacketId { get; }
+
     }
 }

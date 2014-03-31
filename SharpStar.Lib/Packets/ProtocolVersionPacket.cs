@@ -3,14 +3,12 @@
 namespace SharpStar.Lib.Packets
 {
     //Credit to StarNet (https://github.com/SirCmpwn/StarNet)
-    public class ProtocolVersionPacket : IPacket
+    public class ProtocolVersionPacket : Packet
     {
-        public byte PacketId
+        public override byte PacketId
         {
             get { return 0; }
         }
-
-        public bool Ignore { get; set; }
 
         public uint ProtocolVersion { get; set; }
 
@@ -21,15 +19,14 @@ namespace SharpStar.Lib.Packets
         public ProtocolVersionPacket(uint protocolVersion)
         {
             ProtocolVersion = protocolVersion;
-            Ignore = false;
         }
 
-        public void Read(IStarboundStream stream)
+        public override void Read(IStarboundStream stream)
         {
             ProtocolVersion = stream.ReadUInt32();
         }
 
-        public void Write(IStarboundStream stream)
+        public override void Write(IStarboundStream stream)
         {
             stream.WriteUInt32(ProtocolVersion);
         }

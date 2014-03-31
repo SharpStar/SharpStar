@@ -2,14 +2,12 @@
 
 namespace SharpStar.Lib.Packets
 {
-    public class DamageNotificationPacket : IPacket
+    public class DamageNotificationPacket : Packet
     {
-        public byte PacketId
+        public override byte PacketId
         {
             get { return 45; }
         }
-
-        public bool Ignore { get; set; }
 
         public long CauseEntityId { get; set; }
 
@@ -29,7 +27,7 @@ namespace SharpStar.Lib.Packets
 
         public byte HitResultKind { get; set; }
 
-        public void Read(IStarboundStream stream)
+        public override void Read(IStarboundStream stream)
         {
             int discarded;
 
@@ -44,7 +42,7 @@ namespace SharpStar.Lib.Packets
             HitResultKind = stream.ReadUInt8();
         }
 
-        public void Write(IStarboundStream stream)
+        public override void Write(IStarboundStream stream)
         {
             stream.WriteSignedVLQ(CauseEntityId);
             stream.WriteSignedVLQ(TargetEntityId);

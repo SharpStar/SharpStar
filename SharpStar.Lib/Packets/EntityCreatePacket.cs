@@ -4,14 +4,12 @@ using SharpStar.Lib.Networking;
 
 namespace SharpStar.Lib.Packets
 {
-    public class EntityCreatePacket : IPacket
+    public class EntityCreatePacket : Packet
     {
-        public byte PacketId
+        public override byte PacketId
         {
             get { return 42; }
         }
-
-        public bool Ignore { get; set; }
 
         public List<Entity> Entities { get; set; }
 
@@ -20,7 +18,7 @@ namespace SharpStar.Lib.Packets
             Entities = new List<Entity>();
         }
 
-        public void Read(IStarboundStream stream)
+        public override void Read(IStarboundStream stream)
         {
             while ((stream.Length - stream.Position) > 0)
             {
@@ -28,7 +26,7 @@ namespace SharpStar.Lib.Packets
             }
         }
 
-        public void Write(IStarboundStream stream)
+        public override void Write(IStarboundStream stream)
         {
             foreach (var entity in Entities)
             {

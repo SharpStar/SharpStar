@@ -32,23 +32,29 @@ namespace SharpStar.Lib.Packets
 
         public void RegisterPacketType(byte id, Type packetType)
         {
-            if (!typeof (IPacket).IsAssignableFrom(packetType))
+            if (!typeof(IPacket).IsAssignableFrom(packetType))
                 throw new Exception("Type must be of IPacket!");
 
             _registeredPacketTypes.Add(id, Expression.Lambda<Func<IPacket>>(Expression.New(packetType)).Compile());
         }
 
-        public IEnumerable<IPacket> UpdateBuffer(int length)
+        public List<IPacket> UpdateBuffer(int length)
         {
+
             if (length == 0)
                 return new List<IPacket>();
+
             int index = PacketBuffer.Length;
+
             if (WorkingLength == long.MaxValue)
             {
+
                 // We don't know the length of the packet yet, so keep going
                 if (PacketBuffer.Length < index + length)
                     Array.Resize(ref PacketBuffer, index + length);
+
                 Array.Copy(NetworkBuffer, 0, PacketBuffer, index, length);
+                
                 if (PacketBuffer.Length > 1)
                 {
                     // Check to see if we have the entire length yet
@@ -66,7 +72,8 @@ namespace SharpStar.Lib.Packets
                             DataIndex++;
                             Compressed = WorkingLength < 0;
 
-                            stream.Dispose();
+                            stream.Close();
+                            ms.Close();
 
                             if (Compressed)
                                 WorkingLength = -WorkingLength;
@@ -76,36 +83,51 @@ namespace SharpStar.Lib.Packets
                             break;
                         }
                     }
+
                     if (i == 5)
                         throw new IOException("Packet exceeded maximum permissible length.");
+                
                 }
             }
 
             if (WorkingLength != long.MaxValue)
             {
+
                 if (PacketBuffer.Length < index + length)
                     Array.Resize(ref PacketBuffer, index + length);
+
                 Array.Copy(NetworkBuffer, 0, PacketBuffer, index, length);
+
                 if (PacketBuffer.Length >= WorkingLength + DataIndex)
                 {
+
                     // Ready to decode packet
                     var data = new byte[WorkingLength];
+                    
                     Array.Copy(PacketBuffer, DataIndex, data, 0, WorkingLength);
+                    
                     if (Compressed)
                         data = ZlibStream.UncompressBuffer(data);
+                    
                     var packets = Decode(PacketBuffer[0], data);
+                    
                     Array.Copy(PacketBuffer, DataIndex + WorkingLength, PacketBuffer, 0,
                         PacketBuffer.Length - (DataIndex + WorkingLength));
-                    Array.Resize(ref PacketBuffer, (int) (PacketBuffer.Length - (DataIndex + WorkingLength)));
+                    Array.Resize(ref PacketBuffer, (int)(PacketBuffer.Length - (DataIndex + WorkingLength)));
+                    
                     WorkingLength = long.MaxValue;
+                
                     return packets;
+                
                 }
+
             }
 
             return new List<IPacket>();
+
         }
 
-        public IEnumerable<IPacket> Decode(byte packetId, byte[] payload)
+        public List<IPacket> Decode(byte packetId, byte[] payload)
         {
             var memoryStream = new MemoryStream(payload);
             var stream = new StarboundStream(memoryStream);
@@ -131,6 +153,9 @@ namespace SharpStar.Lib.Packets
 
             stream.Close();
             stream.Dispose();
+
+            memoryStream.Close();
+            memoryStream.Dispose();
 
             return packets;
         }

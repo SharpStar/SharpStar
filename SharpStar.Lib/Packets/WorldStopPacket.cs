@@ -3,15 +3,13 @@ using SharpStar.Lib.Networking;
 
 namespace SharpStar.Lib.Packets
 {
-    public class WorldStopPacket : IPacket
+    public class WorldStopPacket : Packet
     {
-        public byte PacketId
+
+        public override byte PacketId
         {
             get { return 15; }
         }
-
-        public bool Ignore { get; set; }
-
 
         public string Status { get; set; }
 
@@ -20,12 +18,12 @@ namespace SharpStar.Lib.Packets
             Status = String.Empty;
         }
 
-        public void Read(IStarboundStream stream)
+        public override void Read(IStarboundStream stream)
         {
             Status = stream.ReadString();
         }
 
-        public void Write(IStarboundStream stream)
+        public override void Write(IStarboundStream stream)
         {
             stream.WriteString(Status);
         }

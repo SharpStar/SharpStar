@@ -2,20 +2,18 @@
 
 namespace SharpStar.Lib.Packets
 {
-    public class EntityUpdatePacket : IPacket
+    public class EntityUpdatePacket : Packet
     {
-        public byte PacketId
+        public override byte PacketId
         {
             get { return 43; }
         }
-
-        public bool Ignore { get; set; }
 
         public long EntityId { get; set; }
 
         public byte[] Delta { get; set; }
 
-        public void Read(IStarboundStream stream)
+        public override void Read(IStarboundStream stream)
         {
             int discarded;
 
@@ -23,7 +21,7 @@ namespace SharpStar.Lib.Packets
             Delta = stream.ReadUInt8Array();
         }
 
-        public void Write(IStarboundStream stream)
+        public override void Write(IStarboundStream stream)
         {
             stream.WriteSignedVLQ(EntityId);
             stream.WriteUInt8Array(Delta);

@@ -4,14 +4,12 @@ using SharpStar.Lib.Networking;
 namespace SharpStar.Lib.Packets
 {
     //Credit to StarNet (https://github.com/SirCmpwn/StarNet)
-    public class ClientConnectPacket : IPacket
+    public class ClientConnectPacket : Packet
     {
-        public byte PacketId
+        public override byte PacketId
         {
             get { return 7; }
         }
-
-        public bool Ignore { get; set; }
 
         public string AssetDigest;
         public Variant Claim;
@@ -35,11 +33,10 @@ namespace SharpStar.Lib.Packets
             Species = species;
             Shipworld = shipworld;
             Account = account;
-            Ignore = false;
         }
 
 
-        public void Read(IStarboundStream stream)
+        public override void Read(IStarboundStream stream)
         {
             AssetDigest = stream.ReadString();
             Claim = stream.ReadVariant();
@@ -52,7 +49,7 @@ namespace SharpStar.Lib.Packets
             Account = stream.ReadString();
         }
 
-        public void Write(IStarboundStream stream)
+        public override void Write(IStarboundStream stream)
         {
             stream.WriteString(AssetDigest);
             stream.WriteVariant(Claim);

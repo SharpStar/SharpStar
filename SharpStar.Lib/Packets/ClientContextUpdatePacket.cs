@@ -2,14 +2,12 @@
 
 namespace SharpStar.Lib.Packets
 {
-    public class ClientContextUpdatePacket : IPacket
+    public class ClientContextUpdatePacket : Packet
     {
-        public byte PacketId
+        public override byte PacketId
         {
             get { return 13; }
         }
-
-        public bool Ignore { get; set; }
 
         public byte[] Unknown { get; set; }
 
@@ -18,12 +16,12 @@ namespace SharpStar.Lib.Packets
             Unknown = new byte[0];
         }
 
-        public void Read(IStarboundStream stream)
+        public override void Read(IStarboundStream stream)
         {
             Unknown = stream.ReadUInt8Array();
         }
 
-        public void Write(IStarboundStream stream)
+        public override void Write(IStarboundStream stream)
         {
             stream.WriteUInt8Array(Unknown);
         }

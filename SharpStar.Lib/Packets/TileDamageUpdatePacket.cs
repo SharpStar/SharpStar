@@ -2,14 +2,12 @@
 
 namespace SharpStar.Lib.Packets
 {
-    public class TileDamageUpdatePacket : IPacket
+    public class TileDamageUpdatePacket : Packet
     {
-        public byte PacketId
+        public override byte PacketId
         {
             get { return 19; }
         }
-
-        public bool Ignore { get; set; }
 
         public int TileX { get; set; }
 
@@ -39,7 +37,7 @@ namespace SharpStar.Lib.Packets
             DamageType = 0;
         }
 
-        public void Read(IStarboundStream stream)
+        public override void Read(IStarboundStream stream)
         {
             TileX = stream.ReadInt32();
             TileY = stream.ReadInt32();
@@ -51,7 +49,7 @@ namespace SharpStar.Lib.Packets
             DamageType = stream.ReadUInt8();
         }
 
-        public void Write(IStarboundStream stream)
+        public override void Write(IStarboundStream stream)
         {
             stream.WriteInt32(TileX);
             stream.WriteInt32(TileY);

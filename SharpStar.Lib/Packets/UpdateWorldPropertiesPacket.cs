@@ -3,14 +3,12 @@ using SharpStar.Lib.Networking;
 
 namespace SharpStar.Lib.Packets
 {
-    public class UpdateWorldPropertiesPacket : IPacket
+    public class UpdateWorldPropertiesPacket : Packet
     {
-        public byte PacketId
+        public override byte PacketId
         {
             get { return 47; }
         }
-
-        public bool Ignore { get; set; }
 
         public byte NumPairs { get; set; }
 
@@ -18,14 +16,14 @@ namespace SharpStar.Lib.Packets
 
         public Variant PropertyValue { get; set; }
 
-        public void Read(IStarboundStream stream)
+        public override void Read(IStarboundStream stream)
         {
             NumPairs = stream.ReadUInt8();
             PropertyName = stream.ReadString();
             PropertyValue = stream.ReadVariant();
         }
 
-        public void Write(IStarboundStream stream)
+        public override void Write(IStarboundStream stream)
         {
             stream.WriteUInt8(NumPairs);
             stream.WriteString(PropertyName);

@@ -41,10 +41,6 @@ namespace SharpStar.Lib
 
         public PluginManager PluginManager { get; set; }
 
-        public SharpStarMain()
-        {
-        }
-
         public void Start()
         {
             string configFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), ConfigFile);

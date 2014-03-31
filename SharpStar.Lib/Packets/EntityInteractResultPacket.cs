@@ -3,14 +3,12 @@ using SharpStar.Lib.Networking;
 
 namespace SharpStar.Lib.Packets
 {
-    public class EntityInteractResultPacket : IPacket
+    public class EntityInteractResultPacket : Packet
     {
-        public byte PacketId
+        public override byte PacketId
         {
             get { return 24; }
         }
-
-        public bool Ignore { get; set; }
 
         public uint ClientId { get; set; }
 
@@ -18,14 +16,14 @@ namespace SharpStar.Lib.Packets
 
         public Variant Results { get; set; }
 
-        public void Read(IStarboundStream stream)
+        public override void Read(IStarboundStream stream)
         {
             ClientId = stream.ReadUInt32();
             EntityId = stream.ReadInt32();
             Results = stream.ReadVariant();
         }
 
-        public void Write(IStarboundStream stream)
+        public override void Write(IStarboundStream stream)
         {
             stream.WriteUInt32(ClientId);
             stream.WriteInt32(EntityId);

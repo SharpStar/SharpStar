@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using SharpStar.Lib.Entities;
+using System.Threading;
 
 namespace SharpStar.Lib.Server
 {
@@ -24,9 +25,9 @@ namespace SharpStar.Lib.Server
         {
             PlayerClient = plrClient;
             PlayerClient.Server = this;
-            PlayerClient.StartReceiving();
 
             ServerTcpClient = new TcpClient();
+            ServerTcpClient.NoDelay = true;
 
             ServerClient = new StarboundClient(ServerTcpClient.Client, Direction.Server);
             ServerClient.OtherClient = PlayerClient;
@@ -90,6 +91,7 @@ namespace SharpStar.Lib.Server
 
                 Connected = true;
 
+                PlayerClient.StartReceiving();
                 ServerClient.StartReceiving();
             }
             catch (Exception)

@@ -3,14 +3,12 @@ using SharpStar.Lib.Networking;
 
 namespace SharpStar.Lib.Packets
 {
-    public class HandshakeChallengePacket : IPacket
+    public class HandshakeChallengePacket : Packet
     {
-        public byte PacketId
+        public override byte PacketId
         {
             get { return 3; }
         }
-
-        public bool Ignore { get; set; }
 
         public string Claim { get; set; }
 
@@ -25,14 +23,14 @@ namespace SharpStar.Lib.Packets
             Rounds = 5000;
         }
 
-        public void Read(IStarboundStream stream)
+        public override void Read(IStarboundStream stream)
         {
             Claim = stream.ReadString();
             Salt = stream.ReadString();
             Rounds = stream.ReadInt32();
         }
 
-        public void Write(IStarboundStream stream)
+        public override void Write(IStarboundStream stream)
         {
             stream.WriteString(Claim);
             stream.WriteString(Salt);

@@ -3,15 +3,13 @@ using SharpStar.Lib.Networking;
 
 namespace SharpStar.Lib.Packets
 {
-    public class WorldStartPacket : IPacket
+    public class WorldStartPacket : Packet
     {
-        public byte PacketId
+
+        public override byte PacketId
         {
             get { return 14; }
         }
-
-        public bool Ignore { get; set; }
-
 
         public Variant Planet { get; set; }
 
@@ -31,11 +29,7 @@ namespace SharpStar.Lib.Packets
 
         public bool Local { get; set; }
 
-        public WorldStartPacket()
-        {
-        }
-
-        public void Read(IStarboundStream stream)
+        public override void Read(IStarboundStream stream)
         {
             Planet = stream.ReadVariant();
             WorldStructure = stream.ReadVariant();
@@ -48,7 +42,7 @@ namespace SharpStar.Lib.Packets
             Local = stream.ReadBoolean();
         }
 
-        public void Write(IStarboundStream stream)
+        public override void Write(IStarboundStream stream)
         {
             stream.WriteVariant(Planet);
             stream.WriteVariant(WorldStructure);

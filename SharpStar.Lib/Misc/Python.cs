@@ -32,7 +32,14 @@ namespace SharpStar.Lib.Misc
             string[] keys = pythonKey.GetSubKeyNames();
 
             if (keys.Length == 0)
+            {
+
+                pythonKey.Close();
+                pythonKey.Dispose();
+
                 return null;
+
+            }
 
             RegistryKey pyInstallKey = pythonKey.OpenSubKey(String.Format(@"{0}\InstallPath", keys[0]));
 

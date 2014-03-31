@@ -4,14 +4,12 @@ using SharpStar.Lib.Networking;
 
 namespace SharpStar.Lib.Packets
 {
-    public class WarpCommandPacket : IPacket
+    public class WarpCommandPacket : Packet
     {
-        public byte PacketId
+        public override byte PacketId
         {
             get { return 10; }
         }
-
-        public bool Ignore { get; set; }
 
         public WarpType WarpType { get; set; }
 
@@ -25,14 +23,14 @@ namespace SharpStar.Lib.Packets
             Coordinates = new WorldCoordinate();
         }
 
-        public void Read(IStarboundStream stream)
+        public override void Read(IStarboundStream stream)
         {
             WarpType = (WarpType) stream.ReadUInt32();
             Coordinates = stream.ReadWorldCoordinate();
             Player = stream.ReadString();
         }
 
-        public void Write(IStarboundStream stream)
+        public override void Write(IStarboundStream stream)
         {
             stream.WriteUInt32((uint) WarpType);
             stream.WriteWorldCoordinate(Coordinates);

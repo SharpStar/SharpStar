@@ -2,25 +2,23 @@
 
 namespace SharpStar.Lib.Packets
 {
-    public class HeartbeatPacket : IPacket
+    public class HeartbeatPacket : Packet
     {
-        public byte PacketId
+        public override byte PacketId
         {
             get { return 48; }
         }
 
-        public bool Ignore { get; set; }
-
         public ulong CurrentStep { get; set; }
 
-        public void Read(IStarboundStream stream)
+        public override void Read(IStarboundStream stream)
         {
             int discarded;
 
             CurrentStep = stream.ReadVLQ(out discarded);
         }
 
-        public void Write(IStarboundStream stream)
+        public override void Write(IStarboundStream stream)
         {
             stream.WriteVLQ(CurrentStep);
         }

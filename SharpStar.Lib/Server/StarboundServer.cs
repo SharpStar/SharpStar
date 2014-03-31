@@ -2,18 +2,20 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace SharpStar.Lib.Server
 {
     public class StarboundServer : IDisposable
     {
-        private static readonly object ClientLocker = new object();
+
+        private readonly object _clientLocker = new object();
 
         private bool _disposed;
 
         public const int NetworkPort = 21024;
         public const int ClientBufferLength = 1024;
-        public const int ProtocolVersion = 636;
+        public const int ProtocolVersion = 639;
 
         private readonly int _serverPort;
 
@@ -56,38 +58,44 @@ namespace SharpStar.Lib.Server
             try
             {
                 Socket socket = Listener.EndAcceptSocket(iar);
+                socket.NoDelay = true;
 
                 IPEndPoint ipe = (IPEndPoint)socket.RemoteEndPoint;
 
                 Console.WriteLine("Connection from {0}", ipe);
 
-                StarboundClient sc = new StarboundClient(socket, Direction.Client);
-
-
-                ssc = new StarboundServerClient(sc);
-                ssc.Disconnected += (sender, args) =>
+                new Thread(() =>
                 {
-                    lock (ClientLocker)
+
+                    StarboundClient sc = new StarboundClient(socket, Direction.Client);
+                    ssc = new StarboundServerClient(sc);
+                    
+                    ssc.Disconnected += (sender, args) =>
                     {
-                        if (Clients.Contains(ssc))
+                        lock (_clientLocker)
                         {
+                            if (Clients.Contains(ssc))
+                            {
 
-                            if (ssc.Player != null)
-                                Console.WriteLine("Player {0} disconnected", ssc.Player.Name);
-                            else
-                                Console.WriteLine("{0} disconnected", ipe);
+                                if (ssc.Player != null)
+                                    Console.WriteLine("Player {0} disconnected", ssc.Player.Name);
+                                else
+                                    Console.WriteLine("{0} disconnected", ipe);
 
-                            Clients.Remove(ssc);
+                                Clients.Remove(ssc);
 
-                            ssc.Dispose();
+                                ssc.Dispose();
+                            }
                         }
-                    }
-                };
+                    };
 
-                ssc.Connect(_serverPort);
+                    ssc.Connect(_serverPort);
 
-                lock (ClientLocker)
-                    Clients.Add(ssc);
+                    lock (_clientLocker)
+                        Clients.Add(ssc);
+
+                }).Start();
+
             }
             catch (SocketException)
             {

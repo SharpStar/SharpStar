@@ -103,6 +103,8 @@
     <Compile Include="Extensions\SocketExtensions.cs" />
     <Compile Include="Misc\OS.cs" />
     <Compile Include="Misc\Python.cs" />
+    <Compile Include="Packets\Handlers\ProtocolVersionPacketHandler.cs" />
+    <Compile Include="Packets\Packet.cs" />
     <Compile Include="Plugins\PyPlugin.cs" />
     <Compile Include="Starbound\Block.cs" />
     <Compile Include="Starbound\BlockSignature.cs" />

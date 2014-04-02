@@ -14,5 +14,13 @@ namespace SharpStar.Lib.Config
         [JsonProperty("PythonLibLocation")]
         public string PythonLibLocation { get; set; }
 
+        [JsonProperty("enableAccounts")]
+        public bool EnableAccounts { get; set; }
+
+        public SharpStarConfigFile()
+        {
+            EnableAccounts = true;
+        }
+
     }
 }

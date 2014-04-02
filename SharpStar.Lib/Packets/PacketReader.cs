@@ -77,6 +77,7 @@ namespace SharpStar.Lib.Packets
 
                             if (Compressed)
                                 WorkingLength = -WorkingLength;
+
                             if (WorkingLength > MaxPacketLength)
                                 throw new IOException("Packet exceeded maximum permissible length.");
 
@@ -146,6 +147,7 @@ namespace SharpStar.Lib.Packets
 
             if (packet != null)
             {
+
                 packet.Read(stream);
 
                 packets.Add(packet);

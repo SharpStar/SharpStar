@@ -18,6 +18,10 @@ namespace SharpStar.Lib.Packets
 
         public byte[] Unknown { get; set; }
 
+        public ConnectionResponsePacket()
+        {
+            Unknown = new byte[0];
+        }
 
         public override void Read(IStarboundStream stream)
         {

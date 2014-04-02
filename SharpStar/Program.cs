@@ -92,10 +92,68 @@ namespace SharpStar
 
                         break;
 
+                    case "addperm":
+
+                        if (cmd.Length == 4)
+                        {
+
+                            var user = m.Database.GetUser(cmd[1]);
+
+                            if (user == null)
+                            {
+                                Console.WriteLine("User does not exist!");
+                            }
+                            else
+                            {
+
+                                bool allowed;
+
+                                bool.TryParse(cmd[3], out allowed);
+
+                                m.Database.AddPlayerPermission(user.Id, cmd[2], allowed);
+
+                                Console.WriteLine("Added permission to user {0}!", user.Username);
+                            }
+
+                        }
+                        else
+                        {
+                            Console.WriteLine("Syntax: addperm <username> <permission> <allowed>");
+                        }
+
+                        break;
+
+                    case "removeperm":
+
+                        if (cmd.Length == 3)
+                        {
+
+                            var user = m.Database.GetUser(cmd[1]);
+
+                            if (user == null)
+                            {
+                                Console.WriteLine("User does not exist!");
+                            }
+                            else
+                            {
+
+                                m.Database.DeletePlayerPermission(user.Id, cmd[2]);
+
+                                Console.WriteLine("Permission removed from {0}!", user.Username);
+
+                            }
+                            
+                        }
+                        else
+                        {
+                            Console.WriteLine("Syntax: removeperm <username> <permission>");
+                        }
+
+                        break;
+
                     default:
 
-                        m.PluginManager.PassChatCommand(null, cmd[0],
-                            new string(line.Skip(cmd[0].Length + 1).ToArray()).Split(' '));
+                        m.PluginManager.PassChatCommand(null, cmd[0], new string(line.Skip(cmd[0].Length + 1).ToArray()).Split(' '));
 
                         break;
                 }

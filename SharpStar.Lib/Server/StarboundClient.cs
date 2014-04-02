@@ -44,7 +44,7 @@ namespace SharpStar.Lib.Server
 
         private readonly List<IPacketHandler> _packetHandlers;
 
-        private Timer _connTimer;
+        private readonly Timer _connTimer;
 
         public StarboundClient(Socket socket, Direction dir)
         {
@@ -65,6 +65,7 @@ namespace SharpStar.Lib.Server
             PacketReader.RegisterPacketType(5, typeof(UniverseTimeUpdatePacket));
             PacketReader.RegisterPacketType(7, typeof(ClientConnectPacket));
             PacketReader.RegisterPacketType(8, typeof(ClientDisconnectPacket));
+            PacketReader.RegisterPacketType(9, typeof(HandshakeResponsePacket));
             PacketReader.RegisterPacketType(10, typeof(WarpCommandPacket));
             PacketReader.RegisterPacketType(11, typeof(ChatSentPacket));
             PacketReader.RegisterPacketType(13, typeof(ClientContextUpdatePacket));
@@ -87,6 +88,7 @@ namespace SharpStar.Lib.Server
             RegisterPacketHandler(new ProtocolVersionPacketHandler());
             RegisterPacketHandler(new ClientConnectPacketHandler());
             RegisterPacketHandler(new ClientDisconnectPacketHandler());
+            RegisterPacketHandler(new HandshakeResponsePacketHandler());
             RegisterPacketHandler(new ChatSentPacketHandler());
             RegisterPacketHandler(new RequestDropPacketHandler());
             RegisterPacketHandler(new WarpCommandPacketHandler());

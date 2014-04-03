@@ -33,7 +33,7 @@ namespace SharpStar.Lib.Database
 
         }
 
-        public bool AddUser(string username, string password)
+        public bool AddUser(string username, string password, bool admin = false)
         {
 
             var conn = new SQLiteConnection(DatabaseName);
@@ -47,7 +47,7 @@ namespace SharpStar.Lib.Database
 
                 string salt = SharpStarSecurity.GenerateSalt();
 
-                conn.Insert(new SharpStarUser { Username = username, Hash = SharpStarSecurity.GenerateHash(username, password, salt, 5000), Salt = salt });
+                conn.Insert(new SharpStarUser { Username = username, Hash = SharpStarSecurity.GenerateHash(username, password, salt, 5000), Salt = salt, IsAdmin = admin });
             
             }
 
@@ -130,6 +130,22 @@ namespace SharpStar.Lib.Database
             var tbl = conn.Table<SharpStarUser>();
 
             SharpStarUser user = tbl.SingleOrDefault(p => p.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+
+            conn.Close();
+            conn.Dispose();
+
+            return user;
+
+        }
+
+        public SharpStarUser GetUser(int id)
+        {
+
+            var conn = new SQLiteConnection(DatabaseName);
+
+            var tbl = conn.Table<SharpStarUser>();
+
+            SharpStarUser user = tbl.SingleOrDefault(p => p.Id == id);
 
             conn.Close();
             conn.Dispose();
@@ -242,6 +258,22 @@ namespace SharpStar.Lib.Database
             {
                 conn.Delete<SharpStarPermission>(perm.Id);
             }
+
+            conn.Close();
+            conn.Dispose();
+
+        }
+
+        public void ChangeAdminStatus(int userId, bool admin)
+        {
+
+            var conn = new SQLiteConnection(DatabaseName);
+
+            var usr = GetUser(userId);
+
+            usr.IsAdmin = admin;
+
+            conn.Update(usr);
 
             conn.Close();
             conn.Dispose();

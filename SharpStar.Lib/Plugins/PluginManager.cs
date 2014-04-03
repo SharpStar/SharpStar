@@ -108,17 +108,20 @@ namespace SharpStar.Lib.Plugins
 
         public bool PassChatCommand(StarboundClient client, string command, string[] args)
         {
-            bool anyRegistered = false;
+
+            bool anyRegistered;
 
             lock (_pluginLocker)
             {
-                _csPluginManager.PassChatCommand(client, command, args);
+
+                anyRegistered = _csPluginManager.PassChatCommand(client, command, args);
 
                 foreach (IPlugin plugin in _plugins)
                 {
                     if (plugin.PassChatCommand(command, client, args))
                         anyRegistered = true;
                 }
+
             }
 
             return anyRegistered;

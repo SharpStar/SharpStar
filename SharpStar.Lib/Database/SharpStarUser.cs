@@ -18,6 +18,8 @@ namespace SharpStar.Lib.Database
 
         public string Salt { get; set; }
 
+        public bool IsAdmin { get; set; }
+
         public DateTime LastLogin { get; set; }
 
     }

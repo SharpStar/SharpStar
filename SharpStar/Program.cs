@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using SharpStar.Lib;
+using SharpStar.Lib.Database;
 using SharpStar.Lib.Plugins;
 
 namespace SharpStar
@@ -18,6 +19,8 @@ namespace SharpStar
             Console.WriteLine("SharpStar Version {0}.{1}.{2}", ver.Major, ver.Minor, ver.Build);
 
             m.Start();
+
+            SharpStarUser user = null;
 
             bool running = true;
             while (running)
@@ -97,7 +100,7 @@ namespace SharpStar
                         if (cmd.Length == 4)
                         {
 
-                            var user = m.Database.GetUser(cmd[1]);
+                            user = m.Database.GetUser(cmd[1]);
 
                             if (user == null)
                             {
@@ -128,7 +131,7 @@ namespace SharpStar
                         if (cmd.Length == 3)
                         {
 
-                            var user = m.Database.GetUser(cmd[1]);
+                            user = m.Database.GetUser(cmd[1]);
 
                             if (user == null)
                             {
@@ -142,11 +145,54 @@ namespace SharpStar
                                 Console.WriteLine("Permission removed from {0}!", user.Username);
 
                             }
-                            
+
                         }
                         else
                         {
                             Console.WriteLine("Syntax: removeperm <username> <permission>");
+                        }
+
+                        break;
+
+                    case "op":
+
+                        if (cmd.Length == 2)
+                        {
+
+                            user = m.Database.GetUser(cmd[1]);
+
+                            if (user == null)
+                            {
+                                Console.WriteLine("User does not exist!");
+                            }
+                            else
+                            {
+
+                                m.Database.ChangeAdminStatus(user.Id, true);
+
+                                Console.WriteLine("{0} is now an admin!", user.Username);
+
+                            }
+
+                        }
+
+                        break;
+
+                    case "deop":
+
+                        user = m.Database.GetUser(cmd[1]);
+
+                        if (user == null)
+                        {
+                            Console.WriteLine("User does not exist!");
+                        }
+                        else
+                        {
+
+                            m.Database.ChangeAdminStatus(user.Id, false);
+
+                            Console.WriteLine("{0} is no longer an admin!", user.Username);
+
                         }
 
                         break;

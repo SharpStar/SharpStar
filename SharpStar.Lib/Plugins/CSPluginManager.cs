@@ -51,13 +51,18 @@ namespace SharpStar.Lib.Plugins
             }
         }
 
-        public void PassChatCommand(StarboundClient client, string command, string[] args)
+        public bool PassChatCommand(StarboundClient client, string command, string[] args)
         {
+
+            bool result = false;
 
             foreach (ICSPlugin plugin in _csPlugins.Values)
             {
-                plugin.OnChatCommandReceived(client, command, args);
+                if (plugin.OnChatCommandReceived(client, command, args))
+                    result = true;
             }
+
+            return result;
 
         }
 

@@ -16,7 +16,7 @@ namespace SharpStar.Lib.Plugins
 
         void OnEventOccurred(string evtName, IPacket packet, StarboundClient client, params object[] args);
 
-        void OnChatCommandReceived(StarboundClient client, string command, string[] args);
+        bool OnChatCommandReceived(StarboundClient client, string command, string[] args);
 
     }
 }

@@ -116,6 +116,7 @@
     <Compile Include="DataTypes\Variant.cs" />
     <Compile Include="DataTypes\VariantDict.cs" />
     <Compile Include="Entities\Entity.cs" />
+    <Compile Include="Entities\ProjectileEntity.cs" />
     <Compile Include="Entities\StarboundPlayer.cs" />
     <Compile Include="Extensions\SocketExtensions.cs" />
     <Compile Include="Misc\OS.cs" />

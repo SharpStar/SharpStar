@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using IronPython.Hosting;
 using Microsoft.Scripting.Hosting;
@@ -48,15 +49,22 @@ namespace SharpStar.Lib.Plugins
 
             string pyLoc = SharpStarMain.Instance.Config.ConfigFile.PythonLibLocation;
 
+            string libPath = Path.Combine(SharpStarMain.AssemblyPath, "pylib");
+
+            if (!Directory.Exists(libPath))
+            {
+                Directory.CreateDirectory(libPath);
+            }
+
+            var paths = _engine.GetSearchPaths();
+            paths.Add(libPath);
+
             if (!string.IsNullOrEmpty(pyLoc) && Directory.Exists(pyLoc))
             {
-
-                var paths = _engine.GetSearchPaths();
                 paths.Add(pyLoc);
-
-                _engine.SetSearchPaths(paths);
-
             }
+
+            _engine.SetSearchPaths(paths);
 
             _engine.Runtime.IO.SetOutput(Console.OpenStandardOutput(), Encoding.ASCII);
             _engine.Runtime.IO.SetOutput(Console.OpenStandardError(), Encoding.ASCII);

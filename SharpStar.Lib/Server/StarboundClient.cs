@@ -5,7 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Timers;
+using System.Threading;
+using System.Threading.Tasks;
 using Ionic.Zlib;
 using SharpStar.Lib.DataTypes;
 using SharpStar.Lib.Entities;
@@ -44,16 +45,16 @@ namespace SharpStar.Lib.Server
 
         private readonly List<IPacketHandler> _packetHandlers;
 
-        private readonly Timer _connTimer;
+        public event EventHandler<PacketReceivedEventArgs> PacketReceived;
 
         public StarboundClient(Socket socket, Direction dir)
         {
 
+            Socket = socket;
             Direction = dir;
 
             _packetHandlers = new List<IPacketHandler>();
 
-            Socket = socket;
             PacketQueue = new ConcurrentQueue<IPacket>();
 
             PacketReader = new PacketReader();
@@ -111,11 +112,6 @@ namespace SharpStar.Lib.Server
             RegisterPacketHandler(new UpdateWorldPropertiesPacketHandler());
             RegisterPacketHandler(new HeartbeatPacketHandler());
 
-            _connTimer = new Timer(TimeSpan.FromSeconds(15).TotalMilliseconds);
-            _connTimer.Elapsed += (sender, e) => CheckConnection();
-            _connTimer.Start();
-
-
         }
 
         public void RegisterPacketHandler(IPacketHandler handler)
@@ -130,12 +126,6 @@ namespace SharpStar.Lib.Server
 
         #region Connection
 
-        public void StartReceiving()
-        {
-            Socket.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None,
-                ClientDataReceived, null);
-        }
-
         public void ForceDisconnect()
         {
             Server.ForceDisconnect();
@@ -147,72 +137,49 @@ namespace SharpStar.Lib.Server
             FlushPackets();
         }
 
-        private void ClientDataReceived(IAsyncResult iar)
+        protected void Send(byte[] buf)
         {
-            try
-            {
 
-                if (Socket == null)
-                    return;
+            SocketAsyncEventArgs completeArgs = new SocketAsyncEventArgs();
+            completeArgs.RemoteEndPoint = Socket.RemoteEndPoint;
+            completeArgs.SetBuffer(buf, 0, buf.Length);
+            completeArgs.Completed += (sender, e) => e.Dispose();
 
-                int length = Socket.EndReceive(iar);
+            Socket.SendAsync(completeArgs);
 
-                List<IPacket> packets = PacketReader.UpdateBuffer(length);
-
-                bool disconnectPacket = false;
-
-                foreach (var packet in packets)
-                {
-                    SharpStarMain.Instance.PluginManager.CallEvent("packetReceived", packet, OtherClient);
-
-                    foreach (var handler in _packetHandlers)
-                    {
-                        if (packet.PacketId == handler.PacketId)
-                            handler.Handle(packet, this);
-                    }
-
-                    if (!packet.Ignore)
-                        OtherClient.SendPacket(packet);
-
-                    SharpStarMain.Instance.PluginManager.CallEvent("afterPacketReceived", packet, OtherClient);
-
-                    foreach (var handler in _packetHandlers)
-                    {
-                        if (packet.PacketId == handler.PacketId)
-                            handler.HandleAfter(packet, this);
-                    }
-
-                    if (packet is DisconnectResponsePacket)
-                    {
-                        disconnectPacket = true;
-
-                        ForceDisconnect();
-                    }
-
-                }
-
-                if (!disconnectPacket)
-                    Socket.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length,
-                        SocketFlags.None, ClientDataReceived, null);
-
-            }
-            catch (Exception)
-            {
-                ForceDisconnect();
-            }
         }
 
-        public bool CheckConnection()
+        internal void IncomingData(int length)
         {
 
-            if (Socket == null || (Socket != null && !Socket.IsConnected()))
+            List<IPacket> packets = PacketReader.UpdateBuffer(length);
+
+            foreach (IPacket packet in packets)
             {
-                ForceDisconnect();
 
-                return false;
+                if (PacketReceived != null)
+                    PacketReceived(this, new PacketReceivedEventArgs(packet));
+
+                SharpStarMain.Instance.PluginManager.CallEvent("packetReceived", packet, OtherClient);
+
+                foreach (var handler in _packetHandlers)
+                {
+                    if (packet.PacketId == handler.PacketId)
+                        handler.Handle(packet, this);
+                }
+
+                if (!packet.Ignore)
+                    OtherClient.SendPacket(packet);
+
+                SharpStarMain.Instance.PluginManager.CallEvent("afterPacketReceived", packet, OtherClient);
+
+                foreach (var handler in _packetHandlers)
+                {
+                    if (packet.PacketId == handler.PacketId)
+                        handler.HandleAfter(packet, this);
+                }
+
             }
-
-            return true;
 
         }
 
@@ -220,6 +187,7 @@ namespace SharpStar.Lib.Server
         {
             while (PacketQueue.Count > 0)
             {
+
                 try
                 {
                     IPacket next;
@@ -251,7 +219,7 @@ namespace SharpStar.Lib.Server
 
                     byte[] toSend = finalMemStream.ToArray();
 
-                    Socket.BeginSend(toSend, 0, toSend.Length, SocketFlags.None, PacketSent, null);
+                    Send(toSend);
 
                     stream.Close();
                     finalStream.Close();
@@ -264,18 +232,6 @@ namespace SharpStar.Lib.Server
                 {
                     ForceDisconnect();
                 }
-            }
-        }
-
-        private void PacketSent(IAsyncResult iar)
-        {
-            try
-            {
-                Socket.EndSend(iar);
-            }
-            catch (Exception)
-            {
-                ForceDisconnect();
             }
         }
 
@@ -349,17 +305,9 @@ namespace SharpStar.Lib.Server
         {
             if (disposing)
             {
-                if (Socket != null)
-                    Socket.Close();
 
                 if (PacketReader != null)
                     PacketReader.Dispose();
-
-                if (_connTimer != null)
-                {
-                    _connTimer.Stop();
-                    _connTimer.Close();
-                }
 
             }
 
@@ -369,4 +317,17 @@ namespace SharpStar.Lib.Server
 
         #endregion
     }
+
+    public class PacketReceivedEventArgs : EventArgs
+    {
+
+        public IPacket Packet { get; set; }
+
+        public PacketReceivedEventArgs(IPacket packet)
+        {
+            Packet = packet;
+        }
+
+    }
+
 }

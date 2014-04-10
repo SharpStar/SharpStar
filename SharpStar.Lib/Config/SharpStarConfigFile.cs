@@ -17,9 +17,13 @@ namespace SharpStar.Lib.Config
         [JsonProperty("enableAccounts")]
         public bool EnableAccounts { get; set; }
 
+        [JsonProperty("maxPlayers")]
+        public int MaxPlayers { get; set; }
+
         public SharpStarConfigFile()
         {
             EnableAccounts = true;
+            MaxPlayers = 100;
         }
 
     }

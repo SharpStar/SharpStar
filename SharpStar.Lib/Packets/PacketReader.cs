@@ -25,8 +25,6 @@ namespace SharpStar.Lib.Packets
 
         public PacketReader()
         {
-            NetworkBuffer = new byte[5];
-
             _registeredPacketTypes = new Dictionary<byte, Func<IPacket>>();
         }
 
@@ -53,7 +51,7 @@ namespace SharpStar.Lib.Packets
                 if (PacketBuffer.Length < index + length)
                     Array.Resize(ref PacketBuffer, index + length);
 
-                Array.Copy(NetworkBuffer, 0, PacketBuffer, index, length);
+                Buffer.BlockCopy(NetworkBuffer, 0, PacketBuffer, index, length);
                 
                 if (PacketBuffer.Length > 1)
                 {
@@ -97,7 +95,7 @@ namespace SharpStar.Lib.Packets
                 if (PacketBuffer.Length < index + length)
                     Array.Resize(ref PacketBuffer, index + length);
 
-                Array.Copy(NetworkBuffer, 0, PacketBuffer, index, length);
+                Buffer.BlockCopy(NetworkBuffer, 0, PacketBuffer, index, length);
 
                 if (PacketBuffer.Length >= WorkingLength + DataIndex)
                 {
@@ -105,15 +103,16 @@ namespace SharpStar.Lib.Packets
                     // Ready to decode packet
                     var data = new byte[WorkingLength];
                     
-                    Array.Copy(PacketBuffer, DataIndex, data, 0, WorkingLength);
+                    Buffer.BlockCopy(PacketBuffer, DataIndex, data, 0, (int)WorkingLength);
                     
                     if (Compressed)
                         data = ZlibStream.UncompressBuffer(data);
                     
                     var packets = Decode(PacketBuffer[0], data);
-                    
-                    Array.Copy(PacketBuffer, DataIndex + WorkingLength, PacketBuffer, 0,
-                        PacketBuffer.Length - (DataIndex + WorkingLength));
+
+                    Buffer.BlockCopy(PacketBuffer, (int)(DataIndex + WorkingLength), PacketBuffer, 0,
+                        (int)(PacketBuffer.Length - (DataIndex + WorkingLength)));
+                   
                     Array.Resize(ref PacketBuffer, (int)(PacketBuffer.Length - (DataIndex + WorkingLength)));
                     
                     WorkingLength = long.MaxValue;
@@ -151,6 +150,7 @@ namespace SharpStar.Lib.Packets
                 packet.Read(stream);
 
                 packets.Add(packet);
+
             }
 
             stream.Close();

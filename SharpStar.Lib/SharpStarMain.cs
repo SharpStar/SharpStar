@@ -31,6 +31,8 @@ namespace SharpStar.Lib
             }
         }
 
+        public static string AssemblyPath = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.FullName;
+
         private const string ConfigFile = "sharpstar.json";
 
         private const int DefaultListenPort = 21025;
@@ -81,17 +83,20 @@ namespace SharpStar.Lib
 
             Console.WriteLine("Listening on port {0}", Config.ConfigFile.ListenPort);
 
-            Server = new StarboundServer(Config.ConfigFile.ListenPort, Config.ConfigFile.ServerPort);
+            Server = new StarboundServer(Config.ConfigFile.ListenPort, Config.ConfigFile.ServerPort, Config.ConfigFile.MaxPlayers);
             Server.Start();
 
             PluginManager.LoadPlugins();
+
         }
 
         public void Shutdown()
         {
+
             PluginManager.UnloadPlugins();
 
             Server.Stop();
+
         }
     }
 }

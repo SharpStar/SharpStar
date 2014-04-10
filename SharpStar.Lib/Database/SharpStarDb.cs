@@ -110,10 +110,16 @@ namespace SharpStar.Lib.Database
             
             }
 
-            conn.Delete<SharpStarUser>(user.Id);
+            var permTbl = conn.Table<SharpStarPermission>();
+            var perms = permTbl.Where(p => p.UserId == user.Id);
 
             //cleanup
-            DeletePlayerPermissions(user.Id);
+            foreach (var perm in perms)
+            {
+                conn.Delete<SharpStarPermission>(perm.Id);
+            }
+
+            conn.Delete<SharpStarUser>(user.Id);
 
             conn.Close();
             conn.Dispose();
@@ -242,25 +248,6 @@ namespace SharpStar.Lib.Database
                 return;
 
             conn.Delete<SharpStarPermission>(perm.Id);
-
-        }
-
-        public void DeletePlayerPermissions(int userId)
-        {
-
-            var conn = new SQLiteConnection(DatabaseName);
-
-            var tbl = conn.Table<SharpStarPermission>();
-
-            var perms = tbl.Where(p => p.UserId == userId);
-
-            foreach (var perm in perms)
-            {
-                conn.Delete<SharpStarPermission>(perm.Id);
-            }
-
-            conn.Close();
-            conn.Dispose();
 
         }
 

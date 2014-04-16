@@ -128,6 +128,10 @@ namespace SharpStar.Lib.Networking
 
         WorldCoordinate ReadWorldCoordinate();
 
+        SystemCoordinate ReadSystemCoordinate();
+
+        CelestialLog ReadCelestialLog();
+
         void WriteWorldCoordinate(WorldCoordinate coordinate);
 
     }

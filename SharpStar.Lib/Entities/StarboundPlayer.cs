@@ -14,6 +14,8 @@ namespace SharpStar.Lib.Entities
 
         public PlanetCoordinate Coordinates { get; set; }
 
+        public WorldCoordinate HomeCoordinates { get; set; }
+
         public bool OnShip { get; set; }
 
         public bool AttemptedLogin { get; set; }

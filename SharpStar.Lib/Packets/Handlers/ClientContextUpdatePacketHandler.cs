@@ -1,4 +1,5 @@
-﻿using SharpStar.Lib.Server;
+﻿using SharpStar.Lib.DataTypes;
+using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
 {

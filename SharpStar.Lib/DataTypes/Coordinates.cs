@@ -126,6 +126,50 @@ namespace SharpStar.Lib.DataTypes
         public static readonly Coordinates2D Right = new Coordinates2D(1, 0);
     }
 
+    public class SystemCoordinate
+    {
+
+        public string Sector { get; set; }
+
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Z { get; set; }
+
+        public SystemCoordinate()
+        {
+        }
+
+        public SystemCoordinate(string sector, int x, int y, int z)
+        {
+            Sector = sector;
+            X = x;
+            Y = y;
+            Y = z;
+        }
+
+        public static SystemCoordinate FromStream(IStarboundStream stream)
+        {
+
+            SystemCoordinate coord = new SystemCoordinate();
+            coord.Sector = stream.ReadString();
+            coord.X = stream.ReadInt32();
+            coord.Y = stream.ReadInt32();
+            coord.Z = stream.ReadInt32();
+
+            return coord;
+            
+        }
+
+        public void WriteTo(IStarboundStream stream)
+        {
+            stream.WriteString(Sector);
+            stream.WriteInt32(X);
+            stream.WriteInt32(Y);
+            stream.WriteInt32(Z);
+        }
+
+    }
+
     public class WorldCoordinate
     {
 
@@ -174,6 +218,43 @@ namespace SharpStar.Lib.DataTypes
             stream.WriteInt32(Z);
             stream.WriteInt32(Planet);
             stream.WriteInt32(Satellite);
+        }
+
+        protected bool Equals(WorldCoordinate other)
+        {
+            return string.Equals(Sector, other.Sector) && X == other.X && Y == other.Y && Z == other.Z && Planet == other.Planet && Satellite == other.Satellite;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((WorldCoordinate) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = (Sector != null ? Sector.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ X;
+                hashCode = (hashCode * 397) ^ Y;
+                hashCode = (hashCode * 397) ^ Z;
+                hashCode = (hashCode * 397) ^ Planet;
+                hashCode = (hashCode * 397) ^ Satellite;
+                return hashCode;
+            }
+        }
+
+        public static bool operator ==(WorldCoordinate w1, WorldCoordinate w2)
+        {
+            return w1.Equals(w2);
+        }
+
+        public static bool operator !=(WorldCoordinate w1, WorldCoordinate w2)
+        {
+            return !(w1 == w2);
         }
 
         public override string ToString()

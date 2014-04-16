@@ -5,8 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using Ionic.Zlib;
 using SharpStar.Lib.DataTypes;
 using SharpStar.Lib.Entities;
@@ -47,6 +47,8 @@ namespace SharpStar.Lib.Server
 
         public event EventHandler<PacketReceivedEventArgs> PacketReceived;
 
+        private readonly Timer _connTimer;
+
         public StarboundClient(Socket socket, Direction dir)
         {
 
@@ -74,6 +76,7 @@ namespace SharpStar.Lib.Server
             PacketReader.RegisterPacketType(15, typeof(WorldStopPacket));
             PacketReader.RegisterPacketType(19, typeof(TileDamageUpdatePacket));
             PacketReader.RegisterPacketType(21, typeof(GiveItemPacket));
+            PacketReader.RegisterPacketType(23, typeof(EnvironmentUpdatePacket));
             PacketReader.RegisterPacketType(24, typeof(EntityInteractResultPacket));
             PacketReader.RegisterPacketType(28, typeof(RequestDropPacket));
             PacketReader.RegisterPacketType(33, typeof(OpenContainerPacket));
@@ -106,11 +109,16 @@ namespace SharpStar.Lib.Server
             RegisterPacketHandler(new WorldStartPacketHandler());
             RegisterPacketHandler(new TileDamageUpdatePacketHandler());
             RegisterPacketHandler(new GiveItemPacketHandler());
+            RegisterPacketHandler(new EnvironmentUpdatePacketHandler());
             RegisterPacketHandler(new EntityCreatePacketHandler());
             //RegisterPacketHandler(new EntityUpdatePacketHandler());
             RegisterPacketHandler(new EntityDestroyPacketHandler());
             RegisterPacketHandler(new UpdateWorldPropertiesPacketHandler());
             RegisterPacketHandler(new HeartbeatPacketHandler());
+
+            _connTimer = new Timer(TimeSpan.FromSeconds(15).TotalMilliseconds);
+            _connTimer.Elapsed += (sender, e) => CheckConnection();
+            _connTimer.Start();
 
         }
 
@@ -126,6 +134,12 @@ namespace SharpStar.Lib.Server
 
         #region Connection
 
+        public void StartReceiving()
+        {
+            Socket.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None,
+                ClientDataReceived, null);
+        }
+
         public void ForceDisconnect()
         {
             Server.ForceDisconnect();
@@ -137,50 +151,71 @@ namespace SharpStar.Lib.Server
             FlushPackets();
         }
 
-        protected void Send(byte[] buf)
+        private void ClientDataReceived(IAsyncResult iar)
         {
 
-            SocketAsyncEventArgs completeArgs = new SocketAsyncEventArgs();
-            completeArgs.RemoteEndPoint = Socket.RemoteEndPoint;
-            completeArgs.SetBuffer(buf, 0, buf.Length);
-            completeArgs.Completed += (sender, e) => e.Dispose();
+            if (Socket == null)
+                return;
 
-            Socket.SendAsync(completeArgs);
+            try
+            {
+
+                int length = Socket.EndReceive(iar);
+
+                List<IPacket> packets = PacketReader.UpdateBuffer(null, length);
+
+                foreach (var packet in packets)
+                {
+
+                    try
+                    {
+
+                        SharpStarMain.Instance.PluginManager.CallEvent("packetReceived", packet, OtherClient);
+
+                        foreach (var handler in _packetHandlers)
+                        {
+                            if (packet.PacketId == handler.PacketId)
+                                handler.Handle(packet, this);
+                        }
+
+                        if (!packet.Ignore)
+                            OtherClient.SendPacket(packet);
+
+                        SharpStarMain.Instance.PluginManager.CallEvent("afterPacketReceived", packet, OtherClient);
+
+                        foreach (var handler in _packetHandlers)
+                        {
+                            if (packet.PacketId == handler.PacketId)
+                                handler.HandleAfter(packet, this);
+                        }
+
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                }
+
+                Socket.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None, ClientDataReceived, null);
+
+            }
+            catch (Exception)
+            {
+                ForceDisconnect();
+            }
 
         }
 
-        internal void IncomingData(int length)
+        private void PacketSent(IAsyncResult iar)
         {
-
-            List<IPacket> packets = PacketReader.UpdateBuffer(length);
-
-            foreach (IPacket packet in packets)
+            try
             {
-
-                if (PacketReceived != null)
-                    PacketReceived(this, new PacketReceivedEventArgs(packet));
-
-                SharpStarMain.Instance.PluginManager.CallEvent("packetReceived", packet, OtherClient);
-
-                foreach (var handler in _packetHandlers)
-                {
-                    if (packet.PacketId == handler.PacketId)
-                        handler.Handle(packet, this);
-                }
-
-                if (!packet.Ignore)
-                    OtherClient.SendPacket(packet);
-
-                SharpStarMain.Instance.PluginManager.CallEvent("afterPacketReceived", packet, OtherClient);
-
-                foreach (var handler in _packetHandlers)
-                {
-                    if (packet.PacketId == handler.PacketId)
-                        handler.HandleAfter(packet, this);
-                }
-
+                Socket.EndSend(iar);
             }
-
+            catch (Exception)
+            {
+                ForceDisconnect();
+            }
         }
 
         public void FlushPackets()
@@ -219,7 +254,7 @@ namespace SharpStar.Lib.Server
 
                     byte[] toSend = finalMemStream.ToArray();
 
-                    Send(toSend);
+                    Socket.BeginSend(toSend, 0, toSend.Length, SocketFlags.None, PacketSent, null);
 
                     stream.Close();
                     finalStream.Close();
@@ -233,6 +268,20 @@ namespace SharpStar.Lib.Server
                     ForceDisconnect();
                 }
             }
+        }
+
+        public bool CheckConnection()
+        {
+
+            if (Socket == null || (Socket != null && !Socket.IsConnected()))
+            {
+                ForceDisconnect();
+
+                return false;
+            }
+
+            return true;
+
         }
 
         #endregion
@@ -308,6 +357,12 @@ namespace SharpStar.Lib.Server
 
                 if (PacketReader != null)
                     PacketReader.Dispose();
+
+                if (_connTimer != null)
+                {
+                    _connTimer.Stop();
+                    _connTimer.Close();
+                }
 
             }
 

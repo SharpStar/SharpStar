@@ -83,7 +83,7 @@ namespace SharpStar.Lib
 
             Console.WriteLine("Listening on port {0}", Config.ConfigFile.ListenPort);
 
-            Server = new StarboundServer(Config.ConfigFile.ListenPort, Config.ConfigFile.ServerPort, Config.ConfigFile.MaxPlayers);
+            Server = new StarboundServer(Config.ConfigFile.ListenPort, Config.ConfigFile.ServerPort);
             Server.Start();
 
             PluginManager.LoadPlugins();

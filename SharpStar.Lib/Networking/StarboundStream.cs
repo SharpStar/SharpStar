@@ -453,6 +453,21 @@ namespace SharpStar.Lib.Networking
             coordinate.WriteTo(this);
         }
 
+        public SystemCoordinate ReadSystemCoordinate()
+        {
+            return SystemCoordinate.FromStream(this);
+        }
+
+        public void WriteSystemCoordinate(SystemCoordinate coordinate)
+        {
+            coordinate.WriteTo(this);
+        }
+
+        public CelestialLog ReadCelestialLog()
+        {
+            return CelestialLog.FromStream(this);
+        }
+
         public static byte[] CreateVLQ(ulong value)
         {
 

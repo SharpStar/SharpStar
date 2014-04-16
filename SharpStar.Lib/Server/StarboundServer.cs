@@ -9,34 +9,17 @@ namespace SharpStar.Lib.Server
     public class StarboundServer : IDisposable
     {
 
+        private readonly object _clientLocker = new object();
+
         private bool _disposed;
 
         public const int NetworkPort = 21024;
         public const int ClientBufferLength = 1024;
-        public const int ProtocolVersion = 642;
+        public const int ProtocolVersion = 639;
 
         private readonly int _serverPort;
 
-        #region Server Stuff
-
-        private int bufferSize;
-
-        private int connectedSockets;
-
-        private int numConnections;
-
-        private SocketAsyncEventArgsPool readWritePool;
-
-        private Semaphore semaphoreAcceptedClients;
-
-        private IPEndPoint localEndPoint;
-
-        private BufferManager _bufManager;
-
-        #endregion
-
-        public Socket Listener { get; set; }
-
+        public TcpListener Listener { get; set; }
 
         public List<StarboundServerClient> Clients { get; set; }
 
@@ -44,107 +27,64 @@ namespace SharpStar.Lib.Server
 
         public event EventHandler<ClientDisconnectedEventArgs> ClientDisconnected;
 
-        public StarboundServer(int listenPort, int serverPort, int maxPlayers)
+        public StarboundServer(int listenPort, int serverPort)
         {
-
-            Clients = new List<StarboundServerClient>();
-
-            this.connectedSockets = 0;
-            this.numConnections = maxPlayers;
-            this.bufferSize = 5;
-
-            this.readWritePool = new SocketAsyncEventArgsPool(numConnections);
-            this.semaphoreAcceptedClients = new Semaphore(numConnections, numConnections);
-
             _serverPort = serverPort;
 
-            StarboundServerClient.BufferManager = new BufferManager(this.bufferSize * this.numConnections * 2, this.bufferSize);
-            StarboundServerClient.BufferManager.InitBuffer();
-
-            _bufManager = new BufferManager(this.bufferSize * this.numConnections * 2, this.bufferSize);
-            _bufManager.InitBuffer();
-
-
-            localEndPoint = new IPEndPoint(IPAddress.Any, listenPort);
-
-
-            for (int i = 0; i < this.numConnections; i++)
-            {
-
-                SocketAsyncEventArgs readWriteEventArg = new SocketAsyncEventArgs();
-
-                _bufManager.SetBuffer(readWriteEventArg);
-
-                this.readWritePool.Push(readWriteEventArg);
-
-
-            }
-
-            this.Listener = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            this.Listener.NoDelay = true;
+            Listener = new TcpListener(new IPEndPoint(IPAddress.Any, listenPort));
+            Clients = new List<StarboundServerClient>();
         }
 
-        private void StartAccept(SocketAsyncEventArgs acceptEventArg)
+        public void Start()
         {
-
-            if (acceptEventArg == null)
-            {
-                acceptEventArg = new SocketAsyncEventArgs();
-                acceptEventArg.Completed += OnAcceptCompleted;
-            }
-            else
-            {
-                acceptEventArg.AcceptSocket = null;
-            }
-
-            this.semaphoreAcceptedClients.WaitOne();
-
-            if (!this.Listener.AcceptAsync(acceptEventArg))
-            {
-                this.ProcessAccept(acceptEventArg);
-            }
-
+            Listener.Start();
+            Listener.BeginAcceptSocket(AcceptClient, null);
         }
 
-        private void OnAcceptCompleted(object sender, SocketAsyncEventArgs e)
+        public void Stop()
         {
-            this.ProcessAccept(e);
+            foreach (StarboundServerClient client in Clients)
+            {
+                client.ForceDisconnect();
+                client.Dispose();
+            }
+
+            Listener.Stop();
         }
 
-        private void ProcessAccept(SocketAsyncEventArgs e)
+        private void AcceptClient(IAsyncResult iar)
         {
+            if (_disposed)
+                return;
 
-            Socket s = e.AcceptSocket;
-            s.NoDelay = true;
+            StarboundServerClient ssc = null;
 
-            if (s.Connected)
+            try
             {
-                try
+                Socket socket = Listener.EndAcceptSocket(iar);
+                socket.NoDelay = true;
+
+                IPEndPoint ipe = (IPEndPoint)socket.RemoteEndPoint;
+
+                Console.WriteLine("Connection from {0}", ipe);
+
+                new Thread(() =>
                 {
 
-                    SocketAsyncEventArgs readEventArgs = this.readWritePool.Pop();
+                    StarboundClient sc = new StarboundClient(socket, Direction.Client);
+                    ssc = new StarboundServerClient(sc);
 
-                    if (readEventArgs != null)
+                    ssc.Disconnected += (sender, args) =>
                     {
-
-                        Console.WriteLine("Connection from {0}", s.RemoteEndPoint);
-
-                        StarboundClient sc = new StarboundClient(s, Direction.Client);
-                        readEventArgs.UserToken = new Token(s, sc);
-
-                        StarboundServerClient ssc = new StarboundServerClient(sc, readEventArgs);
-
-
-                        ssc.Disconnected += (sender, args) =>
+                        lock (_clientLocker)
                         {
-
                             if (Clients.Contains(ssc))
                             {
 
                                 if (ssc.Player != null)
                                     Console.WriteLine("Player {0} disconnected", ssc.Player.Name);
                                 else
-                                    Console.WriteLine("{0} disconnected", s.RemoteEndPoint);
+                                    Console.WriteLine("{0} disconnected", ipe);
 
                                 if (ClientDisconnected != null)
                                     ClientDisconnected(this, new ClientDisconnectedEventArgs(ssc));
@@ -152,89 +92,42 @@ namespace SharpStar.Lib.Server
                                 Clients.Remove(ssc);
 
                                 ssc.Dispose();
-
                             }
+                        }
+                    };
 
-                        };
+                    ssc.SClientConnected += (sender, args) =>
+                    {
 
-                        ssc.ServerClientConnected += (sender, args) =>
-                        {
+                        if (ClientConnected != null)
+                            ClientConnected(this, new ClientConnectedEventArgs(ssc));
 
-                            if (ClientConnected != null)
-                                ClientConnected(this, new ClientConnectedEventArgs(ssc));
+                    };
 
-                        };
+                    ssc.Connect(_serverPort);
 
-                        Interlocked.Increment(ref this.connectedSockets);
-
-                        ssc.Connect(_serverPort);
-
+                    lock (_clientLocker)
                         Clients.Add(ssc);
 
-                    }
-                    else
-                    {
-                        Console.WriteLine("There are no more available sockets to allocate.");
-                    }
-
-                }
-                catch (SocketException ex)
-                {
-                    Token token = e.UserToken as Token;
-                    Console.WriteLine("Error when processing data received from {0}:\r\n{1}", token.Connection.RemoteEndPoint, ex.ToString());
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                }
-
-                // Accept the next connection request.
-                this.StartAccept(e);
+                }).Start();
 
             }
-        }
-
-        private void CloseClientSocket(SocketAsyncEventArgs e)
-        {
-            Token token = e.UserToken as Token;
-            this.CloseClientSocket(token, e);
-        }
-
-        private void CloseClientSocket(Token token, SocketAsyncEventArgs e)
-        {
-
-            this.semaphoreAcceptedClients.Release();
-            Interlocked.Decrement(ref this.connectedSockets);
-
-            this.readWritePool.Push(e);
-
-            token.SClient.ForceDisconnect();
-
-            e.Dispose();
-
-        }
-
-        public void Start()
-        {
-
-            this.Listener.Bind(localEndPoint);
-            this.Listener.Listen(this.numConnections);
-
-            this.StartAccept(null);
-
-        }
-
-        public void Stop()
-        {
-
-            foreach (StarboundServerClient client in Clients)
+            catch (SocketException)
             {
-                client.ForceDisconnect();
-                client.Dispose();
+
+                if (ssc != null)
+                {
+                    ssc.ForceDisconnect();
+                }
+
             }
-
-            this.Listener.Close();
-
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                Listener.BeginAcceptSocket(AcceptClient, null);
+            }
         }
 
         public void Dispose()
@@ -253,6 +146,7 @@ namespace SharpStar.Lib.Server
 
             _disposed = true;
         }
+
     }
 
     public class ClientConnectedEventArgs : EventArgs

@@ -48,6 +48,33 @@ namespace SharpStar.Lib.Entities
                 ent = pent;
 
             }
+            else if (et == EntityType.Player)
+            {
+
+                PlayerEntity pent = new PlayerEntity();
+
+                using (MemoryStream ms = new MemoryStream(storeData))
+                {
+                    using (StarboundStream s = new StarboundStream(ms))
+                    {
+
+                        bool uuid = s.ReadBoolean();
+
+                        if (uuid)
+                        {
+
+                            byte[] uuidDat = s.ReadUInt8Array(16);
+
+                            pent.UUID = BitConverter.ToString(uuidDat, 0).Replace("-", "").ToLower();
+                        
+                        }
+
+                    }
+                }
+
+                ent = pent;
+
+            }
             else
             {
                 ent = new Entity();
@@ -61,7 +88,7 @@ namespace SharpStar.Lib.Entities
 
         }
 
-        public void WriteTo(IStarboundStream stream)
+        public virtual void WriteTo(IStarboundStream stream)
         {
             stream.WriteUInt8((byte)EntityType);
             stream.WriteUInt8Array(StoreData);

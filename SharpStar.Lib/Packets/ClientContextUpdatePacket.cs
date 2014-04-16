@@ -1,4 +1,9 @@
-﻿using SharpStar.Lib.Networking;
+﻿using System;
+using System.IO;
+using System.Text;
+using SharpStar.Lib.DataTypes;
+using SharpStar.Lib.Networking;
+using SharpStar.Lib.Starbound;
 
 namespace SharpStar.Lib.Packets
 {
@@ -9,21 +14,67 @@ namespace SharpStar.Lib.Packets
             get { return 13; }
         }
 
-        public byte[] Unknown { get; set; }
+        public byte[] Data { get; set; }
+
+        public CelestialLog CelestialLog { get; set; }
+
+        public World World { get; set; }
 
         public ClientContextUpdatePacket()
         {
-            Unknown = new byte[0];
+            Data = new byte[0];
         }
 
         public override void Read(IStarboundStream stream)
         {
-            Unknown = stream.ReadUInt8Array();
+
+            Data = stream.ReadUInt8Array();
+
+            if (Data.Length != 0)
+            {
+
+                using (MemoryStream ms = new MemoryStream(Data))
+                {
+
+                    using (StarboundStream s = new StarboundStream(ms))
+                    {
+
+                        byte[] data = s.ReadUInt8Array();
+
+                        if (data.Length > 8)
+                        {
+
+                            using (MemoryStream ms2 = new MemoryStream(data))
+                            {
+
+                                using (StarboundStream s2 = new StarboundStream(ms2))
+                                {
+
+                                    byte bufLength = s2.ReadUInt8();
+
+                                    if (bufLength == 10)
+                                    {
+                                        World = new World();
+                                        World.Read(s2.ReadUInt8Array());
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
         }
 
         public override void Write(IStarboundStream stream)
         {
-            stream.WriteUInt8Array(Unknown);
+            stream.WriteUInt8Array(Data);
         }
     }
 }

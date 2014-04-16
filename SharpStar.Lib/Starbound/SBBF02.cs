@@ -51,8 +51,6 @@ namespace SharpStar.Lib.Starbound
 
             string formatStr = string.Join("", format).Trim();
 
-            Console.WriteLine("FORMAT: " + formatStr);
-
             if (formatStr != "SBBF02")
             {
                 throw new Exception("Invalid format!");

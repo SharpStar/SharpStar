@@ -10,9 +10,9 @@ namespace SharpStar.Lib.Packets
     //Credit to StarNet (https://github.com/SirCmpwn/StarNet)
     public class PacketReader : IDisposable
     {
-        public readonly int MaxPacketLength = 1048576; // 1 MB (compressed, if applicable)
-        public readonly int MaxInflatedPacketLength = 10485760; // 10 MB
-        public readonly int NetworkBufferLength = 1024;
+        public const int MaxPacketLength = 1048576; // 1 MB (compressed, if applicable)
+        public const int MaxInflatedPacketLength = 10485760; // 10 MB
+        public const int NetworkBufferLength = 1024;
 
         private readonly Dictionary<byte, Func<IPacket>> _registeredPacketTypes;
 
@@ -23,9 +23,15 @@ namespace SharpStar.Lib.Packets
         private int DataIndex = 0;
         private bool Compressed = false;
 
+        private byte _packetId;
+
         public PacketReader()
         {
+
             _registeredPacketTypes = new Dictionary<byte, Func<IPacket>>();
+
+            NetworkBuffer = new byte[1024];
+
         }
 
         public void RegisterPacketType(byte id, Type packetType)
@@ -36,91 +42,80 @@ namespace SharpStar.Lib.Packets
             _registeredPacketTypes.Add(id, Expression.Lambda<Func<IPacket>>(Expression.New(packetType)).Compile());
         }
 
-        public List<IPacket> UpdateBuffer(int length)
+        public List<IPacket> UpdateBuffer(byte[] buf, int length)
         {
-
-            if (length == 0)
-                return new List<IPacket>();
 
             int index = PacketBuffer.Length;
 
-            if (WorkingLength == long.MaxValue)
+            if (buf == null)
             {
 
-                // We don't know the length of the packet yet, so keep going
                 if (PacketBuffer.Length < index + length)
+                {
                     Array.Resize(ref PacketBuffer, index + length);
+                }
 
                 Buffer.BlockCopy(NetworkBuffer, 0, PacketBuffer, index, length);
-                
-                if (PacketBuffer.Length > 1)
-                {
-                    // Check to see if we have the entire length yet
-                    int i;
-                    for (i = 1; i < 5 && i < PacketBuffer.Length; i++)
-                    {
-                        if ((PacketBuffer[i] & 0x80) == 0)
-                        {
-                            MemoryStream ms = new MemoryStream(PacketBuffer);
-                            ms.Seek(1, SeekOrigin.Begin);
 
-                            StarboundStream stream = new StarboundStream(ms);
-
-                            WorkingLength = stream.ReadSignedVLQ(out DataIndex);
-                            DataIndex++;
-                            Compressed = WorkingLength < 0;
-
-                            stream.Close();
-                            ms.Close();
-
-                            if (Compressed)
-                                WorkingLength = -WorkingLength;
-
-                            if (WorkingLength > MaxPacketLength)
-                                throw new IOException("Packet exceeded maximum permissible length.");
-
-                            break;
-                        }
-                    }
-
-                    if (i == 5)
-                        throw new IOException("Packet exceeded maximum permissible length.");
-                
-                }
             }
 
-            if (WorkingLength != long.MaxValue)
+
+            using (MemoryStream ms = new MemoryStream(PacketBuffer))
             {
-
-                if (PacketBuffer.Length < index + length)
-                    Array.Resize(ref PacketBuffer, index + length);
-
-                Buffer.BlockCopy(NetworkBuffer, 0, PacketBuffer, index, length);
-
-                if (PacketBuffer.Length >= WorkingLength + DataIndex)
+                using (StarboundStream s = new StarboundStream(ms))
                 {
 
-                    // Ready to decode packet
-                    var data = new byte[WorkingLength];
-                    
-                    Buffer.BlockCopy(PacketBuffer, DataIndex, data, 0, (int)WorkingLength);
-                    
-                    if (Compressed)
-                        data = ZlibStream.UncompressBuffer(data);
-                    
-                    var packets = Decode(PacketBuffer[0], data);
 
-                    Buffer.BlockCopy(PacketBuffer, (int)(DataIndex + WorkingLength), PacketBuffer, 0,
-                        (int)(PacketBuffer.Length - (DataIndex + WorkingLength)));
-                   
-                    Array.Resize(ref PacketBuffer, (int)(PacketBuffer.Length - (DataIndex + WorkingLength)));
-                    
-                    WorkingLength = long.MaxValue;
-                
-                    return packets;
-                
+                    if (WorkingLength == long.MaxValue)
+                    {
+
+                        _packetId = s.ReadUInt8();
+
+                        WorkingLength = s.ReadSignedVLQ(out DataIndex);
+                        DataIndex++;
+
+                        Compressed = WorkingLength < 0;
+
+                        if (Compressed)
+                            WorkingLength = -WorkingLength;
+
+                    }
+
+                    if (WorkingLength != long.MaxValue)
+                    {
+
+
+                        if (PacketBuffer.Length >= WorkingLength + DataIndex)
+                        {
+
+                            byte[] data = new byte[WorkingLength];
+
+                            Buffer.BlockCopy(PacketBuffer, DataIndex, data, 0, (int)WorkingLength);
+
+                            Buffer.BlockCopy(PacketBuffer, DataIndex + (int)WorkingLength, PacketBuffer, 0, PacketBuffer.Length - (DataIndex + (int)WorkingLength));
+                            Array.Resize(ref PacketBuffer, (int)(PacketBuffer.Length - (DataIndex + WorkingLength)));
+
+                            if (Compressed)
+                                data = ZlibStream.UncompressBuffer(data);
+
+                            var packets = new List<IPacket>();
+
+                            packets.AddRange(Decode(_packetId, data));
+
+                            WorkingLength = long.MaxValue;
+
+                            if (PacketBuffer.Length > 0)
+                            {
+                                packets.AddRange(UpdateBuffer(PacketBuffer, PacketBuffer.Length));
+                            }
+
+                            return packets;
+
+                        }
+
+                    }
+
                 }
-
             }
 
             return new List<IPacket>();

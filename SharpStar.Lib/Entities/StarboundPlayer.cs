@@ -1,5 +1,7 @@
-﻿using SharpStar.Lib.Database;
+﻿using System.Collections.Generic;
+using SharpStar.Lib.Database;
 using SharpStar.Lib.DataTypes;
+using SharpStar.Lib.Misc;
 
 namespace SharpStar.Lib.Entities
 {
@@ -15,6 +17,10 @@ namespace SharpStar.Lib.Entities
         public PlanetCoordinate Coordinates { get; set; }
 
         public WorldCoordinate HomeCoordinates { get; set; }
+
+        public float SpawnX { get; set; }
+
+        public float SpawnY { get; set; }
 
         public bool OnShip { get; set; }
 

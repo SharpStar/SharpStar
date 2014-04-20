@@ -11,7 +11,7 @@ namespace SharpStar.Lib.DataTypes
     public class CelestialLog
     {
 
-        public List<Sector> Sectors { get; set; }
+        public List<LogSector> Sectors { get; set; }
 
         public List<SystemCoordinate> Visited { get; set; }
 
@@ -23,7 +23,7 @@ namespace SharpStar.Lib.DataTypes
 
         public CelestialLog()
         {
-            Sectors = new List<Sector>();
+            Sectors = new List<LogSector>();
             Visited = new List<SystemCoordinate>();
             CurrentLocation = new WorldCoordinate();
             HomeCoordinate = new WorldCoordinate();
@@ -52,7 +52,7 @@ namespace SharpStar.Lib.DataTypes
 
                     for (int i = 0; i < sectors; i++)
                     {
-                        log.Sectors.Add(new Sector { SectorName = s.ReadString(), Unknown = s.ReadBoolean() });
+                        log.Sectors.Add(new LogSector { SectorName = s.ReadString(), Unknown = s.ReadBoolean() });
                     }
 
                     s.ReadUInt8(); //unknown

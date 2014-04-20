@@ -13,6 +13,8 @@ namespace SharpStar.Lib.Server
 
         public bool Connected { get; private set; }
 
+        public int ClientId { get; set; }
+
         public TcpClient ServerTcpClient { get; set; }
 
 

@@ -5,18 +5,18 @@ using System.Text;
 
 namespace SharpStar.Lib.Misc
 {
-    public class Sector
+    public class LogSector
     {
 
         public string SectorName { get; set; }
 
         public bool Unknown { get; set; }
 
-        public Sector()
+        public LogSector()
         {
         }
 
-        public Sector(string name, bool unknown)
+        public LogSector(string name, bool unknown)
         {
             SectorName = name;
             Unknown = unknown;

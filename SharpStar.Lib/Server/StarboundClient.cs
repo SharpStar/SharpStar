@@ -336,7 +336,14 @@ namespace SharpStar.Lib.Server
 
         public void Disconnect()
         {
-            Server.ServerClient.SendPacket(new ClientDisconnectPacket());
+            try
+            {
+                Server.ServerClient.SendPacket(new ClientDisconnectPacket());
+            }
+            catch (Exception)
+            {
+                ForceDisconnect();
+            }
         }
 
         #endregion

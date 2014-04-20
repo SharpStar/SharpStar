@@ -17,6 +17,8 @@ namespace SharpStar.Lib.Server
         public const int ClientBufferLength = 1024;
         public const int ProtocolVersion = 639;
 
+        private int _clientCtr;
+
         private readonly int _serverPort;
 
         public TcpListener Listener { get; set; }
@@ -29,10 +31,14 @@ namespace SharpStar.Lib.Server
 
         public StarboundServer(int listenPort, int serverPort)
         {
+
             _serverPort = serverPort;
+
+            _clientCtr = 0;
 
             Listener = new TcpListener(new IPEndPoint(IPAddress.Any, listenPort));
             Clients = new List<StarboundServerClient>();
+        
         }
 
         public void Start()
@@ -68,11 +74,14 @@ namespace SharpStar.Lib.Server
 
                 Console.WriteLine("Connection from {0}", ipe);
 
+                Interlocked.Increment(ref _clientCtr);
+
                 new Thread(() =>
                 {
 
                     StarboundClient sc = new StarboundClient(socket, Direction.Client);
                     ssc = new StarboundServerClient(sc);
+                    ssc.ClientId = _clientCtr;
 
                     ssc.Disconnected += (sender, args) =>
                     {

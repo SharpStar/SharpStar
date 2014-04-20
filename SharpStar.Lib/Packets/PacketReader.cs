@@ -66,7 +66,7 @@ namespace SharpStar.Lib.Packets
                 {
 
 
-                    if (WorkingLength == long.MaxValue)
+                    if (WorkingLength == long.MaxValue && s.Length > 1)
                     {
 
                         _packetId = s.ReadUInt8();

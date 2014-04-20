@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Text;
-using SharpStar.Lib.DataTypes;
+﻿using System.IO;
 using SharpStar.Lib.Networking;
 using SharpStar.Lib.Starbound;
 
@@ -15,8 +12,6 @@ namespace SharpStar.Lib.Packets
         }
 
         public byte[] Data { get; set; }
-
-        public CelestialLog CelestialLog { get; set; }
 
         public World World { get; set; }
 
@@ -57,7 +52,27 @@ namespace SharpStar.Lib.Packets
                                         World = new World();
                                         World.Read(s2.ReadUInt8Array());
                                     }
+                                    else if (bufLength == 2)
+                                    {
 
+                                        int discarded;
+
+                                        int vlq = (int)s2.ReadVLQ(out discarded);
+
+                                        if (vlq == 4 && s2.Length - s2.Position >= 1000) //World data is at least over 1000 bytes, probably more
+                                        {
+
+                                            byte[] unknown1 = s2.ReadUInt8Array(30);
+
+                                            byte[] d = s2.ReadUInt8Array();
+
+                                            World = new World();
+                                            World.Read(d);
+
+                                        }
+
+                                    }
+                                    
                                 }
 
                             }

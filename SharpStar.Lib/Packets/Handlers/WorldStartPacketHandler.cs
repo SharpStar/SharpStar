@@ -1,4 +1,5 @@
-﻿using SharpStar.Lib.DataTypes;
+﻿using System;
+using SharpStar.Lib.DataTypes;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
@@ -39,6 +40,9 @@ namespace SharpStar.Lib.Packets.Handlers
                     client.Server.Player.OnShip = true;
                 }
             }
+
+            client.Server.Player.SpawnX = packet.SpawnX;
+            client.Server.Player.SpawnY = packet.SpawnY;
 
             SharpStarMain.Instance.PluginManager.CallEvent("worldStart", packet, client);
         }

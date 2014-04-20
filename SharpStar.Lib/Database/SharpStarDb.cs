@@ -176,6 +176,22 @@ namespace SharpStar.Lib.Database
 
         }
 
+        public int GetUserCount()
+        {
+
+            var conn = new SQLiteConnection(DatabaseName);
+
+            var tbl = conn.Table<SharpStarUser>();
+
+            int userCount = tbl.Count();
+
+            conn.Close();
+            conn.Dispose();
+
+            return userCount;
+
+        }
+
         public SharpStarPermission GetPlayerPermission(int userId, string permission)
         {
 

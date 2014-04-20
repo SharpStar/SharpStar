@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Net.Sockets;
 
 namespace SharpStar.Lib.Extensions
 {
@@ -6,7 +7,14 @@ namespace SharpStar.Lib.Extensions
     {
         public static bool IsConnected(this Socket socket)
         {
-            return !(socket.Poll(1, SelectMode.SelectRead) && (socket.Available == 0) || !socket.Connected);
+            try
+            {
+                return !(socket.Poll(1, SelectMode.SelectRead) && (socket.Available == 0) || !socket.Connected);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

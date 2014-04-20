@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
@@ -116,7 +117,7 @@ namespace SharpStar.Lib.Starbound
                     string dbFormat = Encoding.UTF8.GetString(reader.ReadBytes(12));
 
                     if (dbFormat.Replace("\x00", "") != "BTreeDB4")
-                        throw new Exception("Expected binary tree database!");
+                        throw new Exception("Expected BTree database!");
 
                     Identifier = Encoding.UTF8.GetString(reader.ReadBytes(12)).Replace("\x00", "");
 
@@ -171,12 +172,24 @@ namespace SharpStar.Lib.Starbound
         public int GetBlockForKey(Key key)
         {
 
-            Key[] keys = Keys.ToArray();
-            Array.Sort(keys);
+            int pos = -1;
 
-            int bs = Array.BinarySearch(keys, key);
+            for (int i = 0; i < Keys.Count; i++)
+            {
 
-            return (bs == -1) ? Values[0] : Values[bs + 1];
+                if (Keys[i].TheKey.SequenceEqual(key.TheKey))
+                {
+
+                    pos = i;
+
+                    break;
+                
+                }
+
+            }
+
+            return pos == -1 ? Values[0] : Values[pos + 1];
+
         }
 
         public override void Read(SBBF02 sbb, int blockIndex)

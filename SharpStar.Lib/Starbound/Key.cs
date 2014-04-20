@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SharpStar.Lib.Starbound
 {
-    public class Key : IEquatable<Key>, IComparable<Key>
+    public class Key : IEquatable<Key>
     {
 
         public byte[] TheKey { get; set; }
@@ -26,27 +26,6 @@ namespace SharpStar.Lib.Starbound
             }
 
             return hashcode;
-
-        }
-
-        public int CompareTo(Key other)
-        {
-
-            if (this == other) return 0;
-            if (other == null) return -1;
-
-            var len = Math.Min(TheKey.Length, other.TheKey.Length);
-            for (var i = 0; i < len; i++)
-            {
-                var c = TheKey[i].CompareTo(other.TheKey[i]);
-
-                if (c != 0)
-                {
-                    return c;
-                }
-            }
-
-            return TheKey.Length.CompareTo(other.TheKey.Length);
 
         }
 
@@ -75,7 +54,7 @@ namespace SharpStar.Lib.Starbound
 
             if (ReferenceEquals(key1, null) || ReferenceEquals(key2, null))
                 return false;
-            
+
             return key1.Equals(key2);
         }
 

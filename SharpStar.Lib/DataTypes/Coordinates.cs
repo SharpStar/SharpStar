@@ -1,4 +1,7 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
+using SharpStar.Lib.Misc;
 using SharpStar.Lib.Networking;
 
 namespace SharpStar.Lib.DataTypes
@@ -218,6 +221,51 @@ namespace SharpStar.Lib.DataTypes
             stream.WriteInt32(Z);
             stream.WriteInt32(Planet);
             stream.WriteInt32(Satellite);
+        }
+
+        public static WorldCoordinate GetGlobalCoords(byte[] data)
+        {
+
+            for (int i = 0; i < data.Length - 26; i++)
+            {
+                foreach (var sector in StarboundSector.Sectors.Select(p => p.Data))
+                {
+
+                    byte[] buffer = new byte[sector.Length];
+
+                    Buffer.BlockCopy(data, i, buffer, 0, sector.Length);
+
+                    if (sector.SequenceEqual(buffer))
+                    {
+
+                        byte[] sectorData = new byte[sector.Length + 21];
+
+                        Buffer.BlockCopy(data, i - 1, sectorData, 0, sector.Length + 21);
+
+                        using (MemoryStream ms = new MemoryStream(sectorData))
+                        {
+
+                            using (StarboundStream s = new StarboundStream(ms))
+                            {
+
+                                WorldCoordinate coords = FromStream(s);
+
+                                if (string.IsNullOrEmpty(coords.Sector))
+                                    return null;
+
+                                return coords;
+
+                            }
+
+                        }
+                    
+                    }
+                
+                }
+            }
+
+            return null;
+
         }
 
         protected bool Equals(WorldCoordinate other)

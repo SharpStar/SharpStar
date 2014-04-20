@@ -123,7 +123,9 @@
     <Compile Include="Extensions\SocketExtensions.cs" />
     <Compile Include="Misc\OS.cs" />
     <Compile Include="Misc\Python.cs" />
-    <Compile Include="Misc\Sector.cs" />
+    <Compile Include="Misc\LogSector.cs" />
+    <Compile Include="Misc\StarboundItem.cs" />
+    <Compile Include="Misc\StarboundSector.cs" />
     <Compile Include="Packets\EnvironmentUpdatePacket.cs" />
     <Compile Include="Packets\Handlers\EnvironmentUpdatePacketHandler.cs" />
     <Compile Include="Packets\Handlers\HandshakeResponsePacketHandler.cs" />

@@ -8,10 +8,8 @@ using SQLite;
 
 namespace SharpStar.Lib.Database
 {
-    public class SharpStarDb
+    public class SharpStarDb : ISharpStarDb
     {
-
-        public string FileName { get; private set; }
 
         public string DatabaseName { get; private set; }
 

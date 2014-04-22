@@ -12,6 +12,8 @@ namespace SharpStar.Lib.Entities
 
         public string UUID { get; set; }
 
+        public long EntityId { get; set; }
+
         public SharpStarUser UserAccount { get; set; }
 
         public PlanetCoordinate Coordinates { get; set; }
@@ -25,6 +27,10 @@ namespace SharpStar.Lib.Entities
         public bool OnShip { get; set; }
 
         public bool AttemptedLogin { get; set; }
+
+        public StarboundPlayer()
+        {
+        }
 
         public StarboundPlayer(string name, string uuid)
         {

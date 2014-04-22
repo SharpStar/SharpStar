@@ -33,9 +33,9 @@ namespace SharpStar.Lib.Packets
 
             CauseEntityId = stream.ReadSignedVLQ(out discarded);
             TargetEntityId = stream.ReadSignedVLQ(out discarded);
-            PositionX = stream.ReadSignedVLQ(out discarded)/100;
-            PositionY = stream.ReadSignedVLQ(out discarded)/100;
-            Damage = stream.ReadSignedVLQ(out discarded)/100;
+            PositionX = stream.ReadSignedVLQ(out discarded) / 100;
+            PositionY = stream.ReadSignedVLQ(out discarded) / 100;
+            Damage = stream.ReadSignedVLQ(out discarded) / 100;
             DamageKind = stream.ReadUInt8();
             DamageSourceKind = stream.ReadString();
             TargetMaterialKind = stream.ReadString();
@@ -46,9 +46,9 @@ namespace SharpStar.Lib.Packets
         {
             stream.WriteSignedVLQ(CauseEntityId);
             stream.WriteSignedVLQ(TargetEntityId);
-            stream.WriteSignedVLQ(PositionX*100);
-            stream.WriteSignedVLQ(PositionY*100);
-            stream.WriteSignedVLQ(Damage*100);
+            stream.WriteSignedVLQ(PositionX * 100);
+            stream.WriteSignedVLQ(PositionY * 100);
+            stream.WriteSignedVLQ(Damage * 100);
             stream.WriteUInt8(DamageKind);
             stream.WriteString(DamageSourceKind);
             stream.WriteString(TargetMaterialKind);

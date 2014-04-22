@@ -167,31 +167,24 @@ namespace SharpStar.Lib.Server
                 foreach (var packet in packets)
                 {
 
-                    try
+
+                    SharpStarMain.Instance.PluginManager.CallEvent("packetReceived", packet, OtherClient);
+
+                    foreach (var handler in _packetHandlers)
                     {
-
-                        SharpStarMain.Instance.PluginManager.CallEvent("packetReceived", packet, OtherClient);
-
-                        foreach (var handler in _packetHandlers)
-                        {
-                            if (packet.PacketId == handler.PacketId)
-                                handler.Handle(packet, this);
-                        }
-
-                        if (!packet.Ignore)
-                            OtherClient.SendPacket(packet);
-
-                        SharpStarMain.Instance.PluginManager.CallEvent("afterPacketReceived", packet, OtherClient);
-
-                        foreach (var handler in _packetHandlers)
-                        {
-                            if (packet.PacketId == handler.PacketId)
-                                handler.HandleAfter(packet, this);
-                        }
-
+                        if (packet.PacketId == handler.PacketId)
+                            handler.Handle(packet, this);
                     }
-                    catch (Exception)
+
+                    if (!packet.Ignore)
+                        OtherClient.SendPacket(packet);
+
+                    SharpStarMain.Instance.PluginManager.CallEvent("afterPacketReceived", packet, OtherClient);
+
+                    foreach (var handler in _packetHandlers)
                     {
+                        if (packet.PacketId == handler.PacketId)
+                            handler.HandleAfter(packet, this);
                     }
 
                 }
@@ -201,7 +194,6 @@ namespace SharpStar.Lib.Server
             }
             catch (Exception)
             {
-                ForceDisconnect();
             }
 
         }
@@ -220,6 +212,10 @@ namespace SharpStar.Lib.Server
 
         public void FlushPackets()
         {
+
+            if (!Server.Connected)
+                return;
+
             while (PacketQueue.Count > 0)
             {
 
@@ -290,7 +286,7 @@ namespace SharpStar.Lib.Server
 
         public void WarpTo(string name)
         {
-            Server.PlayerClient.SendPacket(new WarpCommandPacket { Player = name, WarpType = WarpType.WarpOtherShip });
+            Server.ServerClient.SendPacket(new WarpCommandPacket { Player = name, WarpType = WarpType.WarpOtherShip });
         }
 
         public void WarpTo(StarboundPlayer player)
@@ -300,17 +296,17 @@ namespace SharpStar.Lib.Server
 
         public void WarpUp()
         {
-            Server.PlayerClient.SendPacket(new WarpCommandPacket { WarpType = WarpType.WarpUp });
+            Server.ServerClient.SendPacket(new WarpCommandPacket { WarpType = WarpType.WarpUp });
         }
 
         public void WarpDown()
         {
-            Server.PlayerClient.SendPacket(new WarpCommandPacket { WarpType = WarpType.WarpDown });
+            Server.ServerClient.SendPacket(new WarpCommandPacket { WarpType = WarpType.WarpDown });
         }
 
         public void MoveShip(WorldCoordinate coordinates)
         {
-            Server.PlayerClient.SendPacket(new WarpCommandPacket
+            Server.ServerClient.SendPacket(new WarpCommandPacket
             {
                 WarpType = WarpType.MoveShip,
                 Coordinates = coordinates

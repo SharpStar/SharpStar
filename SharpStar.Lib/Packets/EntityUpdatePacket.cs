@@ -11,20 +11,22 @@ namespace SharpStar.Lib.Packets
 
         public long EntityId { get; set; }
 
-        public byte[] Delta { get; set; }
+        public byte[] Unknown { get; set; }
 
         public override void Read(IStarboundStream stream)
         {
+
             int discarded;
 
             EntityId = stream.ReadSignedVLQ(out discarded);
-            Delta = stream.ReadUInt8Array();
+            Unknown = stream.ReadUInt8Array((int)(stream.Length - stream.Position));
+
         }
 
         public override void Write(IStarboundStream stream)
         {
             stream.WriteSignedVLQ(EntityId);
-            stream.WriteUInt8Array(Delta);
+            stream.WriteUInt8Array(Unknown);
         }
     }
 }

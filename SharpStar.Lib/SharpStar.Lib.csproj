@@ -108,6 +108,7 @@
   <ItemGroup>
     <Compile Include="Config\SharpStarConfig.cs" />
     <Compile Include="Config\SharpStarConfigFile.cs" />
+    <Compile Include="Database\ISharpStarDb.cs" />
     <Compile Include="Database\SharpStarDb.cs" />
     <Compile Include="Database\SharpStarPermission.cs" />
     <Compile Include="Database\SharpStarUser.cs" />

@@ -40,6 +40,8 @@ namespace SharpStar.Lib.Server
         public StarboundServerClient(StarboundClient plrClient)
         {
 
+            Player = new StarboundPlayer();
+
             _disconnectEventCalled = false;
 
             PlayerClient = plrClient;

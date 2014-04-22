@@ -160,7 +160,7 @@ namespace SharpStar.Lib.DataTypes
             coord.Z = stream.ReadInt32();
 
             return coord;
-            
+
         }
 
         public void WriteTo(IStarboundStream stream)
@@ -258,9 +258,9 @@ namespace SharpStar.Lib.DataTypes
                             }
 
                         }
-                    
+
                     }
-                
+
                 }
             }
 
@@ -278,7 +278,7 @@ namespace SharpStar.Lib.DataTypes
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((WorldCoordinate) obj);
+            return Equals((WorldCoordinate)obj);
         }
 
         public override int GetHashCode()
@@ -297,7 +297,15 @@ namespace SharpStar.Lib.DataTypes
 
         public static bool operator ==(WorldCoordinate w1, WorldCoordinate w2)
         {
+
+            if (object.ReferenceEquals(w1, w2))
+                return true;
+
+            if (object.ReferenceEquals(w1, null) || object.ReferenceEquals(w2, null))
+                return false;
+
             return w1.Equals(w2);
+
         }
 
         public static bool operator !=(WorldCoordinate w1, WorldCoordinate w2)

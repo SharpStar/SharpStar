@@ -23,22 +23,30 @@ namespace SharpStar.Lib.Packets.Handlers
                     {
                         var loc = (Variant[]) coordinateDict["location"].Value;
 
-                        var coords = new PlanetCoordinate();
-                        coords.Sector = (string) coordinateDict["sector"].Value;
-                        coords.X = (ulong) loc[0].Value;
-                        coords.Y = (ulong) loc[1].Value;
-                        coords.Z = (ulong) loc[2].Value;
-                        coords.Planet = (ulong) coordinateDict["planet"].Value;
-                        coords.Satellite = (ulong) coordinateDict["satellite"].Value;
+                        var pCoords = new PlanetCoordinate
+                        {
+                            Sector = (string) coordinateDict["sector"].Value,
+                            X = (ulong) loc[0].Value,
+                            Y = (ulong) loc[1].Value,
+                            Z = (ulong) loc[2].Value,
+                            Planet = (ulong) coordinateDict["planet"].Value,
+                            Satellite = (ulong) coordinateDict["satellite"].Value
+                        };
 
                         client.Server.Player.OnShip = false;
-                        client.Server.Player.Coordinates = coords;
                     }
                 }
                 else
                 {
                     client.Server.Player.OnShip = true;
                 }
+            }
+
+            var coords = WorldCoordinate.GetGlobalCoords(packet.Sky);
+
+            if (coords != null)
+            {
+                client.Server.Player.Coordinates = coords;
             }
 
             client.Server.Player.SpawnX = packet.SpawnX;

@@ -142,6 +142,8 @@ namespace SharpStar.Lib.Packets
             if (packet != null)
             {
 
+                packet.IsReceive = true;
+
                 packet.Read(stream);
 
                 packets.Add(packet);

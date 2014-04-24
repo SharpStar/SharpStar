@@ -9,15 +9,18 @@ namespace SharpStar.Lib.Packets.Handlers
         public override void Handle(HandshakeChallengePacket packet, StarboundClient client)
         {
 
-            packet.Ignore = true;
+            if (packet.IsReceive)
+            {
+                packet.Ignore = true;
 
-            if (client.Server.Player.UserAccount != null || !client.Server.Player.AttemptedLogin)
-            {
-                client.Server.ServerClient.SendPacket(new HandshakeResponsePacket { PasswordHash = SharpStarSecurity.GenerateHash("", "", packet.Salt, 5000) });
-            }
-            else if (client.Server.Player.AttemptedLogin)
-            {
-                client.Server.ServerClient.SendPacket(new HandshakeResponsePacket { PasswordHash = packet.Salt });
+                if (client.Server.Player.UserAccount != null || !client.Server.Player.AttemptedLogin)
+                {
+                    client.Server.ServerClient.SendPacket(new HandshakeResponsePacket { PasswordHash = SharpStarSecurity.GenerateHash("", "", packet.Salt, 5000) });
+                }
+                else if (client.Server.Player.AttemptedLogin)
+                {
+                    client.Server.ServerClient.SendPacket(new HandshakeResponsePacket { PasswordHash = packet.Salt });
+                }
             }
 
             //SharpStarMain.Instance.PluginManager.CallEvent("handshakeChallenge", packet, client);

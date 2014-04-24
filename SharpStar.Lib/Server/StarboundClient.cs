@@ -227,6 +227,22 @@ namespace SharpStar.Lib.Server
                     {
                     }
 
+                    if (!next.IsReceive)
+                    {
+
+                        SharpStarMain.Instance.PluginManager.CallEvent("customPacketSending", next, OtherClient);
+
+                        foreach (var handler in _packetHandlers)
+                        {
+                            if (next.PacketId == handler.PacketId)
+                                handler.Handle(next, OtherClient);
+                        }
+
+                        if (next.Ignore)
+                            continue;
+
+                    }
+
                     var memoryStream = new MemoryStream();
 
                     var stream = new StarboundStream(memoryStream);

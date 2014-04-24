@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using SharpStar.Lib.Packets;
 using SharpStar.Lib.Server;
 
@@ -15,10 +16,16 @@ namespace SharpStar.Lib.Plugins
 
         private readonly Dictionary<string, Action<StarboundClient, string[]>> _registeredCommands;
 
+        private readonly Dictionary<object, Dictionary<string, Action<StarboundClient, string[]>>> _registeredCommandObjects;
+
+        private readonly Dictionary<object, Dictionary<string, Action<IPacket, StarboundClient>>> _registeredEventObjects;
+
         protected CSPlugin()
         {
             _registeredEvents = new Dictionary<string, Action<IPacket, StarboundClient>>();
             _registeredCommands = new Dictionary<string, Action<StarboundClient, string[]>>();
+            _registeredCommandObjects = new Dictionary<object, Dictionary<string, Action<StarboundClient, string[]>>>();
+            _registeredEventObjects = new Dictionary<object, Dictionary<string, Action<IPacket, StarboundClient>>>();
         }
 
         public virtual void OnLoad()
@@ -35,6 +42,70 @@ namespace SharpStar.Lib.Plugins
             if (!_registeredEvents.ContainsKey(name))
             {
                 _registeredEvents.Add(name, toCall);
+            }
+
+        }
+
+        public void RegisterCommandObject(object obj)
+        {
+
+            if (!_registeredCommandObjects.ContainsKey(obj))
+            {
+
+                var dict = new Dictionary<string, Action<StarboundClient, string[]>>();
+
+                MethodInfo[] methods = obj.GetType().GetMethods();
+
+                foreach (var mi in methods)
+                {
+
+                    var attribs = mi.GetCustomAttributes(typeof(CommandAttribute), false).ToList();
+
+                    if (attribs.Count == 1)
+                    {
+
+                        CommandAttribute attrib = (CommandAttribute)attribs[0];
+
+                        dict.Add(attrib.CommandName, (Action<StarboundClient, string[]>)Delegate.CreateDelegate(typeof(Action<StarboundClient, string[]>), obj, mi));
+
+                    }
+
+                }
+
+                _registeredCommandObjects.Add(obj, dict);
+
+            }
+
+        }
+
+        public void RegisterEventObject(object obj)
+        {
+
+            if (!_registeredEventObjects.ContainsKey(obj))
+            {
+
+                var dict = new Dictionary<string, Action<IPacket, StarboundClient>>();
+
+                MethodInfo[] methods = obj.GetType().GetMethods();
+
+                foreach (var mi in methods)
+                {
+
+                    var attribs = mi.GetCustomAttributes(typeof(EventAttribute), false).ToList();
+
+                    if (attribs.Count == 1)
+                    {
+
+                        EventAttribute attrib = (EventAttribute)attribs[0];
+
+                        dict.Add(attrib.EventName, (Action<IPacket, StarboundClient>)Delegate.CreateDelegate(typeof(Action<IPacket, StarboundClient>), obj, mi));
+
+                    }
+
+                }
+
+                _registeredEventObjects.Add(obj, dict);
+
             }
 
         }
@@ -67,6 +138,18 @@ namespace SharpStar.Lib.Plugins
                 _registeredEvents[evtName](packet, client);
             }
 
+            foreach (var kvp in _registeredEventObjects)
+            {
+
+                var val = kvp.Value;
+
+                if (val.ContainsKey(evtName))
+                {
+                    val[evtName](packet, client);
+                }
+
+            }
+
         }
 
         public virtual bool OnChatCommandReceived(StarboundClient client, string command, string[] args)
@@ -74,16 +157,34 @@ namespace SharpStar.Lib.Plugins
 
             var cmd = _registeredCommands.SingleOrDefault(p => p.Key.Equals(command, StringComparison.OrdinalIgnoreCase));
 
+            bool contained = false;
+
+            foreach (var kvp in _registeredCommandObjects)
+            {
+
+                var val = kvp.Value.SingleOrDefault(p => p.Key.Equals(command, StringComparison.OrdinalIgnoreCase));
+
+                if (val.Value != null)
+                {
+
+                    val.Value(client, args);
+
+                    contained = true;
+
+                }
+
+            }
+
             if (cmd.Value != null)
             {
 
                 cmd.Value(client, args);
 
-                return true;
+                contained = true;
 
             }
 
-            return false;
+            return contained;
 
         }
     }

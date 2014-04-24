@@ -77,6 +77,9 @@ namespace SharpStar.Lib.Server
 
                 Connected = true;
 
+                if (SClientConnected != null)
+                    SClientConnected(this, EventArgs.Empty);
+
                 PlayerClient.StartReceiving();
                 ServerClient.StartReceiving();
             }
@@ -121,8 +124,17 @@ namespace SharpStar.Lib.Server
             }
             finally
             {
-                if (Disconnected != null)
-                    Disconnected(this, EventArgs.Empty);
+
+                lock (_locker)
+                {
+
+                    if (Disconnected != null && !_disconnectEventCalled)
+                        Disconnected(this, EventArgs.Empty);
+
+                    _disconnectEventCalled = true;
+                
+                }
+
             }
         }
 

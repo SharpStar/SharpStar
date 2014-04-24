@@ -134,7 +134,10 @@
     <Compile Include="Packets\HandshakeResponsePacket.cs" />
     <Compile Include="Packets\Packet.cs" />
     <Compile Include="Packets\SpawnEntityPacket.cs" />
+    <Compile Include="Plugins\CommandAttribute.cs" />
+    <Compile Include="Plugins\EventAttribute.cs" />
     <Compile Include="Plugins\PyPlugin.cs" />
+    <Compile Include="Plugins\SharpStarObjectAttribute.cs" />
     <Compile Include="Security\SharpStarSecurity.cs" />
     <Compile Include="SQLite.cs" />
     <Compile Include="SQLiteAsync.cs" />

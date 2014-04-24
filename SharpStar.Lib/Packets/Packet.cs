@@ -25,6 +25,8 @@ namespace SharpStar.Lib.Packets
         
         public virtual bool Ignore { get; set; }
 
+        public bool IsReceive { get; set; }
+
         public Packet()
         {
         }

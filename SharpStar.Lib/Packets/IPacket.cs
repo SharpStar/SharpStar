@@ -9,6 +9,8 @@ namespace SharpStar.Lib.Packets
 
         bool Ignore { get; set; }
 
+        bool IsReceive { get; set; }
+
         void Read(IStarboundStream stream);
 
         void Write(IStarboundStream stream);

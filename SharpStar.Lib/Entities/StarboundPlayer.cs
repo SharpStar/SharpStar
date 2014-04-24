@@ -24,6 +24,10 @@ namespace SharpStar.Lib.Entities
 
         public bool OnShip { get; set; }
 
+        public bool OnOwnShip { get; set; }
+
+        public string PlayerShip { get; set; }
+
         public bool AttemptedLogin { get; set; }
 
         public StarboundPlayer()

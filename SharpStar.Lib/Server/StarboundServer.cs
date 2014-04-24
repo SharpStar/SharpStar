@@ -100,7 +100,6 @@ namespace SharpStar.Lib.Server
 
                                 Clients.Remove(ssc);
 
-                                ssc.Dispose();
                             }
                         }
                     };

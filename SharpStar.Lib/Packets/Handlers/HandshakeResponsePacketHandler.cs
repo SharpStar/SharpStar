@@ -11,10 +11,15 @@ namespace SharpStar.Lib.Packets.Handlers
         public override void Handle(HandshakeResponsePacket packet, StarboundClient client)
         {
 
-            packet.Ignore = true;
+            if (packet.IsReceive)
+            {
 
-            if (client.Server.Player.UserAccount != null && client.Server.Player.UserAccount.Hash != packet.PasswordHash)
-                client.Server.Player.UserAccount = null;
+                packet.Ignore = true;
+
+                if (client.Server.Player.UserAccount != null && client.Server.Player.UserAccount.Hash != packet.PasswordHash)
+                    client.Server.Player.UserAccount = null;
+
+            }
 
             //SharpStarMain.Instance.PluginManager.CallEvent("handshakeResponse", packet, client);
         }

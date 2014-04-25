@@ -14,6 +14,8 @@ namespace SharpStar.Lib.Entities
 
         public SharpStarUser UserAccount { get; set; }
 
+        public int? UserGroupId { get; set; }
+
         public WorldCoordinate Coordinates { get; set; }
 
         public WorldCoordinate HomeCoordinates { get; set; }
@@ -65,6 +67,20 @@ namespace SharpStar.Lib.Entities
 
             if (UserAccount == null)
                 return false;
+
+            bool groupAllowed = false;
+
+            if (UserGroupId.HasValue)
+            {
+
+                var groupPerm = SharpStarMain.Instance.Database.GetGroupPermission(UserGroupId.Value, permission);
+
+                groupAllowed = groupPerm != null && groupPerm.Allowed;
+
+            }
+
+            if (groupAllowed)
+                return true;
 
             var perm = SharpStarMain.Instance.Database.GetPlayerPermission(UserAccount.Id, permission);
 

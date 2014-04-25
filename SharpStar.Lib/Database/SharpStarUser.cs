@@ -20,6 +20,8 @@ namespace SharpStar.Lib.Database
 
         public bool IsAdmin { get; set; }
 
+        public int? GroupId { get; set; }
+
         public DateTime LastLogin { get; set; }
 
     }

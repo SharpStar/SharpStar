@@ -25,13 +25,15 @@ namespace SharpStar.Lib.Database
 
             conn.CreateTable<SharpStarUser>();
             conn.CreateTable<SharpStarPermission>();
+            conn.CreateTable<SharpStarGroup>();
+            conn.CreateTable<SharpStarGroupPermission>();
 
             conn.Close();
             conn.Dispose();
 
         }
 
-        public bool AddUser(string username, string password, bool admin = false)
+        public bool AddUser(string username, string password, bool admin = false, int? groupId = null)
         {
 
             var conn = new SQLiteConnection(DatabaseName);
@@ -45,14 +47,47 @@ namespace SharpStar.Lib.Database
 
                 string salt = SharpStarSecurity.GenerateSalt();
 
-                conn.Insert(new SharpStarUser { Username = username, Hash = SharpStarSecurity.GenerateHash(username, password, salt, 5000), Salt = salt, IsAdmin = admin });
-            
+                conn.Insert(new SharpStarUser { Username = username, Hash = SharpStarSecurity.GenerateHash(username, password, salt, 5000), Salt = salt, IsAdmin = admin, GroupId = groupId });
+
             }
 
             conn.Close();
             conn.Dispose();
 
             return user == null;
+
+        }
+
+        public bool ChangeUserGroup(string username, int newGroupId)
+        {
+
+            var usr = GetUser(username);
+
+            if (usr == null)
+                return false;
+
+            return ChangeUserGroup(usr.Id, newGroupId);
+
+        }
+
+        public bool ChangeUserGroup(int userId, int newGroupId)
+        {
+
+            var usr = GetUser(userId);
+
+            if (usr == null)
+                return false;
+
+            var conn = new SQLiteConnection(DatabaseName);
+
+            usr.GroupId = newGroupId;
+
+            conn.Update(usr);
+
+            conn.Close();
+            conn.Dispose();
+
+            return true;
 
         }
 
@@ -105,7 +140,7 @@ namespace SharpStar.Lib.Database
                 conn.Dispose();
 
                 return false;
-            
+
             }
 
             var permTbl = conn.Table<SharpStarPermission>();
@@ -235,7 +270,7 @@ namespace SharpStar.Lib.Database
             {
 
                 perm.Allowed = allowed;
-                
+
                 conn.Update(perm);
 
                 return;
@@ -278,6 +313,317 @@ namespace SharpStar.Lib.Database
 
             conn.Close();
             conn.Dispose();
+
+        }
+
+        public SharpStarGroup CreateGroup(string groupName, bool defaultGroup = false)
+        {
+
+            var conn = new SQLiteConnection(DatabaseName);
+
+            var tbl = conn.Table<SharpStarGroup>();
+
+            if (tbl.Any(p => p.GroupName.Equals(groupName, StringComparison.OrdinalIgnoreCase)))
+            {
+
+                conn.Close();
+                conn.Dispose();
+
+                return null;
+
+            }
+
+            if (defaultGroup)
+            {
+
+                var defGroup = tbl.SingleOrDefault(p => p.IsDefaultGroup);
+
+                if (defGroup != null)
+                {
+
+                    defGroup.IsDefaultGroup = false;
+
+                    conn.Update(defGroup);
+
+                }
+
+            }
+
+            var group = new SharpStarGroup
+            {
+                GroupName = groupName,
+                IsDefaultGroup = defaultGroup
+            };
+
+            int id = conn.Insert(group);
+
+            group.Id = id;
+
+            return group;
+
+        }
+
+        public bool DeleteGroup(string groupName)
+        {
+
+            var group = GetGroup(groupName);
+
+            if (group == null)
+                return false;
+
+            return DeleteGroup(group.Id);
+
+        }
+
+        public bool DeleteGroup(int groupId)
+        {
+
+            var group = GetGroup(groupId);
+
+            if (group == null)
+                return false;
+
+            var conn = new SQLiteConnection(DatabaseName);
+
+            var usrTbl = conn.Table<SharpStarUser>();
+
+            var users = usrTbl.Where(p => p.GroupId == groupId);
+
+            //cleanup
+            foreach (var user in users)
+            {
+                user.GroupId = null;
+            }
+
+            conn.UpdateAll(users);
+
+            var permTbl = conn.Table<SharpStarGroupPermission>();
+
+            var perms = permTbl.Where(p => p.GroupId == groupId);
+
+            foreach (var perm in perms)
+            {
+                conn.Delete<SharpStarGroupPermission>(perm.Id);
+            }
+
+            conn.Delete(group);
+
+            conn.Close();
+            conn.Dispose();
+
+            return true;
+
+        }
+
+        public bool SetDefaultGroup(string groupName)
+        {
+
+            var group = GetGroup(groupName);
+
+            if (group == null)
+                return false;
+
+            return SetDefaultGroup(group.Id);
+
+        }
+
+        public bool SetDefaultGroup(int groupId)
+        {
+
+            var conn = new SQLiteConnection(DatabaseName);
+
+            var tbl = conn.Table<SharpStarGroup>();
+
+            var defGroup = tbl.SingleOrDefault(p => p.IsDefaultGroup);
+
+            if (defGroup != null)
+            {
+
+                defGroup.IsDefaultGroup = false;
+
+                conn.Update(defGroup);
+
+            }
+
+            var group = GetGroup(groupId);
+
+            if (group == null)
+                return false;
+
+            group.IsDefaultGroup = true;
+
+            conn.Update(group);
+
+            conn.Close();
+            conn.Dispose();
+
+            return true;
+
+        }
+
+        public SharpStarGroup GetGroup(string groupName)
+        {
+
+            var conn = new SQLiteConnection(DatabaseName);
+
+            var tbl = conn.Table<SharpStarGroup>();
+
+            var group = tbl.SingleOrDefault(p => p.GroupName.Equals(groupName, StringComparison.OrdinalIgnoreCase));
+
+            conn.Close();
+            conn.Dispose();
+
+            return group;
+
+        }
+
+        public SharpStarGroup GetGroup(int groupId)
+        {
+
+            var conn = new SQLiteConnection(DatabaseName);
+
+            var group = conn.Find<SharpStarGroup>(groupId);
+
+            conn.Close();
+            conn.Dispose();
+
+            return group;
+
+        }
+
+        public bool AddGroupPermission(string groupName, string permission, bool allowed = true)
+        {
+
+            SharpStarGroup group = GetGroup(groupName);
+
+            if (group == null)
+                return false;
+
+            return AddGroupPermission(group.Id, permission, allowed);
+
+        }
+
+        public bool AddGroupPermission(int groupId, string permission, bool allowed = true)
+        {
+
+            SharpStarGroup group = GetGroup(groupId);
+
+            if (group == null)
+                return false;
+
+            var conn = new SQLiteConnection(DatabaseName);
+
+            var tbl = conn.Table<SharpStarGroupPermission>();
+
+            if (tbl.Any(p => p.GroupId == group.Id && p.Permission.Equals(permission, StringComparison.OrdinalIgnoreCase)))
+            {
+
+                conn.Close();
+                conn.Dispose();
+
+                return false;
+
+            }
+
+            var perm = new SharpStarGroupPermission
+            {
+                GroupId = group.Id,
+                Permission = permission,
+                Allowed = allowed
+            };
+
+            conn.Insert(perm);
+
+            conn.Close();
+            conn.Dispose();
+
+            return true;
+
+        }
+
+        public List<SharpStarGroupPermission> GetGroupPermissions(int groupId)
+        {
+
+            SharpStarGroup group = GetGroup(groupId);
+
+            if (group == null)
+                return null;
+
+            var conn = new SQLiteConnection(DatabaseName);
+
+            var tbl = conn.Table<SharpStarGroupPermission>();
+
+            var perms = tbl.Where(p => p.GroupId == groupId).ToList();
+
+            conn.Close();
+            conn.Dispose();
+
+            return perms;
+
+        }
+
+        public SharpStarGroupPermission GetGroupPermission(int groupId, string permission)
+        {
+
+
+            SharpStarGroup group = GetGroup(groupId);
+
+            if (group == null)
+                return null;
+
+            var conn = new SQLiteConnection(DatabaseName);
+
+            var tbl = conn.Table<SharpStarGroupPermission>();
+
+            SharpStarGroupPermission perm = tbl.SingleOrDefault(p => p.GroupId == groupId && p.Permission.Equals(permission, StringComparison.OrdinalIgnoreCase));
+
+            conn.Close();
+            conn.Dispose();
+
+            return perm;
+
+        }
+
+        public bool RemoveGroupPermission(string groupName, string permission)
+        {
+
+            SharpStarGroup group = GetGroup(groupName);
+
+            if (group == null)
+                return false;
+
+            return RemoveGroupPermission(group.Id, permission);
+
+        }
+        
+        public bool RemoveGroupPermission(int groupId, string permission)
+        {
+
+            SharpStarGroup group = GetGroup(groupId);
+
+            if (group == null)
+                return false;
+
+            var conn = new SQLiteConnection(DatabaseName);
+
+            var perm = GetGroupPermission(groupId, permission);
+
+            if (perm == null)
+            {
+
+                conn.Close();
+                conn.Dispose();
+
+                return false;
+
+            }
+
+            conn.Delete<SharpStarGroupPermission>(perm.Id);
+
+            conn.Close();
+            conn.Dispose();
+
+            return true;
 
         }
 

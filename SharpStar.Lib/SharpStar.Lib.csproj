@@ -110,6 +110,8 @@
     <Compile Include="Config\SharpStarConfigFile.cs" />
     <Compile Include="Database\ISharpStarDb.cs" />
     <Compile Include="Database\SharpStarDb.cs" />
+    <Compile Include="Database\SharpStarGroup.cs" />
+    <Compile Include="Database\SharpStarGroupPermission.cs" />
     <Compile Include="Database\SharpStarPermission.cs" />
     <Compile Include="Database\SharpStarUser.cs" />
     <Compile Include="DataTypes\CelestialLog.cs" />

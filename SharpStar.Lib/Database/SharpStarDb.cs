@@ -47,6 +47,20 @@ namespace SharpStar.Lib.Database
 
                 string salt = SharpStarSecurity.GenerateSalt();
 
+                if (!groupId.HasValue)
+                {
+
+                    var groupTbl = conn.Table<SharpStarGroup>();
+
+                    SharpStarGroup defaultGroup = groupTbl.SingleOrDefault(p => p.IsDefaultGroup);
+
+                    if (defaultGroup != null)
+                    {
+                        groupId = defaultGroup.Id;
+                    }
+
+                }
+
                 conn.Insert(new SharpStarUser { Username = username, Hash = SharpStarSecurity.GenerateHash(username, password, salt, 5000), Salt = salt, IsAdmin = admin, GroupId = groupId });
 
             }

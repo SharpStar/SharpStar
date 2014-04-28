@@ -47,7 +47,7 @@ namespace SharpStar.Lib.Packets
 
                                     byte bufLength = s2.ReadUInt8();
 
-                                    if (bufLength == 10)
+                                    if (bufLength == 10 && (s2.Length - s2.Position) >= 1000)
                                     {
                                         World = new World();
                                         World.Read(s2.ReadUInt8Array());

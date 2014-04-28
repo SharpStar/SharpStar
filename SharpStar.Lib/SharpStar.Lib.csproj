@@ -124,6 +124,8 @@
     <Compile Include="Entities\ProjectileEntity.cs" />
     <Compile Include="Entities\StarboundPlayer.cs" />
     <Compile Include="Extensions\SocketExtensions.cs" />
+    <Compile Include="Misc\DamageKind.cs" />
+    <Compile Include="Misc\HitResultKind.cs" />
     <Compile Include="Misc\OS.cs" />
     <Compile Include="Misc\Python.cs" />
     <Compile Include="Misc\LogSector.cs" />

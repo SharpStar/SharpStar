@@ -192,6 +192,10 @@ namespace SharpStar.Lib.Server
                 Socket.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None, ClientDataReceived, null);
 
             }
+            catch (EndOfStreamException)
+            {
+                Socket.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None, ClientDataReceived, null);
+            }
             catch (Exception)
             {
             }

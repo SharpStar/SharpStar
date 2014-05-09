@@ -8,11 +8,11 @@ namespace SharpStar.Lib.Plugins
     public class EventAttribute : SharpStarObjectAttribute
     {
 
-        public string EventName { get; set; }
+        public string[] EventNames { get; set; }
 
-        public EventAttribute(string evtName)
+        public EventAttribute(params string[] evtNames)
         {
-            EventName = evtName;
+            EventNames = evtNames;
         }
 
     }

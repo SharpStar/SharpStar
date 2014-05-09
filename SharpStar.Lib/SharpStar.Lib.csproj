@@ -136,6 +136,7 @@
     <Compile Include="Packets\Handlers\HandshakeResponsePacketHandler.cs" />
     <Compile Include="Packets\Handlers\ProtocolVersionPacketHandler.cs" />
     <Compile Include="Packets\HandshakeResponsePacket.cs" />
+    <Compile Include="Packets\KnownPacket.cs" />
     <Compile Include="Packets\Packet.cs" />
     <Compile Include="Packets\SpawnEntityPacket.cs" />
     <Compile Include="Plugins\CommandAttribute.cs" />

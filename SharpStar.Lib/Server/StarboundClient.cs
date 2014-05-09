@@ -167,6 +167,9 @@ namespace SharpStar.Lib.Server
                 foreach (var packet in packets)
                 {
 
+                    if (PacketReceived != null)
+                        PacketReceived(this, new PacketReceivedEventArgs(packet));
+
 
                     SharpStarMain.Instance.PluginManager.CallEvent("packetReceived", packet, OtherClient);
 

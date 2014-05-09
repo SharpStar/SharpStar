@@ -98,7 +98,10 @@ namespace SharpStar.Lib.Plugins
 
                         EventAttribute attrib = (EventAttribute)attribs[0];
 
-                        dict.Add(attrib.EventName, (Action<IPacket, StarboundClient>)Delegate.CreateDelegate(typeof(Action<IPacket, StarboundClient>), obj, mi));
+                        var act = (Action<IPacket, StarboundClient>)Delegate.CreateDelegate(typeof(Action<IPacket, StarboundClient>), obj, mi);
+
+                        foreach (string evt in attrib.EventNames)
+                            dict.Add(evt, act);
 
                     }
 

@@ -197,11 +197,11 @@ namespace SharpStar
 
                         break;
 
-                    default:
+                    //default:
 
-                        m.PluginManager.PassChatCommand(null, cmd[0], new string(line.Skip(cmd[0].Length + 1).ToArray()).Split(' '));
+                    //    m.PluginManager.PassChatCommand(null, cmd[0], new string(line.Skip(cmd[0].Length + 1).ToArray()).Split(' '));
 
-                        break;
+                    //    break;
                 }
             }
         }

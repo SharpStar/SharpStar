@@ -42,6 +42,9 @@ namespace SharpStar.Lib.Entities
                     {
                         pent.Projectile = s.ReadString();
                         pent.Information = s.ReadVariant().Value as VariantDict;
+                        pent.Unknown1 = s.ReadUInt8Array(17);
+                        pent.ThrowerEntityId = s.ReadSignedVLQ(out discarded);
+                        pent.Unknown2 = s.ReadUInt8Array((int)(s.Length - s.Position));
                     }
                 }
 

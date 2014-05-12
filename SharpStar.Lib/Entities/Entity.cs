@@ -78,6 +78,24 @@ namespace SharpStar.Lib.Entities
                 ent = pent;
 
             }
+            else if (et == EntityType.Object)
+            {
+
+                ObjectEntity oent = new ObjectEntity();
+
+                using (MemoryStream ms = new MemoryStream(storeData))
+                {
+                    using (StarboundStream s = new StarboundStream(ms))
+                    {
+                        oent.Object = s.ReadString();
+                        oent.Information = s.ReadVariant();
+                        oent.Unknown = s.ReadUInt8Array((int)(s.Length - s.Position));
+                    }
+                }
+
+                ent = oent;
+
+            }
             else
             {
                 ent = new Entity();

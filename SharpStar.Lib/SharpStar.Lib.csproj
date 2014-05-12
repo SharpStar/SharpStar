@@ -120,6 +120,7 @@
     <Compile Include="DataTypes\Variant.cs" />
     <Compile Include="DataTypes\VariantDict.cs" />
     <Compile Include="Entities\Entity.cs" />
+    <Compile Include="Entities\ObjectEntity.cs" />
     <Compile Include="Entities\PlayerEntity.cs" />
     <Compile Include="Entities\ProjectileEntity.cs" />
     <Compile Include="Entities\StarboundPlayer.cs" />

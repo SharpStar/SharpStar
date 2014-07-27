@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using SharpStar.Lib.Networking;
 using SharpStar.Lib.Starbound;
 
@@ -14,11 +15,6 @@ namespace SharpStar.Lib.Packets
         public byte[] Data { get; set; }
 
         public World World { get; set; }
-
-        public ClientContextUpdatePacket()
-        {
-            Data = new byte[0];
-        }
 
         public override void Read(IStarboundStream stream)
         {
@@ -72,11 +68,10 @@ namespace SharpStar.Lib.Packets
                                         }
 
                                     }
-                                    
+
                                 }
 
                             }
-
                         }
 
                     }

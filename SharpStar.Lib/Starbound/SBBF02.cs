@@ -53,7 +53,7 @@ namespace SharpStar.Lib.Starbound
 
             if (formatStr != "SBBF02")
             {
-                throw new Exception("Invalid format!");
+                throw new Exception("Invalid format! (" + formatStr + ")");
             }
 
             var unpacked = DataConverter.Unpack("^iibi", Reader.ReadBytes(13), 0);

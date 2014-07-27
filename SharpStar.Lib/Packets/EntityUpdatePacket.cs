@@ -15,18 +15,16 @@ namespace SharpStar.Lib.Packets
 
         public override void Read(IStarboundStream stream)
         {
-
             int discarded;
 
             EntityId = stream.ReadSignedVLQ(out discarded);
             Unknown = stream.ReadUInt8Array((int)(stream.Length - stream.Position));
-
         }
 
         public override void Write(IStarboundStream stream)
         {
             stream.WriteSignedVLQ(EntityId);
-            stream.WriteUInt8Array(Unknown);
+            stream.WriteUInt8Array(Unknown, false);
         }
     }
 }

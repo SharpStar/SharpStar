@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using SharpStar.Lib.Packets.Handlers;
 
 namespace SharpStar.Lib.Server
 {
@@ -24,6 +25,38 @@ namespace SharpStar.Lib.Server
         public TcpListener Listener { get; set; }
 
         public List<StarboundServerClient> Clients { get; set; }
+
+        public List<IPacketHandler> DefaultPacketHandlers = new List<IPacketHandler>
+        {
+            new UnknownPacketHandler(),
+            new ProtocolVersionPacketHandler(),
+            new ClientConnectPacketHandler(),
+            new ClientDisconnectPacketHandler(),
+            new HandshakeResponsePacketHandler(),
+            new ChatSentPacketHandler(),
+            new RequestDropPacketHandler(),
+            new WarpCommandPacketHandler(),
+            new OpenContainerPacketHandler(),
+            new CloseContainerPacketHandler(),
+            new DamageNotificationPacketHandler(),
+            new ConnectionResponsePacketHandler(),
+            new HandshakeChallengePacketHandler(),
+            new DisconnectResponsePacketHandler(),
+            new ChatReceivedPacketHandler(),
+            new EntityInteractResultPacketHandler(),
+            new UniverseTimeUpdatePacketHandler(),
+            new ClientContextUpdatePacketHandler(),
+            new WorldStartPacketHandler(),
+            new WorldStopPacketHandler(),
+            new TileDamageUpdatePacketHandler(),
+            new GiveItemPacketHandler(),
+            new EnvironmentUpdatePacketHandler(),
+            new EntityCreatePacketHandler(),
+            new EntityUpdatePacketHandler(),
+            new EntityDestroyPacketHandler(),
+            new UpdateWorldPropertiesPacketHandler(),
+            new HeartbeatPacketHandler()
+        };
 
         public event EventHandler<ClientConnectedEventArgs> ClientConnected;
 
@@ -58,6 +91,22 @@ namespace SharpStar.Lib.Server
             Listener.Stop();
         }
 
+        public void AddClient(StarboundServerClient client)
+        {
+            lock (_clientLocker)
+            {
+                Clients.Add(client);
+            }
+        }
+
+        public void RemoveClient(StarboundServerClient client)
+        {
+            lock (_clientLocker)
+            {
+                Clients.Remove(client);
+            }
+        }
+
         private void AcceptClient(IAsyncResult iar)
         {
             if (_disposed)
@@ -83,6 +132,11 @@ namespace SharpStar.Lib.Server
                     ssc = new StarboundServerClient(sc);
                     ssc.ClientId = _clientCtr;
 
+                    foreach (IPacketHandler packetHandler in DefaultPacketHandlers)
+                    {
+                        ssc.RegisterPacketHandler(packetHandler);
+                    }
+
                     ssc.Disconnected += (sender, args) =>
                     {
                         lock (_clientLocker)
@@ -106,13 +160,11 @@ namespace SharpStar.Lib.Server
 
                     ssc.SClientConnected += (sender, args) =>
                     {
-
                         if (ClientConnected != null)
                             ClientConnected(this, new ClientConnectedEventArgs(ssc));
-
                     };
 
-                    ssc.Connect(_serverPort);
+                    ssc.Connect("127.0.0.1", _serverPort);
 
                     lock (_clientLocker)
                         Clients.Add(ssc);

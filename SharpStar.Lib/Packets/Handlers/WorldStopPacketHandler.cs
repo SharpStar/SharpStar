@@ -2,14 +2,14 @@
 
 namespace SharpStar.Lib.Packets.Handlers
 {
-    public class WorldStopPacketHandler : PacketHandler<WorldStartPacket>
+    public class WorldStopPacketHandler : PacketHandler<WorldStopPacket>
     {
-        public override void Handle(WorldStartPacket packet, StarboundClient client)
+        public override void Handle(WorldStopPacket packet, StarboundClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("worldStop", packet, client);
         }
 
-        public override void HandleAfter(WorldStartPacket packet, StarboundClient client)
+        public override void HandleAfter(WorldStopPacket packet, StarboundClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterWorldStop", packet, client);
         }

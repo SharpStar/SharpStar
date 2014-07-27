@@ -1,4 +1,5 @@
-﻿using SharpStar.Lib.Database;
+﻿using System.Collections.Generic;
+using SharpStar.Lib.Database;
 using SharpStar.Lib.DataTypes;
 
 namespace SharpStar.Lib.Entities
@@ -11,6 +12,16 @@ namespace SharpStar.Lib.Entities
         public string UUID { get; set; }
 
         public long EntityId { get; set; }
+
+        public Variant Claim { get; set; }
+
+        public string Species { get; set; }
+
+        public byte[] ShipWorld { get; set; }
+
+        public string AssetDigest { get; set; }
+
+        public uint ClientId { get; set; }
 
         public SharpStarUser UserAccount { get; set; }
 
@@ -37,6 +48,7 @@ namespace SharpStar.Lib.Entities
         }
 
         public StarboundPlayer(string name, string uuid)
+            : this()
         {
             Name = name;
             UUID = uuid;

@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using System.Timers;
 using Ionic.Zlib;
 using SharpStar.Lib.DataTypes;
@@ -43,101 +42,59 @@ namespace SharpStar.Lib.Server
         public Direction Direction { get; private set; }
 
 
-        private readonly List<IPacketHandler> _packetHandlers;
+        public List<IPacketHandler> PacketHandlers { get; private set; }
 
-        public event EventHandler<PacketReceivedEventArgs> PacketReceived;
+        public event EventHandler<PacketEventArgs> PacketReceived;
+
+        public event EventHandler<PacketEventArgs> SendingPacket;
 
         private readonly Timer _connTimer;
 
+        private readonly object _handlerLock = new object();
+
         public StarboundClient(Socket socket, Direction dir)
         {
-
             Socket = socket;
             Direction = dir;
 
-            _packetHandlers = new List<IPacketHandler>();
+            PacketHandlers = new List<IPacketHandler>();
 
             PacketQueue = new ConcurrentQueue<IPacket>();
-
             PacketReader = new PacketReader();
-            PacketReader.RegisterPacketType(0, typeof(ProtocolVersionPacket));
-            PacketReader.RegisterPacketType(1, typeof(ConnectionResponsePacket));
-            PacketReader.RegisterPacketType(2, typeof(DisconnectResponsePacket));
-            PacketReader.RegisterPacketType(3, typeof(HandshakeChallengePacket));
-            PacketReader.RegisterPacketType(4, typeof(ChatReceivedPacket));
-            PacketReader.RegisterPacketType(5, typeof(UniverseTimeUpdatePacket));
-            PacketReader.RegisterPacketType(7, typeof(ClientConnectPacket));
-            PacketReader.RegisterPacketType(8, typeof(ClientDisconnectPacket));
-            PacketReader.RegisterPacketType(9, typeof(HandshakeResponsePacket));
-            PacketReader.RegisterPacketType(10, typeof(WarpCommandPacket));
-            PacketReader.RegisterPacketType(11, typeof(ChatSentPacket));
-            PacketReader.RegisterPacketType(13, typeof(ClientContextUpdatePacket));
-            PacketReader.RegisterPacketType(14, typeof(WorldStartPacket));
-            PacketReader.RegisterPacketType(15, typeof(WorldStopPacket));
-            PacketReader.RegisterPacketType(19, typeof(TileDamageUpdatePacket));
-            PacketReader.RegisterPacketType(21, typeof(GiveItemPacket));
-            PacketReader.RegisterPacketType(23, typeof(EnvironmentUpdatePacket));
-            PacketReader.RegisterPacketType(24, typeof(EntityInteractResultPacket));
-            PacketReader.RegisterPacketType(28, typeof(RequestDropPacket));
-            PacketReader.RegisterPacketType(33, typeof(OpenContainerPacket));
-            PacketReader.RegisterPacketType(34, typeof(CloseContainerPacket));
-            PacketReader.RegisterPacketType(42, typeof(EntityCreatePacket));
-            //PacketReader.RegisterPacketType(43, typeof(EntityUpdatePacket));
-            PacketReader.RegisterPacketType(44, typeof(EntityDestroyPacket));
-            PacketReader.RegisterPacketType(45, typeof(DamageNotificationPacket));
-            PacketReader.RegisterPacketType(47, typeof(UpdateWorldPropertiesPacket));
-            PacketReader.RegisterPacketType(48, typeof(HeartbeatPacket));
-
-            RegisterPacketHandler(new UnknownPacketHandler());
-            RegisterPacketHandler(new ProtocolVersionPacketHandler());
-            RegisterPacketHandler(new ClientConnectPacketHandler());
-            RegisterPacketHandler(new ClientDisconnectPacketHandler());
-            RegisterPacketHandler(new HandshakeResponsePacketHandler());
-            RegisterPacketHandler(new ChatSentPacketHandler());
-            RegisterPacketHandler(new RequestDropPacketHandler());
-            RegisterPacketHandler(new WarpCommandPacketHandler());
-            RegisterPacketHandler(new OpenContainerPacketHandler());
-            RegisterPacketHandler(new CloseContainerPacketHandler());
-            RegisterPacketHandler(new DamageNotificationPacketHandler());
-            RegisterPacketHandler(new ConnectionResponsePacketHandler());
-            RegisterPacketHandler(new HandshakeChallengePacketHandler());
-            RegisterPacketHandler(new DisconnectResponsePacketHandler());
-            RegisterPacketHandler(new ChatReceivedPacketHandler());
-            RegisterPacketHandler(new EntityInteractResultPacketHandler());
-            RegisterPacketHandler(new UniverseTimeUpdatePacketHandler());
-            RegisterPacketHandler(new ClientContextUpdatePacketHandler());
-            RegisterPacketHandler(new WorldStartPacketHandler());
-            RegisterPacketHandler(new TileDamageUpdatePacketHandler());
-            RegisterPacketHandler(new GiveItemPacketHandler());
-            RegisterPacketHandler(new EnvironmentUpdatePacketHandler());
-            RegisterPacketHandler(new EntityCreatePacketHandler());
-            //RegisterPacketHandler(new EntityUpdatePacketHandler());
-            RegisterPacketHandler(new EntityDestroyPacketHandler());
-            RegisterPacketHandler(new UpdateWorldPropertiesPacketHandler());
-            RegisterPacketHandler(new HeartbeatPacketHandler());
 
             _connTimer = new Timer(TimeSpan.FromSeconds(15).TotalMilliseconds);
             _connTimer.Elapsed += (sender, e) => CheckConnection();
             _connTimer.Start();
-
         }
 
         public void RegisterPacketHandler(IPacketHandler handler)
         {
-            _packetHandlers.Add(handler);
+            if (PacketHandlers.All(p => p.GetType() != handler.GetType()))
+                PacketHandlers.Add(handler);
         }
 
         public void UnregisterPacketHandler(IPacketHandler handler)
         {
-            _packetHandlers.Remove(handler);
+            PacketHandlers.Remove(handler);
+        }
+
+        public void ClearPacketHandlers()
+        {
+            lock (_handlerLock)
+            {
+                PacketHandlers.Clear();
+            }
         }
 
         #region Connection
 
         public void StartReceiving()
         {
-            Socket.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None,
-                ClientDataReceived, null);
+            if (Socket != null && PacketReader != null)
+            {
+                Socket.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None,
+                    ClientDataReceived, Socket);
+            }
         }
 
         public void ForceDisconnect()
@@ -147,6 +104,9 @@ namespace SharpStar.Lib.Server
 
         public void SendPacket(IPacket packet)
         {
+            if (SendingPacket != null)
+                SendingPacket(this, new PacketEventArgs(this, packet));
+
             PacketQueue.Enqueue(packet);
             FlushPackets();
         }
@@ -154,13 +114,15 @@ namespace SharpStar.Lib.Server
         private void ClientDataReceived(IAsyncResult iar)
         {
 
-            if (Socket == null)
+            Socket sock = (Socket)iar.AsyncState;
+
+            if (sock == null)
                 return;
 
             try
             {
 
-                int length = Socket.EndReceive(iar);
+                int length = sock.EndReceive(iar);
 
                 List<IPacket> packets = PacketReader.UpdateBuffer(null, length);
 
@@ -168,12 +130,13 @@ namespace SharpStar.Lib.Server
                 {
 
                     if (PacketReceived != null)
-                        PacketReceived(this, new PacketReceivedEventArgs(packet));
+                        PacketReceived(this, new PacketEventArgs(this, packet));
 
 
                     SharpStarMain.Instance.PluginManager.CallEvent("packetReceived", packet, OtherClient);
 
-                    foreach (var handler in _packetHandlers)
+
+                    foreach (var handler in PacketHandlers.ToList())
                     {
                         if (packet.PacketId == handler.PacketId)
                             handler.Handle(packet, this);
@@ -184,7 +147,8 @@ namespace SharpStar.Lib.Server
 
                     SharpStarMain.Instance.PluginManager.CallEvent("afterPacketReceived", packet, OtherClient);
 
-                    foreach (var handler in _packetHandlers)
+
+                    foreach (var handler in PacketHandlers.ToList())
                     {
                         if (packet.PacketId == handler.PacketId)
                             handler.HandleAfter(packet, this);
@@ -192,15 +156,20 @@ namespace SharpStar.Lib.Server
 
                 }
 
-                Socket.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None, ClientDataReceived, null);
+                if (PacketReader != null && PacketReader.NetworkBuffer != null)
+                    sock.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None, ClientDataReceived, sock);
 
             }
-            catch (EndOfStreamException)
+            catch (SocketException)
             {
-                Socket.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None, ClientDataReceived, null);
+            }
+            catch (ObjectDisposedException)
+            {
             }
             catch (Exception)
             {
+                if (PacketReader != null && PacketReader.NetworkBuffer != null)
+                    sock.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None, ClientDataReceived, sock);
             }
 
         }
@@ -213,15 +182,12 @@ namespace SharpStar.Lib.Server
             }
             catch (Exception)
             {
-                ForceDisconnect();
+                //    ForceDisconnect();
             }
         }
 
         public void FlushPackets()
         {
-
-            if (!Server.Connected)
-                return;
 
             while (PacketQueue.Count > 0)
             {
@@ -234,21 +200,24 @@ namespace SharpStar.Lib.Server
                     {
                     }
 
+                    if (!Socket.Connected || Socket == null)
+                        continue;
+
                     if (!next.IsReceive)
                     {
 
                         SharpStarMain.Instance.PluginManager.CallEvent("customPacketSending", next, OtherClient);
 
-                        foreach (var handler in _packetHandlers)
+                        foreach (var handler in PacketHandlers.ToList())
                         {
                             if (next.PacketId == handler.PacketId)
                                 handler.Handle(next, OtherClient);
                         }
 
-                        if (next.Ignore)
-                            continue;
-
                     }
+
+                    if (next.Ignore)
+                        continue;
 
                     var memoryStream = new MemoryStream();
 
@@ -284,7 +253,7 @@ namespace SharpStar.Lib.Server
                 }
                 catch (Exception)
                 {
-                    ForceDisconnect();
+                    //ForceDisconnect();
                 }
             }
         }
@@ -399,13 +368,16 @@ namespace SharpStar.Lib.Server
         #endregion
     }
 
-    public class PacketReceivedEventArgs : EventArgs
+    public class PacketEventArgs : EventArgs
     {
+
+        public StarboundClient Client { get; set; }
 
         public IPacket Packet { get; set; }
 
-        public PacketReceivedEventArgs(IPacket packet)
+        public PacketEventArgs(StarboundClient client, IPacket packet)
         {
+            Client = client;
             Packet = packet;
         }
 

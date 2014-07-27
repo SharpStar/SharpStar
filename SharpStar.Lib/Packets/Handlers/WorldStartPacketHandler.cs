@@ -49,6 +49,7 @@ namespace SharpStar.Lib.Packets.Handlers
                 client.Server.Player.Coordinates = coords;
             }
 
+            client.Server.Player.ClientId = packet.ClientId;
             client.Server.Player.SpawnX = packet.SpawnX;
             client.Server.Player.SpawnY = packet.SpawnY;
 

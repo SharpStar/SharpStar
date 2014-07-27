@@ -10,9 +10,5 @@ namespace SharpStar.Lib.Entities
 
         public string UUID { get; set; }
 
-        public PlayerEntity()
-        {
-        }
-
     }
 }

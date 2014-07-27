@@ -1,15 +1,17 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using SharpStar.Lib.Entities;
 using System.Threading;
+using SharpStar.Lib.Extensions;
+using SharpStar.Lib.Packets;
+using SharpStar.Lib.Packets.Handlers;
 
 namespace SharpStar.Lib.Server
 {
     public class StarboundServerClient : IDisposable
     {
-
-        public const string Host = "127.0.0.1";
 
         public bool Connected { get; private set; }
 
@@ -18,7 +20,9 @@ namespace SharpStar.Lib.Server
         public TcpClient ServerTcpClient { get; set; }
 
 
-        public event EventHandler Disconnected;
+        public event EventHandler<ClientConnectedEventArgs> SClientConnected;
+
+        public event EventHandler<ClientDisconnectedEventArgs> Disconnected;
 
 
         public StarboundClient ServerClient { get; set; }
@@ -29,8 +33,6 @@ namespace SharpStar.Lib.Server
 
         public DateTime ConnectionTime { get; private set; }
 
-
-        public event EventHandler SClientConnected;
 
         private volatile bool _disconnectEventCalled;
 
@@ -47,8 +49,7 @@ namespace SharpStar.Lib.Server
             PlayerClient = plrClient;
             PlayerClient.Server = this;
 
-            ServerTcpClient = new TcpClient();
-            ServerTcpClient.NoDelay = true;
+            ServerTcpClient = new TcpClient { NoDelay = true };
 
             ServerClient = new StarboundClient(ServerTcpClient.Client, Direction.Server);
             ServerClient.OtherClient = PlayerClient;
@@ -60,28 +61,67 @@ namespace SharpStar.Lib.Server
 
         }
 
-        public void Connect(int port)
+        public void Connect(string host, int port)
         {
 
-            ServerTcpClient.BeginConnect(Host, port, ServerClientConnected, null);
+            if (ServerTcpClient != null && ServerTcpClient.Client.IsConnected())
+            {
+                ServerTcpClient.Client.Disconnect(true);
+                ServerTcpClient = null;
+            }
+
+            if (ServerTcpClient == null)
+            {
+
+                ServerTcpClient = new TcpClient { NoDelay = true };
+
+                ServerClient.Dispose();
+                ServerClient = new StarboundClient(ServerTcpClient.Client, Direction.Server)
+                {
+                    OtherClient = PlayerClient,
+                    Server = this
+                };
+
+                PlayerClient.PacketReader = null;
+                PlayerClient.OtherClient = ServerClient;
+
+            }
+
+            ServerTcpClient.BeginConnect(host, port, ServerClientConnected, null);
 
             ConnectionTime = DateTime.Now;
 
+        }
+
+        public void RegisterPacketHandler(IPacketHandler handler)
+        {
+            PlayerClient.RegisterPacketHandler(handler);
+            ServerClient.RegisterPacketHandler(handler);
+        }
+
+        public void UnregisterPacketHandler(IPacketHandler handler)
+        {
+            PlayerClient.UnregisterPacketHandler(handler);
+            ServerClient.UnregisterPacketHandler(handler);
         }
 
         private void ServerClientConnected(IAsyncResult iar)
         {
             try
             {
-                ServerTcpClient.EndConnect(iar);
 
+                ServerTcpClient.EndConnect(iar);
                 Connected = true;
 
-                if (SClientConnected != null)
-                    SClientConnected(this, EventArgs.Empty);
+                PlayerClient.PacketReader = new PacketReader();
+                PlayerClient.PacketQueue = new ConcurrentQueue<IPacket>();
 
-                PlayerClient.StartReceiving();
+                if (SClientConnected != null)
+                    SClientConnected(this, new ClientConnectedEventArgs(this));
+
                 ServerClient.StartReceiving();
+                PlayerClient.StartReceiving();
+
             }
             catch (Exception)
             {
@@ -96,14 +136,11 @@ namespace SharpStar.Lib.Server
 
             try
             {
-                if (ServerTcpClient != null)
-                    ServerTcpClient.Close();
-
                 if (ServerClient != null)
                 {
                     if (ServerClient.Socket != null)
                     {
-                        ServerClient.Socket.Close();
+                        ServerClient.Socket.Disconnect(true);
                     }
 
                     ServerClient.Dispose();
@@ -113,28 +150,25 @@ namespace SharpStar.Lib.Server
                 {
                     if (PlayerClient.Socket != null)
                     {
-                        PlayerClient.Socket.Close();
+                        PlayerClient.Socket.Disconnect(true);
                     }
 
                     PlayerClient.Dispose();
                 }
+
             }
             catch (Exception)
             {
             }
             finally
             {
-
                 lock (_locker)
                 {
-
                     if (Disconnected != null && !_disconnectEventCalled)
-                        Disconnected(this, EventArgs.Empty);
+                        Disconnected(this, new ClientDisconnectedEventArgs(this));
 
                     _disconnectEventCalled = true;
-                
                 }
-
             }
         }
 
@@ -151,14 +185,7 @@ namespace SharpStar.Lib.Server
         {
             if (disposing)
             {
-
-                ForceDisconnect();
-
-                if (PlayerClient != null)
-                    PlayerClient.Dispose();
-
-                if (ServerClient != null)
-                    ServerClient.Dispose();
+                //ForceDisconnect();
             }
 
             PlayerClient = null;

@@ -13,7 +13,14 @@ namespace SharpStar.Lib.Packets.Handlers
             if (packet.IsReceive)
             {
 
-                client.Server.Player = new StarboundPlayer(packet.PlayerName, BitConverter.ToString(packet.UUID, 0).Replace("-", String.Empty).ToLower());
+                client.Server.Player = new StarboundPlayer(packet.PlayerName, BitConverter.ToString(packet.UUID, 0).Replace("-", String.Empty).ToLower())
+                {
+                    Claim = packet.Claim,
+                    Species = packet.Species,
+                    ShipWorld = packet.Shipworld,
+                    AssetDigest = packet.AssetDigest,
+                    OnOwnShip = true
+                };
 
                 if (!string.IsNullOrEmpty(packet.Account))
                 {

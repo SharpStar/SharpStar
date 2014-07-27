@@ -14,7 +14,7 @@ namespace SharpStar.Lib.Packets
         public const int MaxInflatedPacketLength = 10485760; // 10 MB
         public const int NetworkBufferLength = 1024;
 
-        private readonly Dictionary<byte, Func<IPacket>> _registeredPacketTypes;
+        public static Dictionary<byte, Func<IPacket>> RegisteredPacketTypes;
 
         public byte[] NetworkBuffer { get; set; }
 
@@ -27,19 +27,48 @@ namespace SharpStar.Lib.Packets
 
         public PacketReader()
         {
-
-            _registeredPacketTypes = new Dictionary<byte, Func<IPacket>>();
-
             NetworkBuffer = new byte[1024];
-
         }
 
-        public void RegisterPacketType(byte id, Type packetType)
+        static PacketReader()
+        {
+            RegisteredPacketTypes = new Dictionary<byte, Func<IPacket>>();
+
+            RegisterPacketType(0, typeof(ProtocolVersionPacket));
+            RegisterPacketType(1, typeof(ConnectionResponsePacket));
+            RegisterPacketType(2, typeof(DisconnectResponsePacket));
+            RegisterPacketType(3, typeof(HandshakeChallengePacket));
+            RegisterPacketType(4, typeof(ChatReceivedPacket));
+            RegisterPacketType(5, typeof(UniverseTimeUpdatePacket));
+            RegisterPacketType(7, typeof(ClientConnectPacket));
+            RegisterPacketType(8, typeof(ClientDisconnectPacket));
+            RegisterPacketType(9, typeof(HandshakeResponsePacket));
+            RegisterPacketType(10, typeof(WarpCommandPacket));
+            RegisterPacketType(11, typeof(ChatSentPacket));
+            RegisterPacketType(13, typeof(ClientContextUpdatePacket));
+            RegisterPacketType(14, typeof(WorldStartPacket));
+            RegisterPacketType(15, typeof(WorldStopPacket));
+            RegisterPacketType(19, typeof(TileDamageUpdatePacket));
+            RegisterPacketType(21, typeof(GiveItemPacket));
+            RegisterPacketType(23, typeof(EnvironmentUpdatePacket));
+            RegisterPacketType(24, typeof(EntityInteractResultPacket));
+            RegisterPacketType(28, typeof(RequestDropPacket));
+            RegisterPacketType(33, typeof(OpenContainerPacket));
+            RegisterPacketType(34, typeof(CloseContainerPacket));
+            RegisterPacketType(42, typeof(EntityCreatePacket));
+            RegisterPacketType(43, typeof(EntityUpdatePacket));
+            RegisterPacketType(44, typeof(EntityDestroyPacket));
+            RegisterPacketType(45, typeof(DamageNotificationPacket));
+            RegisterPacketType(47, typeof(UpdateWorldPropertiesPacket));
+            RegisterPacketType(48, typeof(HeartbeatPacket));
+        }
+
+        public static void RegisterPacketType(byte id, Type packetType)
         {
             if (!typeof(IPacket).IsAssignableFrom(packetType))
                 throw new Exception("Type must be of IPacket!");
 
-            _registeredPacketTypes.Add(id, Expression.Lambda<Func<IPacket>>(Expression.New(packetType)).Compile());
+            RegisteredPacketTypes.Add(id, Expression.Lambda<Func<IPacket>>(Expression.New(packetType)).Compile());
         }
 
         public List<IPacket> UpdateBuffer(byte[] buf, int length)
@@ -58,7 +87,6 @@ namespace SharpStar.Lib.Packets
                 Buffer.BlockCopy(NetworkBuffer, 0, PacketBuffer, index, length);
 
             }
-
 
             using (MemoryStream ms = new MemoryStream(PacketBuffer))
             {
@@ -100,7 +128,7 @@ namespace SharpStar.Lib.Packets
 
                             var packets = new List<IPacket>();
 
-                            packets.AddRange(Decode(_packetId, data));
+                            packets.Add(Decode(_packetId, data));
 
                             WorkingLength = long.MaxValue;
 
@@ -122,17 +150,16 @@ namespace SharpStar.Lib.Packets
 
         }
 
-        public List<IPacket> Decode(byte packetId, byte[] payload)
+        public IPacket Decode(byte packetId, byte[] payload)
         {
             var memoryStream = new MemoryStream(payload);
             var stream = new StarboundStream(memoryStream);
-            var packets = new List<IPacket>();
 
             IPacket packet;
 
-            if (_registeredPacketTypes.ContainsKey(packetId))
+            if (RegisteredPacketTypes.ContainsKey(packetId))
             {
-                packet = _registeredPacketTypes[packetId]();
+                packet = RegisteredPacketTypes[packetId]();
             }
             else
             {
@@ -146,8 +173,6 @@ namespace SharpStar.Lib.Packets
 
                 packet.Read(stream);
 
-                packets.Add(packet);
-
             }
 
             stream.Close();
@@ -156,7 +181,7 @@ namespace SharpStar.Lib.Packets
             memoryStream.Close();
             memoryStream.Dispose();
 
-            return packets;
+            return packet;
         }
 
         public void Dispose()

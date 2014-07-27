@@ -1,4 +1,5 @@
-﻿using SharpStar.Lib.Entities;
+﻿using System;
+using SharpStar.Lib.Entities;
 using SharpStar.Lib.Misc;
 using SharpStar.Lib.Server;
 
@@ -8,7 +9,6 @@ namespace SharpStar.Lib.Packets.Handlers
     {
         public override void Handle(EntityCreatePacket packet, StarboundClient client)
         {
-
             foreach (var ent in packet.Entities)
             {
 

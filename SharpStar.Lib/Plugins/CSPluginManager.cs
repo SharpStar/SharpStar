@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Mono.Addins;
+using SharpStar.Lib.Logging;
 using SharpStar.Lib.Packets;
 using SharpStar.Lib.Server;
 
@@ -13,7 +14,17 @@ namespace SharpStar.Lib.Plugins
     public sealed class CSPluginManager
     {
 
+        private static readonly SharpStarLogger Logger = SharpStarLogger.DefaultLogger;
+
         private readonly Dictionary<string, ICSPlugin> _csPlugins;
+
+        public List<ICSPlugin> Plugins
+        {
+            get
+            {
+                return _csPlugins.Values.ToList();
+            }
+        }
 
         public const string CSPluginDirectory = "addins";
 
@@ -53,7 +64,6 @@ namespace SharpStar.Lib.Plugins
 
         public bool PassChatCommand(StarboundClient client, string command, string[] args)
         {
-
             bool result = false;
 
             foreach (ICSPlugin plugin in _csPlugins.Values)
@@ -63,7 +73,19 @@ namespace SharpStar.Lib.Plugins
             }
 
             return result;
+        }
 
+        public bool PassConsoleCommand(string command, string[] args)
+        {
+            bool result = false;
+
+            foreach (ICSPlugin plugin in _csPlugins.Values)
+            {
+                if (plugin.OnConsoleCommand(command, args))
+                    result = true;
+            }
+
+            return result;
         }
 
         public void UnloadPlugins()
@@ -75,6 +97,11 @@ namespace SharpStar.Lib.Plugins
                 foreach (ICSPlugin plugin in _csPlugins.Values)
                 {
                     plugin.OnUnload();
+
+                    foreach (ICSPlugin otherPlugin in _csPlugins.Values.Except(new[] { plugin }))
+                    {
+                        otherPlugin.OnPluginUnloaded(plugin);
+                    }
                 }
 
                 foreach (Addin addin in AddinManager.Registry.GetAddins())
@@ -98,9 +125,14 @@ namespace SharpStar.Lib.Plugins
 
                     plugin.OnLoad();
 
+                    foreach (ICSPlugin p in _csPlugins.Values)
+                    {
+                        p.OnPluginLoaded(plugin);
+                    }
+
                     _csPlugins.Add(Addin.GetFullId(null, args.ExtensionNode.Addin.Id, args.ExtensionNode.Addin.Version), plugin);
 
-                    Console.WriteLine("Loaded CSharp Plugin \"{0}\"", plugin.Name);
+                    Logger.Info("Loaded CSharp Plugin \"{0}\"", plugin.Name);
 
                 }
                 else if (args.Change == ExtensionChange.Remove)
@@ -108,9 +140,12 @@ namespace SharpStar.Lib.Plugins
 
                     plugin.OnUnload();
 
+                    foreach (ICSPlugin p in _csPlugins.Values)
+                        p.OnPluginUnloaded(plugin);
+
                     _csPlugins.Remove(Addin.GetFullId(null, args.ExtensionNode.Addin.Id, args.ExtensionNode.Addin.Version));
 
-                    Console.WriteLine("Unloaded CSharp Plugin \"{0}\"", plugin.Name);
+                    Logger.Info("Unloaded CSharp Plugin \"{0}\"", plugin.Name);
 
                 }
             }
@@ -124,7 +159,7 @@ namespace SharpStar.Lib.Plugins
 
             if (plugins.Count > 1)
             {
-                Console.WriteLine("Error loading plugin \"{0}\"", plugin.Name);
+                Logger.Error("Error loading plugin \"{0}\"", plugin.Name);
             }
             else if (plugins.Count > 0)
             {
@@ -140,7 +175,7 @@ namespace SharpStar.Lib.Plugins
 
             if (plugins.Count > 1)
             {
-                Console.WriteLine("Error unloading plugin \"{0}\"", plugin.Name);
+                Logger.Error("Error unloading plugin \"{0}\"", plugin.Name);
             }
             else if (plugins.Count > 0)
             {

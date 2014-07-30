@@ -2,25 +2,37 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
+using log4net.Config;
 using SharpStar.Lib;
 using SharpStar.Lib.Database;
+using SharpStar.Lib.Logging;
 using SharpStar.Lib.Plugins;
 
 namespace SharpStar
 {
     internal class Program
     {
+
+        private static SharpStarLogger Logger;
+
+        [HandleProcessCorruptedStateExceptions]
         private static void Main(string[] args)
         {
+
+            XmlConfigurator.Configure();
+
+            Logger = SharpStarLogger.DefaultLogger;
+
             SharpStarMain m = SharpStarMain.Instance;
+
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             Version ver = Assembly.GetExecutingAssembly().GetName().Version;
 
-            Console.WriteLine("SharpStar Version {0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision);
+            Logger.Info("SharpStar Version {0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision);
 
             m.Start();
-
-            SharpStarUser user = null;
 
             bool running = true;
             while (running)
@@ -32,13 +44,15 @@ namespace SharpStar
                 if (cmd.Length == 0)
                     continue;
 
+                SharpStarUser user;
+
                 switch (cmd[0])
                 {
                     case "loadplugin":
 
                         if (cmd.Length != 2)
                         {
-                            Console.WriteLine("Syntax: loadplugin <file> (where file is in the \"{0}\" folder)",
+                            Logger.Info("Syntax: loadplugin <file> (where file is in the \"{0}\" folder)",
                                 PluginManager.PluginDirectory);
                         }
                         else
@@ -49,7 +63,7 @@ namespace SharpStar
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine(ex.Message);
+                                Logger.Error(ex.Message);
                             }
                         }
 
@@ -59,7 +73,7 @@ namespace SharpStar
 
                         if (cmd.Length != 2)
                         {
-                            Console.WriteLine("Syntax: unloadplugin <file>");
+                            Logger.Info("Syntax: unloadplugin <file>");
                         }
                         else
                         {
@@ -69,7 +83,7 @@ namespace SharpStar
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine(ex.Message);
+                                Logger.Error(ex.Message);
                             }
                         }
 
@@ -104,7 +118,7 @@ namespace SharpStar
 
                             if (user == null)
                             {
-                                Console.WriteLine("User does not exist!");
+                                Logger.Info("User does not exist!");
                             }
                             else
                             {
@@ -115,13 +129,13 @@ namespace SharpStar
 
                                 m.Database.AddPlayerPermission(user.Id, cmd[2], allowed);
 
-                                Console.WriteLine("Added permission to user {0}!", user.Username);
+                                Logger.Info("Added permission to user {0}!", user.Username);
                             }
 
                         }
                         else
                         {
-                            Console.WriteLine("Syntax: addperm <username> <permission> <allowed>");
+                            Logger.Info("Syntax: addperm <username> <permission> <allowed>");
                         }
 
                         break;
@@ -135,21 +149,19 @@ namespace SharpStar
 
                             if (user == null)
                             {
-                                Console.WriteLine("User does not exist!");
+                                Logger.Info("User does not exist!");
                             }
                             else
                             {
-
                                 m.Database.DeletePlayerPermission(user.Id, cmd[2]);
 
-                                Console.WriteLine("Permission removed from {0}!", user.Username);
-
+                                Logger.Info("Permission removed from {0}!", user.Username);
                             }
 
                         }
                         else
                         {
-                            Console.WriteLine("Syntax: removeperm <username> <permission>");
+                            Logger.Info("Syntax: removeperm <username> <permission>");
                         }
 
                         break;
@@ -163,14 +175,14 @@ namespace SharpStar
 
                             if (user == null)
                             {
-                                Console.WriteLine("User does not exist!");
+                                Logger.Info("User does not exist!");
                             }
                             else
                             {
 
                                 m.Database.ChangeAdminStatus(user.Id, true);
 
-                                Console.WriteLine("{0} is now an admin!", user.Username);
+                                Logger.Info("{0} is now an admin!", user.Username);
 
                             }
 
@@ -184,26 +196,35 @@ namespace SharpStar
 
                         if (user == null)
                         {
-                            Console.WriteLine("User does not exist!");
+                            Logger.Info("User does not exist!");
                         }
                         else
                         {
 
                             m.Database.ChangeAdminStatus(user.Id, false);
 
-                            Console.WriteLine("{0} is no longer an admin!", user.Username);
+                            Logger.Info("{0} is no longer an admin!", user.Username);
 
                         }
 
                         break;
 
-                    //default:
+                    default:
 
-                    //    m.PluginManager.PassChatCommand(null, cmd[0], new string(line.Skip(cmd[0].Length + 1).ToArray()).Split(' '));
+                        if (cmd.Length > 1)
+                            m.PluginManager.PassConsoleCommand(cmd[0], new string(line.Skip(cmd[0].Length + 1).ToArray()).Split(' '));
+                        else
+                            m.PluginManager.PassConsoleCommand(cmd[0], new string[0]);
 
-                    //    break;
+                        break;
                 }
             }
+        }
+
+        [HandleProcessCorruptedStateExceptions]
+        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Logger.Error(((Exception)e.ExceptionObject).Message);
         }
     }
 }

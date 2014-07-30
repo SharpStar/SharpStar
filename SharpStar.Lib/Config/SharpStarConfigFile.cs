@@ -20,9 +20,13 @@ namespace SharpStar.Lib.Config
         [JsonProperty("maxPlayers")]
         public int MaxPlayers { get; set; }
 
+        [JsonProperty("showDebug")]
+        public bool ShowDebug { get; set; }
+
         public SharpStarConfigFile()
         {
             EnableAccounts = true;
+            ShowDebug = false;
             MaxPlayers = 100;
         }
 

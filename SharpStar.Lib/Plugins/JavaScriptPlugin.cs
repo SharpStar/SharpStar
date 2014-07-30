@@ -22,6 +22,7 @@ namespace SharpStar.Lib.Plugins
 
         private readonly Dictionary<string, JsFunction> _registeredEvents;
         private readonly Dictionary<string, JsFunction> _registeredCommands;
+        private readonly Dictionary<string, JsFunction> _registeredConsoleCommands;
 
         public JavaScriptPlugin(string fileName)
         {
@@ -42,6 +43,8 @@ namespace SharpStar.Lib.Plugins
             _engine.SetFunction("UnsubscribeFromEvent", new Action<string>(UnsubscribeFromEvent));
             _engine.SetFunction("RegisterCommand", new Action<string, JsFunction>(RegisterCommand));
             _engine.SetFunction("UnregisterCommand", new Action<string>(UnregisterCommand));
+            _engine.SetFunction("RegisterConsoleCommand", new Action<string, JsFunction>(RegisterConsoleCommand));
+            _engine.SetFunction("UnregisterConsoleCommand", new Action<string>(UnregisterConsoleCommand));
             _engine.SetFunction("SendPacket", new Action<IClient, IPacket>(SendPacket));
             _engine.SetFunction("SendClientPacketToAll", new Action<IPacket>(SendClientPacketToAll));
             _engine.SetFunction("SendServerPacketToAll", new Action<IPacket>(SendServerPacketToAll));
@@ -52,6 +55,7 @@ namespace SharpStar.Lib.Plugins
 
             _registeredEvents = new Dictionary<string, JsFunction>();
             _registeredCommands = new Dictionary<string, JsFunction>();
+            _registeredConsoleCommands = new Dictionary<string, JsFunction>();
         }
 
         public bool PassChatCommand(string command, IClient client, string[] args)
@@ -66,6 +70,30 @@ namespace SharpStar.Lib.Plugins
                 try
                 {
                     _engine.CallFunction(cmd.Value, new object[] {client, command, args});
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Plugin {0} caused error: {1}", Path.GetFileName(PluginFile), ex.Message);
+                }
+            }
+
+            return false;
+        }
+
+        public bool PassConsoleCommand(string command, string[] args)
+        {
+            if (!Enabled)
+                return false;
+
+            var cmd = _registeredConsoleCommands.SingleOrDefault(p => p.Key.Equals(command, StringComparison.OrdinalIgnoreCase));
+
+            if (cmd.Value != null)
+            {
+                try
+                {
+                    _engine.CallFunction(cmd.Value, new object[] { command, args });
 
                     return true;
                 }
@@ -187,6 +215,16 @@ namespace SharpStar.Lib.Plugins
             _registeredCommands.Remove(command);
         }
 
+        public void RegisterConsoleCommand(string command, JsFunction func)
+        {
+            _registeredConsoleCommands.Add(command, func);
+        }
+
+        public void UnregisterConsoleCommand(string command)
+        {
+            _registeredConsoleCommands.Remove(command);
+        }
+
         public static object[] JsArrayToArray(JsArray array)
         {
             var objArr = new object[array.Length];
@@ -216,6 +254,11 @@ namespace SharpStar.Lib.Plugins
             }
 
             _engine = null;
+        }
+
+        ~JavaScriptPlugin()
+        {
+            Dispose(false);
         }
     }
 }

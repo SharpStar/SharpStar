@@ -17,6 +17,8 @@ namespace SharpStar.Lib.Plugins
 
         private readonly Dictionary<string, LuaFunction> _registeredCommands;
 
+        private readonly Dictionary<string, LuaFunction> _registeredConsoleCommands;
+
         public string PluginFile { get; private set; }
 
         public bool Enabled { get; private set; }
@@ -31,6 +33,7 @@ namespace SharpStar.Lib.Plugins
 
             _registeredEvents = new Dictionary<string, LuaFunction>();
             _registeredCommands = new Dictionary<string, LuaFunction>();
+            _registeredConsoleCommands = new Dictionary<string, LuaFunction>();
         }
 
         private void RegisterTypes()
@@ -87,6 +90,8 @@ namespace SharpStar.Lib.Plugins
             _lua.RegisterFunction("UnsubscribeFromEvent", this, this.GetType().GetMethod("UnsubscribeFromEvent"));
             _lua.RegisterFunction("RegisterCommand", this, this.GetType().GetMethod("RegisterCommand"));
             _lua.RegisterFunction("UnregisterCommand", this, this.GetType().GetMethod("UnregisterCommand"));
+            _lua.RegisterFunction("RegisterConsoleCommand", this, this.GetType().GetMethod("RegisterConsoleCommand"));
+            _lua.RegisterFunction("UnregisterConsoleCommand", this, this.GetType().GetMethod("UnregisterConsoleCommand"));
             _lua.RegisterFunction("SendPacket", this, this.GetType().GetMethod("SendPacket"));
             _lua.RegisterFunction("SendClientPacketToAll", this, this.GetType().GetMethod("SendClientPacketToAll"));
             _lua.RegisterFunction("SendServerPacketToAll", this, this.GetType().GetMethod("SendServerPacketToAll"));
@@ -159,6 +164,16 @@ namespace SharpStar.Lib.Plugins
             _registeredCommands.Remove(command);
         }
 
+        public void RegisterConsoleCommand(string command, LuaFunction func)
+        {
+            _registeredConsoleCommands.Add(command, func);
+        }
+
+        public void UnregisterConsoleCommand(string command)
+        {
+            _registeredConsoleCommands.Remove(command);
+        }
+
         public void CallEvent(string evtName, params object[] args)
         {
             if (!Enabled)
@@ -189,6 +204,30 @@ namespace SharpStar.Lib.Plugins
                 try
                 {
                     cmd.Value.Call(new object[] {client, command, args});
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Plugin {0} caused error: {1}", Path.GetFileName(PluginFile), ex.Message);
+                }
+            }
+
+            return false;
+        }
+
+        public bool PassConsoleCommand(string command, string[] args)
+        {
+            if (!Enabled)
+                return false;
+
+            var cmd = _registeredConsoleCommands.SingleOrDefault(p => p.Key.Equals(command, StringComparison.OrdinalIgnoreCase));
+
+            if (cmd.Value != null)
+            {
+                try
+                {
+                    cmd.Value.Call(new object[] { command, args });
 
                     return true;
                 }

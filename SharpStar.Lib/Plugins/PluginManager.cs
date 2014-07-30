@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using SharpStar.Lib.Logging;
 using SharpStar.Lib.Packets;
 using SharpStar.Lib.Server;
 
@@ -14,12 +15,30 @@ namespace SharpStar.Lib.Plugins
 
         private readonly CSPluginManager _csPluginManager;
 
+        private static readonly SharpStarLogger Logger = SharpStarLogger.DefaultLogger;
+
+        public CSPluginManager CSPluginManager
+        {
+            get
+            {
+                return _csPluginManager;
+            }
+        }
+
         public const string PluginDirectory = "plugins";
 
         public static string PluginDirectoryPath =
             Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), PluginDirectory);
 
         private readonly List<IPlugin> _plugins;
+
+        public List<IPlugin> Plugins
+        {
+            get
+            {
+                return _plugins.ToList();
+            }
+        }
 
         public PluginManager()
         {
@@ -29,7 +48,7 @@ namespace SharpStar.Lib.Plugins
 
         public void LoadPlugins()
         {
-            Console.WriteLine("Loading plugins...");
+            Logger.Info("Loading plugins...");
 
             if (!Directory.Exists(PluginDirectoryPath))
                 Directory.CreateDirectory(PluginDirectoryPath);
@@ -41,7 +60,7 @@ namespace SharpStar.Lib.Plugins
 
             _csPluginManager.LoadPlugins();
 
-            Console.WriteLine("Plugins Loaded!");
+            Logger.Info("Plugins Loaded!");
         }
 
 
@@ -64,7 +83,7 @@ namespace SharpStar.Lib.Plugins
                 lock (_pluginLocker)
                     _plugins.Add(plugin);
 
-                Console.WriteLine("Loaded JavaScript plugin {0}", fInfo.Name);
+                Logger.Info("Loaded JavaScript plugin {0}", fInfo.Name);
             }
             else if (fInfo.Extension == ".lua")
             {
@@ -75,7 +94,7 @@ namespace SharpStar.Lib.Plugins
                 lock (_pluginLocker)
                     _plugins.Add(plugin);
 
-                Console.WriteLine("Loaded Lua plugin {0}", fInfo.Name);
+                Logger.Info("Loaded Lua plugin {0}", fInfo.Name);
             }
             else if (fInfo.Extension == ".py")
             {
@@ -87,7 +106,7 @@ namespace SharpStar.Lib.Plugins
                 lock (_pluginLocker)
                     _plugins.Add(plugin);
 
-                Console.WriteLine("Loaded Python plugin {0}", fInfo.Name);
+                Logger.Info("Loaded Python plugin {0}", fInfo.Name);
 
             }
 
@@ -104,6 +123,26 @@ namespace SharpStar.Lib.Plugins
                     plugin.CallEvent(evtName, packet, client, args);
                 }
             }
+        }
+
+        public bool PassConsoleCommand(string command, string[] args)
+        {
+            bool anyRegistered;
+
+            lock (_pluginLocker)
+            {
+
+                anyRegistered = _csPluginManager.PassConsoleCommand(command, args);
+
+                foreach (IPlugin plugin in _plugins)
+                {
+                    if (plugin.PassConsoleCommand(command, args))
+                        anyRegistered = true;
+                }
+
+            }
+
+            return anyRegistered;
         }
 
         public bool PassChatCommand(StarboundClient client, string command, string[] args)
@@ -146,11 +185,11 @@ namespace SharpStar.Lib.Plugins
                     _plugins.Remove(plugin);
                 }
 
-                Console.WriteLine("Unloaded plugin {0}", Path.GetFileName(file));
+                Logger.Info("Unloaded plugin {0}", Path.GetFileName(file));
             }
             else
             {
-                Console.WriteLine("Could not unload plugin {0}!", new FileInfo(file).Name);
+                Logger.Info("Could not unload plugin {0}!", new FileInfo(file).Name);
             }
         }
 
@@ -173,7 +212,7 @@ namespace SharpStar.Lib.Plugins
             lock (_pluginLocker)
                 _plugins.Clear();
 
-            Console.WriteLine("All plugins have been unloaded!");
+            Logger.Info("All plugins have been unloaded!");
         }
 
         public void Reload()

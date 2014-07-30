@@ -14,6 +14,8 @@ namespace SharpStar.Lib.Plugins
 
         bool PassChatCommand(string command, IClient client, string[] args);
 
+        bool PassConsoleCommand(string command, string[] args);
+
         void OnLoad();
 
         void OnUnload();

@@ -12,6 +12,11 @@ namespace SharpStar.Lib.Plugins
             return false;
         }
 
+        public virtual bool PassConsoleCommand(string command, string[] args)
+        {
+            return false;
+        }
+
         public virtual void OnLoad()
         {
         }

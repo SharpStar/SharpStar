@@ -52,6 +52,7 @@ namespace SharpStar.Lib.Packets
             RegisterPacketType(21, typeof(GiveItemPacket));
             RegisterPacketType(23, typeof(EnvironmentUpdatePacket));
             RegisterPacketType(24, typeof(EntityInteractResultPacket));
+            RegisterPacketType(27, typeof(DamageTileGroupPacket));
             RegisterPacketType(28, typeof(RequestDropPacket));
             RegisterPacketType(33, typeof(OpenContainerPacket));
             RegisterPacketType(34, typeof(CloseContainerPacket));

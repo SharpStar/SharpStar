@@ -17,6 +17,8 @@ namespace SharpStar.Lib.Plugins
 
         private readonly Dictionary<string, string> _registeredCommands;
 
+        private readonly Dictionary<string, string> _registeredConsoleCommands;
+
         public string PluginFile { get; private set; }
 
         public string MainClassName { get; private set; }
@@ -113,6 +115,25 @@ namespace SharpStar.Lib.Plugins
 
         }
 
+        public bool PassConsoleCommand(string command, string[] args)
+        {
+            var cmd = _mainPythonClass._registeredConsoleCommands.SingleOrDefault(p => p.Key.Equals(command, StringComparison.OrdinalIgnoreCase));
+
+            if (cmd.Value != null)
+            {
+                try
+                {
+                    return _engine.Operations.InvokeMember(_mainPythonClass, cmd.Value, args.Cast<object>().ToArray());
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Plugin {0} caused error: {1}", Path.GetFileName(PluginFile), ex.Message);
+                }
+            }
+
+            return false;
+        }
+
         public void OnLoad()
         {
 
@@ -152,6 +173,16 @@ namespace SharpStar.Lib.Plugins
         public void unregister_command(string command)
         {
             _registeredCommands.Remove(command);
+        }
+
+        public void register_console_command(string command, string funcName)
+        {
+            _registeredConsoleCommands.Add(command, funcName);
+        }
+
+        public void unregister_console_command(string command)
+        {
+            _registeredConsoleCommands.Remove(command);
         }
 
         public IClient[] get_player_clients()

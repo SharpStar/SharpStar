@@ -12,6 +12,12 @@ namespace SharpStar.Lib.Plugins
 
         public string CommandDescription { get; set; }
 
+        public int MinArguments { get; set; }
+
+        public int MaxArguments { get; set; }
+
+        public string Syntax { get; set; }
+
         public CommandAttribute(string cmdName)
         {
             CommandName = cmdName;

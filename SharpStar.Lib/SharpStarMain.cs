@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using log4net;
 using SharpStar.Lib.Config;
 using SharpStar.Lib.Database;
+using SharpStar.Lib.Logging;
 using SharpStar.Lib.Misc;
 using SharpStar.Lib.Plugins;
 using SharpStar.Lib.Server;
@@ -81,7 +83,7 @@ namespace SharpStar.Lib
             Database = new SharpStarDb("SharpStar.db");
             Database.CreateTables();
 
-            Console.WriteLine("Listening on port {0}", Config.ConfigFile.ListenPort);
+            SharpStarLogger.DefaultLogger.Info("Listening on port {0}", Config.ConfigFile.ListenPort);
 
             Server = new StarboundServer(Config.ConfigFile.ListenPort, Config.ConfigFile.ServerPort);
             Server.Start();

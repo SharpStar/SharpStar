@@ -14,9 +14,15 @@ namespace SharpStar.Lib.Plugins
 
         void OnUnload();
 
+        void OnPluginLoaded(ICSPlugin plugin);
+
+        void OnPluginUnloaded(ICSPlugin plugin);
+
         void OnEventOccurred(string evtName, IPacket packet, StarboundClient client, params object[] args);
 
         bool OnChatCommandReceived(StarboundClient client, string command, string[] args);
+
+        bool OnConsoleCommand(string command, string[] args);
 
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using SharpStar.Lib.Logging;
 using SharpStar.Lib.Packets.Handlers;
 
 namespace SharpStar.Lib.Server
@@ -21,6 +22,14 @@ namespace SharpStar.Lib.Server
         private int _clientCtr;
 
         private readonly int _serverPort;
+
+        public int ServerPort
+        {
+            get
+            {
+                return _serverPort;
+            }
+        }
 
         public TcpListener Listener { get; set; }
 
@@ -121,7 +130,7 @@ namespace SharpStar.Lib.Server
 
                 IPEndPoint ipe = (IPEndPoint)socket.RemoteEndPoint;
 
-                Console.WriteLine("Connection from {0}", ipe);
+                SharpStarLogger.DefaultLogger.Info("Connection from {0}", ipe);
 
                 Interlocked.Increment(ref _clientCtr);
 
@@ -145,9 +154,9 @@ namespace SharpStar.Lib.Server
                             {
 
                                 if (ssc.Player != null)
-                                    Console.WriteLine("Player {0} disconnected", ssc.Player.Name);
+                                    SharpStarLogger.DefaultLogger.Info("Player {0} disconnected", ssc.Player.Name);
                                 else
-                                    Console.WriteLine("{0} disconnected", ipe);
+                                    SharpStarLogger.DefaultLogger.Info("{0} disconnected", ipe);
 
                                 if (ClientDisconnected != null)
                                     ClientDisconnected(this, new ClientDisconnectedEventArgs(ssc));
@@ -181,13 +190,16 @@ namespace SharpStar.Lib.Server
                 }
 
             }
+            catch (ObjectDisposedException)
+            {
+                return;   
+            }
             catch (Exception)
             {
             }
-            finally
-            {
-                Listener.BeginAcceptSocket(AcceptClient, null);
-            }
+
+            Listener.BeginAcceptSocket(AcceptClient, null);
+
         }
 
         public void Dispose()
@@ -199,12 +211,18 @@ namespace SharpStar.Lib.Server
 
         protected virtual void Dispose(bool disposing)
         {
+
+            _disposed = true;
+
             if (disposing)
             {
                 Stop();
             }
+        }
 
-            _disposed = true;
+        ~StarboundServer()
+        {
+            Dispose(false);
         }
 
     }

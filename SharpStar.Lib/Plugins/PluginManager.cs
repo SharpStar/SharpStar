@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using SharpStar.Lib.Attributes;
 using SharpStar.Lib.Logging;
 using SharpStar.Lib.Packets;
 using SharpStar.Lib.Server;
@@ -11,6 +12,7 @@ namespace SharpStar.Lib.Plugins
 {
     public sealed class PluginManager : IPluginManager
     {
+
         private readonly object _pluginLocker = new object();
 
         private readonly CSPluginManager _csPluginManager;
@@ -220,5 +222,6 @@ namespace SharpStar.Lib.Plugins
             UnloadPlugins();
             LoadPlugins();
         }
+
     }
 }

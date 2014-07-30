@@ -131,6 +131,7 @@
     <Compile Include="Entities\ProjectileEntity.cs" />
     <Compile Include="Entities\StarboundPlayer.cs" />
     <Compile Include="Extensions\SocketExtensions.cs" />
+    <Compile Include="Extensions\StarboundClientExtensions.cs" />
     <Compile Include="Logging\SharpStarLogger.cs" />
     <Compile Include="Misc\DamageKind.cs" />
     <Compile Include="Misc\HitResultKind.cs" />

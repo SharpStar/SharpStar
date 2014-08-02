@@ -54,6 +54,8 @@ namespace SharpStar.Lib.Logging
         static SharpStarLogger()
         {
 
+            _pluginLoggers = new Dictionary<string, SharpStarLogger>();
+
             PatternLayout layout = new PatternLayout();
             layout.ConversionPattern = "%level - %message%newline";
             layout.ActivateOptions();
@@ -95,8 +97,21 @@ namespace SharpStar.Lib.Logging
 
         }
 
+        public event EventHandler<SharpStarLogEventArgs> LogOutput;
+
+        public static event EventHandler<SharpStarLogEventArgs> AllLogOutput;
 
         public string PluginName { get; set; }
+
+        private static readonly Dictionary<string, SharpStarLogger> _pluginLoggers;
+
+        public static Dictionary<string, SharpStarLogger> PluginLoggers
+        {
+            get
+            {
+                return _pluginLoggers;
+            }
+        }
 
         private SharpStarLogger()
         {
@@ -105,29 +120,90 @@ namespace SharpStar.Lib.Logging
         public SharpStarLogger(string pluginName)
         {
             PluginName = pluginName;
+
+            if (PluginLoggers.ContainsKey(pluginName))
+                PluginLoggers.Remove(pluginName);
+
+            PluginLoggers.Add(pluginName, this);
         }
 
         public void Debug(string format, params object[] args)
         {
             if (SharpStarMain.Instance.Config.ConfigFile.ShowDebug)
                 Log.DebugFormat(format, args);
+
+            var logArgs = new SharpStarLogEventArgs(LogType.Debug, String.Format(format, args));
+
+            if (AllLogOutput != null)
+                AllLogOutput(this, logArgs);
+
+            if (LogOutput != null)
+                LogOutput(this, logArgs);
         }
 
         public void Info(string format, params object[] args)
         {
             Log.InfoFormat(format, args);
+
+            var logArgs = new SharpStarLogEventArgs(LogType.Info, String.Format(format, args));
+
+            if (AllLogOutput != null)
+                AllLogOutput(this, logArgs);
+
+            if (LogOutput != null)
+                LogOutput(this, logArgs);
         }
 
         public void Warn(string format, params object[] args)
         {
             Log.WarnFormat(format, args);
+
+            var logArgs = new SharpStarLogEventArgs(LogType.Warn, String.Format(format, args));
+
+            if (AllLogOutput != null)
+                AllLogOutput(this, logArgs);
+
+            if (LogOutput != null)
+                LogOutput(this, logArgs);
         }
 
         public void Error(string format, params object[] args)
         {
             Log.ErrorFormat(format, args);
+
+            var logArgs = new SharpStarLogEventArgs(LogType.Error, String.Format(format, args));
+
+            if (AllLogOutput != null)
+                AllLogOutput(this, logArgs);
+
+            if (LogOutput != null)
+                LogOutput(this, logArgs);
         }
 
+    }
+
+    public class SharpStarLogEventArgs : EventArgs
+    {
+
+
+        public LogType LogType { get; set; }
+
+        public string Message { get; set; }
+
+        public SharpStarLogEventArgs(LogType type, string message)
+        {
+            LogType = type;
+            Message = message;
+        }
+
+    }
+
+    public enum LogType
+    {
+        Debug,
+        Info,
+        Warn,
+        Error
     }
 
     public static class StringExtensions
@@ -142,4 +218,5 @@ namespace SharpStar.Lib.Logging
         }
 
     }
+
 }

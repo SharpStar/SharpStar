@@ -23,7 +23,7 @@ namespace SharpStar.Lib.Packets
 
         public override byte PacketId
         {
-            get { return 14; }
+            get { return (byte)KnownPacket.WorldStart; }
         }
 
         public Variant Planet { get; set; }

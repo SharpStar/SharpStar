@@ -44,6 +44,9 @@ namespace SharpStar.Lib.Config
         [JsonProperty("showDebug")]
         public bool ShowDebug { get; set; }
 
+        [JsonProperty("autoUpdatePlugins")]
+        public bool AutoUpdatePlugins { get; set; }
+
         public SharpStarConfigFile()
         {
             EnableAccounts = true;
@@ -51,6 +54,7 @@ namespace SharpStar.Lib.Config
             RequireAccountLoginError = "You must have a registered account in order to access this server!";
             ShowDebug = false;
             MaxPlayers = 100;
+            AutoUpdatePlugins = true;
         }
 
     }

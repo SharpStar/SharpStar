@@ -23,7 +23,7 @@ namespace SharpStar.Lib.Packets
 
         public override byte PacketId
         {
-            get { return 4; }
+            get { return (byte)KnownPacket.ChatReceived; }
         }
         
         public byte Channel { get; set; }

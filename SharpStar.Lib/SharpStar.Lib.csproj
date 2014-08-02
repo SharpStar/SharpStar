@@ -39,6 +39,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\packages\Mono.Addins.Setup.1.1\lib\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
     <Reference Include="IronPython, Version=2.7.0.40, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
       <Private>True</Private>
       <HintPath>..\packages\IronPython.2.7.4\lib\Net40\IronPython.dll</HintPath>
@@ -79,6 +82,10 @@
     <Reference Include="Mono.Addins, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Mono.Addins.1.1\lib\Mono.Addins.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Addins.Setup, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Mono.Addins.Setup.1.1\lib\Mono.Addins.Setup.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -136,9 +143,13 @@
     <Compile Include="Misc\LogSector.cs" />
     <Compile Include="Misc\StarboundItem.cs" />
     <Compile Include="Misc\StarboundSector.cs" />
-    <Compile Include="Misc\TileDamage.cs" />
-    <Compile Include="Misc\TileLayer.cs" />
+    <Compile Include="Tiles\TileDamage.cs" />
+    <Compile Include="Tiles\TileDamageParameters.cs" />
+    <Compile Include="Tiles\TileDamageStatus.cs" />
+    <Compile Include="Tiles\TileLayer.cs" />
     <Compile Include="Mono\MonoHelper.cs" />
+    <Compile Include="Mono\ProgressStatus.cs" />
+    <Compile Include="Networking\IWriteable.cs" />
     <Compile Include="Packets\DamageTileGroupPacket.cs" />
     <Compile Include="Packets\EnvironmentUpdatePacket.cs" />
     <Compile Include="Packets\Handlers\EnvironmentUpdatePacketHandler.cs" />

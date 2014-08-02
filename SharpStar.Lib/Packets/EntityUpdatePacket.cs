@@ -21,7 +21,7 @@ namespace SharpStar.Lib.Packets
     {
         public override byte PacketId
         {
-            get { return 43; }
+            get { return (byte)KnownPacket.EntityUpdate; }
         }
 
         public long EntityId { get; set; }

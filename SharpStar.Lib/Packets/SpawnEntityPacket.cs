@@ -29,7 +29,7 @@ namespace SharpStar.Lib.Packets
         {
             get
             {
-                return 29;
+                return (byte)KnownPacket.SpawnEntity;
             }
         }
 

@@ -23,7 +23,7 @@ namespace SharpStar.Lib.Packets
     {
         public override byte PacketId
         {
-            get { return 10; }
+            get { return (byte)KnownPacket.WarpCommand; }
         }
 
         public WarpType WarpType { get; set; }

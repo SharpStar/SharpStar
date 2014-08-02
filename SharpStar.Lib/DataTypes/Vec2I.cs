@@ -24,7 +24,7 @@ namespace SharpStar.Lib.DataTypes
     /// <summary>
     /// Contains X, Y coordinates as integers
     /// </summary>
-    public class Vec2I
+    public class Vec2I : IWriteable
     {
 
         public int X { get; set; }

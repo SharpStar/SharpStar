@@ -21,7 +21,7 @@ namespace SharpStar.Lib.Packets
     {
         public override byte PacketId
         {
-            get { return 2; }
+            get { return (byte)KnownPacket.DisconnectResponse; }
         }
 
         public byte Unknown { get; set; }

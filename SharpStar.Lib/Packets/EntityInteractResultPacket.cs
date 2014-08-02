@@ -22,7 +22,7 @@ namespace SharpStar.Lib.Packets
     {
         public override byte PacketId
         {
-            get { return 24; }
+            get { return (byte)KnownPacket.EntityInteractResult; }
         }
 
         public uint ClientId { get; set; }

@@ -22,7 +22,7 @@ namespace SharpStar.Lib.Packets
     {
         public override byte PacketId
         {
-            get { return 1; }
+            get { return (byte)KnownPacket.ConnectionResponse; }
         }
 
         public bool Success { get; set; }

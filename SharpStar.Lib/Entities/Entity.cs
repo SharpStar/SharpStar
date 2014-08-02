@@ -21,7 +21,7 @@ using SharpStar.Lib.Networking;
 
 namespace SharpStar.Lib.Entities
 {
-    public class Entity
+    public class Entity : IWriteable
     {
 
         public EntityType EntityType { get; set; }

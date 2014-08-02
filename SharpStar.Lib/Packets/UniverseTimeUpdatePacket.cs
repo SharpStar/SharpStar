@@ -21,7 +21,7 @@ namespace SharpStar.Lib.Packets
     {
         public override byte PacketId
         {
-            get { return 5; }
+            get { return (byte)KnownPacket.UniverseTimeUpdate; }
         }
 
         private long Time { get; set; }

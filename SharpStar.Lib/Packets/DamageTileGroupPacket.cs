@@ -21,6 +21,7 @@ using System.Text;
 using SharpStar.Lib.Misc;
 using SharpStar.Lib.Networking;
 using SharpStar.Lib.DataTypes;
+using SharpStar.Lib.Tiles;
 
 namespace SharpStar.Lib.Packets
 {
@@ -37,7 +38,7 @@ namespace SharpStar.Lib.Packets
 
         public override byte PacketId
         {
-            get { return 27; }
+            get { return (byte)KnownPacket.DamageTileGroup; }
         }
 
         public override void Read(IStarboundStream stream)

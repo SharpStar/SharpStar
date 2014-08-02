@@ -24,7 +24,7 @@ namespace SharpStar.Lib.Packets
     {
         public override byte PacketId
         {
-            get { return 13; }
+            get { return (byte)KnownPacket.ClientContextUpdate; }
         }
 
         public byte[] Data { get; set; }

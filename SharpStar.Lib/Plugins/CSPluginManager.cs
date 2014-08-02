@@ -19,8 +19,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Mono.Addins;
+using Mono.Addins.Setup;
 using SharpStar.Lib.Attributes;
 using SharpStar.Lib.Logging;
+using SharpStar.Lib.Mono;
 using SharpStar.Lib.Packets;
 using SharpStar.Lib.Server;
 
@@ -41,6 +43,10 @@ namespace SharpStar.Lib.Plugins
 
         private readonly Dictionary<string, ICSPlugin> _csPlugins;
 
+        private const string AddinRepoUrl = "http://sharpstar.org/sharpstar-addins";
+
+        private readonly SetupService setupService;
+
         public List<ICSPlugin> Plugins
         {
             get
@@ -56,6 +62,20 @@ namespace SharpStar.Lib.Plugins
             _csPlugins = new Dictionary<string, ICSPlugin>();
             Commands = new List<Tuple<string, string, string, bool>>();
             ConsoleCommands = new Dictionary<string, string>();
+
+            if (!AddinManager.IsInitialized)
+            {
+                AddinManager.Initialize(".", "./addins");
+                AddinManager.AddExtensionNodeHandler(typeof(ICSPlugin), OnExtensionChanged);
+            }
+
+            setupService = new SetupService(AddinManager.Registry);
+
+            if (!setupService.Repositories.ContainsRepository(AddinRepoUrl))
+                setupService.Repositories.RegisterRepository(new ConsoleProgressStatus(false), AddinRepoUrl, false);
+
+            setupService.Repositories.UpdateAllRepositories(new ConsoleProgressStatus(false));
+
         }
 
         public void LoadPlugins()
@@ -64,10 +84,9 @@ namespace SharpStar.Lib.Plugins
             if (!Directory.Exists(CSPluginDirectory))
                 Directory.CreateDirectory(CSPluginDirectory);
 
-            if (!AddinManager.IsInitialized)
+            if (SharpStarMain.Instance.Config.ConfigFile.AutoUpdatePlugins)
             {
-                AddinManager.Initialize(".", "./addins");
-                AddinManager.AddExtensionNodeHandler(typeof(ICSPlugin), OnExtensionChanged);
+                UpdatePlugins();
             }
 
             foreach (Addin addin in AddinManager.Registry.GetAddins())
@@ -76,6 +95,96 @@ namespace SharpStar.Lib.Plugins
             }
 
             AddinManager.Registry.Update(null);
+
+        }
+
+        public void UpdatePlugins()
+        {
+            foreach (Addin addin in AddinManager.Registry.GetAddins())
+            {
+                Addin refreshedAddin = AddinManager.Registry.GetAddin(addin.Id);
+
+                UpdatePlugin(refreshedAddin.Description.LocalId);
+            }
+
+            AddinManager.Registry.Update();
+        }
+
+        public bool UpdatePlugin(string name)
+        {
+
+            Addin addin = AddinManager.Registry.GetAddins().SingleOrDefault(p => p.Description.LocalId.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+            if (addin == null)
+            {
+                Logger.Error("The plugin {0} is not installed!", name);
+
+                return false;
+            }
+
+            AddinRepositoryEntry[] entries = setupService.Repositories.GetAvailableAddinUpdates(addin.LocalId, RepositorySearchFlags.LatestVersionsOnly);
+
+            if (entries.Any())
+            {
+                var entry = entries.First();
+
+                Logger.Info("Plugin {0} is now updating to version {1}!", addin.Description.LocalId, entry.Addin.Version);
+
+                setupService.Install(new ProgressStatus(), entries);
+
+                AddinManager.Registry.EnableAddin(entry.Addin.Id);
+                AddinManager.Registry.Update();
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public void InstallPlugin(string name)
+        {
+
+            Addin addin = AddinManager.Registry.GetAddins().SingleOrDefault(p => p.Description.LocalId.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+            if (addin != null)
+            {
+                Logger.Error("Plugin {0} is already installed!");
+
+                return;
+            }
+
+            var addins = setupService.Repositories.GetAvailableAddins(RepositorySearchFlags.LatestVersionsOnly).Where(p => p.Addin.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
+
+            if (addins.Any())
+            {
+
+                AddinRepositoryEntry avAddin = addins.First();
+
+                setupService.Install(new ProgressStatus(), addins);
+
+                AddinManager.Registry.EnableAddin(avAddin.Addin.Id);
+            }
+            else
+            {
+                Logger.Error("Could not find plugin by the name \"{0}\"", name);
+            }
+
+        }
+
+        public void UninstallPlugin(string name)
+        {
+
+            Addin addin = AddinManager.Registry.GetAddins().SingleOrDefault(p => p.Description.LocalId.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+            if (addin != null)
+            {
+                setupService.Uninstall(new ProgressStatus(), addin.Id);
+                AddinManager.Registry.Update();
+            }
+            else
+            {
+                Logger.Error("The plugin {0} is not installed", name);
+            }
 
         }
 

@@ -95,6 +95,41 @@ namespace SharpStar
 
                         break;
 
+                    case "updateplugins":
+
+                        Logger.Info("Updating Plugins...");
+
+                        m.PluginManager.CSPluginManager.UpdatePlugins();
+
+                        break;
+                        
+                    case "updateplugin":
+
+                        string updPlugin = string.Join(" ", cmd.Skip(1));
+
+                        if (m.PluginManager.CSPluginManager.UpdatePlugin(updPlugin))
+                            Logger.Info("Plugin {0} updated!", updPlugin);
+                        else
+                            Logger.Error("Error updating plugin {0}", updPlugin);
+
+                        break;
+
+                    case "installplugin":
+
+                        string instPlugin = string.Join(" ", cmd.Skip(1));
+
+                        m.PluginManager.CSPluginManager.InstallPlugin(instPlugin);
+
+                        break;
+
+                    case "uninstallplugin":
+
+                        string uninstPlugin = string.Join(" ", cmd.Skip(1));
+
+                        m.PluginManager.CSPluginManager.UninstallPlugin(uninstPlugin);
+
+                        break;
+
                     case "unloadplugins":
 
                         m.PluginManager.UnloadPlugins();

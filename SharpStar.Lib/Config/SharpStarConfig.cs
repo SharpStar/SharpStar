@@ -31,6 +31,7 @@ namespace SharpStar.Lib.Config
         {
             SharpStarConfig config = new SharpStarConfig();
             config.ConfigFile = JsonConvert.DeserializeObject<SharpStarConfigFile>(File.ReadAllText(configFile));
+            config.Save(configFile);
 
             return config;
         }

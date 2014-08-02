@@ -28,7 +28,7 @@ namespace SharpStar.Lib.Packets
         {
             get
             {
-                return 23;
+                return (byte)KnownPacket.EnvironmentUpdate;
             }
         }
 

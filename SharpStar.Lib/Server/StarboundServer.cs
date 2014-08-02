@@ -72,7 +72,7 @@ namespace SharpStar.Lib.Server
             new ClientContextUpdatePacketHandler(),
             new WorldStartPacketHandler(),
             new WorldStopPacketHandler(),
-            new TileDamageUpdatePacketHandler(),
+            //new TileDamageUpdatePacketHandler(),
             new GiveItemPacketHandler(),
             new EnvironmentUpdatePacketHandler(),
             new EntityCreatePacketHandler(),

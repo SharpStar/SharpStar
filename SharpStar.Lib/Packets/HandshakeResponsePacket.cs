@@ -28,7 +28,7 @@ namespace SharpStar.Lib.Packets
         {
             get
             {
-                return 9;
+                return (byte)KnownPacket.HandshakeResponse;
             }
         }
 

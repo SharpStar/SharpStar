@@ -49,34 +49,34 @@ namespace SharpStar.Lib.Packets
         {
             RegisteredPacketTypes = new Dictionary<byte, Func<IPacket>>();
 
-            RegisterPacketType(0, typeof(ProtocolVersionPacket));
-            RegisterPacketType(1, typeof(ConnectionResponsePacket));
-            RegisterPacketType(2, typeof(DisconnectResponsePacket));
-            RegisterPacketType(3, typeof(HandshakeChallengePacket));
-            RegisterPacketType(4, typeof(ChatReceivedPacket));
-            RegisterPacketType(5, typeof(UniverseTimeUpdatePacket));
-            RegisterPacketType(7, typeof(ClientConnectPacket));
-            RegisterPacketType(8, typeof(ClientDisconnectPacket));
-            RegisterPacketType(9, typeof(HandshakeResponsePacket));
-            RegisterPacketType(10, typeof(WarpCommandPacket));
-            RegisterPacketType(11, typeof(ChatSentPacket));
-            RegisterPacketType(13, typeof(ClientContextUpdatePacket));
-            RegisterPacketType(14, typeof(WorldStartPacket));
-            RegisterPacketType(15, typeof(WorldStopPacket));
-            RegisterPacketType(19, typeof(TileDamageUpdatePacket));
-            RegisterPacketType(21, typeof(GiveItemPacket));
-            RegisterPacketType(23, typeof(EnvironmentUpdatePacket));
-            RegisterPacketType(24, typeof(EntityInteractResultPacket));
-            RegisterPacketType(27, typeof(DamageTileGroupPacket));
-            RegisterPacketType(28, typeof(RequestDropPacket));
-            RegisterPacketType(33, typeof(OpenContainerPacket));
-            RegisterPacketType(34, typeof(CloseContainerPacket));
-            RegisterPacketType(42, typeof(EntityCreatePacket));
-            RegisterPacketType(43, typeof(EntityUpdatePacket));
-            RegisterPacketType(44, typeof(EntityDestroyPacket));
-            RegisterPacketType(45, typeof(DamageNotificationPacket));
-            RegisterPacketType(47, typeof(UpdateWorldPropertiesPacket));
-            RegisterPacketType(48, typeof(HeartbeatPacket));
+            RegisterPacketType((byte)KnownPacket.ProtocolVersion, typeof(ProtocolVersionPacket));
+            RegisterPacketType((byte)KnownPacket.ConnectionResponse, typeof(ConnectionResponsePacket));
+            RegisterPacketType((byte)KnownPacket.DisconnectResponse, typeof(DisconnectResponsePacket));
+            RegisterPacketType((byte)KnownPacket.HandshakeChallenge, typeof(HandshakeChallengePacket));
+            RegisterPacketType((byte)KnownPacket.ChatReceived, typeof(ChatReceivedPacket));
+            RegisterPacketType((byte)KnownPacket.UniverseTimeUpdate, typeof(UniverseTimeUpdatePacket));
+            RegisterPacketType((byte)KnownPacket.ClientConnect, typeof(ClientConnectPacket));
+            RegisterPacketType((byte)KnownPacket.ClientDisconnect, typeof(ClientDisconnectPacket));
+            RegisterPacketType((byte)KnownPacket.HandshakeResponse, typeof(HandshakeResponsePacket));
+            RegisterPacketType((byte)KnownPacket.WarpCommand, typeof(WarpCommandPacket));
+            RegisterPacketType((byte)KnownPacket.ChatSent, typeof(ChatSentPacket));
+            RegisterPacketType((byte)KnownPacket.ClientContextUpdate, typeof(ClientContextUpdatePacket));
+            RegisterPacketType((byte)KnownPacket.WorldStart, typeof(WorldStartPacket));
+            RegisterPacketType((byte)KnownPacket.WorldStop, typeof(WorldStopPacket));
+            //RegisterPacketType((byte)KnownPacket.TileDamageUpdate, typeof(TileDamageUpdatePacket));
+            RegisterPacketType((byte)KnownPacket.GiveItem, typeof(GiveItemPacket));
+            RegisterPacketType((byte)KnownPacket.EnvironmentUpdate, typeof(EnvironmentUpdatePacket));
+            RegisterPacketType((byte)KnownPacket.EntityInteractResult, typeof(EntityInteractResultPacket));
+            RegisterPacketType((byte)KnownPacket.DamageTileGroup, typeof(DamageTileGroupPacket));
+            RegisterPacketType((byte)KnownPacket.RequestDrop, typeof(RequestDropPacket));
+            RegisterPacketType((byte)KnownPacket.OpenContainer, typeof(OpenContainerPacket));
+            RegisterPacketType((byte)KnownPacket.CloseContainer, typeof(CloseContainerPacket));
+            RegisterPacketType((byte)KnownPacket.EntityCreate, typeof(EntityCreatePacket));
+            RegisterPacketType((byte)KnownPacket.EntityUpdate, typeof(EntityUpdatePacket));
+            RegisterPacketType((byte)KnownPacket.EntityDestroy, typeof(EntityDestroyPacket));
+            RegisterPacketType((byte)KnownPacket.DamageNotification, typeof(DamageNotificationPacket));
+            RegisterPacketType((byte)KnownPacket.UpdateWorldProperties, typeof(UpdateWorldPropertiesPacket));
+            RegisterPacketType((byte)KnownPacket.Heartbeat, typeof(HeartbeatPacket));
         }
 
         public static void RegisterPacketType(byte id, Type packetType)

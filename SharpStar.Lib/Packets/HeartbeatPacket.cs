@@ -21,7 +21,7 @@ namespace SharpStar.Lib.Packets
     {
         public override byte PacketId
         {
-            get { return 48; }
+            get { return (byte)KnownPacket.Heartbeat; }
         }
 
         public ulong CurrentStep { get; set; }

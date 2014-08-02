@@ -21,7 +21,7 @@ namespace SharpStar.Lib.Packets
     {
         public override byte PacketId
         {
-            get { return 11; }
+            get { return (byte)KnownPacket.ChatSent; }
         }
 
         public string Message { get; set; }

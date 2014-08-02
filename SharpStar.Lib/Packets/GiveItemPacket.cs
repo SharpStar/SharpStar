@@ -23,7 +23,7 @@ namespace SharpStar.Lib.Packets
     {
         public override byte PacketId
         {
-            get { return 21; }
+            get { return (byte)KnownPacket.GiveItem; }
         }
 
         public string ItemName { get; set; }

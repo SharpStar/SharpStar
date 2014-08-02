@@ -23,7 +23,7 @@ namespace SharpStar.Lib.Packets
 
         public override byte PacketId
         {
-            get { return 15; }
+            get { return (byte)KnownPacket.WorldStop; }
         }
 
         public string Status { get; set; }

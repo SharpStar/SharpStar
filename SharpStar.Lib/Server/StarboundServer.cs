@@ -38,6 +38,9 @@ namespace SharpStar.Lib.Server
 
         private readonly int _serverPort;
 
+        private readonly string _starboundBind = SharpStarMain.Instance.Config.ConfigFile.StarboundBind;
+        private readonly string _sharpstarBind = SharpStarMain.Instance.Config.ConfigFile.SharpStarBind;
+
         public int ServerPort
         {
             get
@@ -93,9 +96,13 @@ namespace SharpStar.Lib.Server
 
             _clientCtr = 0;
 
-            Listener = new TcpListener(new IPEndPoint(IPAddress.Any, listenPort));
+            if (_sharpstarBind == "*")
+                Listener = new TcpListener(new IPEndPoint(IPAddress.Any, listenPort));
+            else
+                Listener = new TcpListener(new IPEndPoint(IPAddress.Parse(_sharpstarBind), listenPort));
+            
             Clients = new List<StarboundServerClient>();
-        
+
         }
 
         public void Start()
@@ -188,7 +195,10 @@ namespace SharpStar.Lib.Server
                             ClientConnected(this, new ClientConnectedEventArgs(ssc));
                     };
 
-                    ssc.Connect("127.0.0.1", _serverPort);
+                    if (!string.IsNullOrEmpty(_starboundBind))
+                        ssc.Connect(_starboundBind, _serverPort);
+                    else
+                        ssc.Connect("127.0.0.1", _serverPort);
 
                     lock (_clientLocker)
                         Clients.Add(ssc);
@@ -207,7 +217,7 @@ namespace SharpStar.Lib.Server
             }
             catch (ObjectDisposedException)
             {
-                return;   
+                return;
             }
             catch (Exception)
             {

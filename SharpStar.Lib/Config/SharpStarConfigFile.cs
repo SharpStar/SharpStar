@@ -47,6 +47,12 @@ namespace SharpStar.Lib.Config
         [JsonProperty("autoUpdatePlugins")]
         public bool AutoUpdatePlugins { get; set; }
 
+        [JsonProperty("starboundBind")]
+        public string StarboundBind { get; set; }
+
+        [JsonProperty("sharpstarBind")]
+        public string SharpStarBind { get; set; }
+
         public SharpStarConfigFile()
         {
             EnableAccounts = true;
@@ -55,6 +61,8 @@ namespace SharpStar.Lib.Config
             ShowDebug = false;
             MaxPlayers = 100;
             AutoUpdatePlugins = true;
+            StarboundBind = null;
+            SharpStarBind = "*";
         }
 
     }

@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.IO;
+using SharpStar.Lib.Logging;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
@@ -33,6 +34,9 @@ namespace SharpStar.Lib.Packets.Handlers
             {
                 SharpStarMain.Instance.Database.UpdateUserLastLogin(client.Server.Player.UserAccount.Username, DateTime.Now);
             }
+
+            if (packet.Success && client.Server.Player != null && !string.IsNullOrEmpty(client.Server.Player.Name))
+                SharpStarLogger.DefaultLogger.Info("Player {0} has successfully joined!", client.Server.Player.Name);
 
             SharpStarMain.Instance.PluginManager.CallEvent("connectionResponse", packet, client);
         }

@@ -15,9 +15,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using SharpStar.Lib.Extensions;
 using SharpStar.Lib.Logging;
 using SharpStar.Lib.Packets.Handlers;
 
@@ -29,10 +31,6 @@ namespace SharpStar.Lib.Server
         private readonly object _clientLocker = new object();
 
         private bool _disposed;
-
-        public const int NetworkPort = 21024;
-        public const int ClientBufferLength = 1024;
-        public const int ProtocolVersion = 639;
 
         private int _clientCtr;
 
@@ -113,7 +111,7 @@ namespace SharpStar.Lib.Server
 
         public void Stop()
         {
-            foreach (StarboundServerClient client in Clients)
+            foreach (StarboundServerClient client in Clients.ToList())
             {
                 client.ForceDisconnect();
                 client.Dispose();
@@ -149,6 +147,7 @@ namespace SharpStar.Lib.Server
             {
                 Socket socket = Listener.EndAcceptSocket(iar);
                 socket.NoDelay = true;
+                socket.SetKeepAlive(250, 100);
 
                 IPEndPoint ipe = (IPEndPoint)socket.RemoteEndPoint;
 
@@ -175,7 +174,7 @@ namespace SharpStar.Lib.Server
                             if (Clients.Contains(ssc))
                             {
 
-                                if (ssc.Player != null)
+                                if (ssc.Player != null && !string.IsNullOrEmpty(ssc.Player.Name))
                                     SharpStarLogger.DefaultLogger.Info("Player {0} disconnected", ssc.Player.Name);
                                 else
                                     SharpStarLogger.DefaultLogger.Info("{0} disconnected", ipe);
@@ -185,35 +184,39 @@ namespace SharpStar.Lib.Server
 
                                 Clients.Remove(ssc);
 
+                                ssc.Dispose();
+                                ssc = null;
+
                             }
                         }
                     };
 
-                    ssc.SClientConnected += (sender, args) =>
+                    if (ssc != null)
                     {
-                        if (ClientConnected != null)
-                            ClientConnected(this, new ClientConnectedEventArgs(ssc));
-                    };
+                        ssc.SClientConnected += (sender, args) =>
+                        {
+                            if (ClientConnected != null)
+                                ClientConnected(this, new ClientConnectedEventArgs(ssc));
+                        };
 
-                    if (!string.IsNullOrEmpty(_starboundBind))
-                        ssc.Connect(_starboundBind, _serverPort);
-                    else
-                        ssc.Connect("127.0.0.1", _serverPort);
+                        if (!string.IsNullOrEmpty(_starboundBind))
+                            ssc.Connect(_starboundBind, _serverPort);
+                        else
+                            ssc.Connect("127.0.0.1", _serverPort);
 
-                    lock (_clientLocker)
-                        Clients.Add(ssc);
+                        lock (_clientLocker)
+                            Clients.Add(ssc);
+                    }
 
                 }).Start();
 
             }
             catch (SocketException)
             {
-
                 if (ssc != null)
                 {
                     ssc.ForceDisconnect();
                 }
-
             }
             catch (ObjectDisposedException)
             {

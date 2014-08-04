@@ -100,6 +100,7 @@ namespace SharpStar.Lib.Plugins
 
         public void UpdatePlugins()
         {
+
             foreach (Addin addin in AddinManager.Registry.GetAddins())
             {
                 Addin refreshedAddin = AddinManager.Registry.GetAddin(addin.Id);
@@ -112,6 +113,8 @@ namespace SharpStar.Lib.Plugins
 
         public bool UpdatePlugin(string name)
         {
+
+            setupService.Repositories.UpdateAllRepositories(new ProgressStatus());
 
             Addin addin = AddinManager.Registry.GetAddins().SingleOrDefault(p => p.Description.LocalId.Equals(name, StringComparison.OrdinalIgnoreCase));
 

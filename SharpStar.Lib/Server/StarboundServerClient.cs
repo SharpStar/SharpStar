@@ -128,6 +128,8 @@ namespace SharpStar.Lib.Server
                 ServerTcpClient.EndConnect(iar);
                 Connected = true;
 
+                ServerTcpClient.Client.SetKeepAlive(250, 100);
+
                 PlayerClient.PacketReader = new PacketReader();
                 PlayerClient.PacketQueue = new ConcurrentQueue<IPacket>();
 
@@ -205,6 +207,12 @@ namespace SharpStar.Lib.Server
 
             PlayerClient = null;
             ServerClient = null;
+            Player = null;
+        }
+
+        ~StarboundServerClient()
+        {
+            Dispose(false);
         }
 
         #endregion

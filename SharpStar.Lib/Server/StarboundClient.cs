@@ -63,8 +63,6 @@ namespace SharpStar.Lib.Server
 
         public event EventHandler<PacketEventArgs> SendingPacket;
 
-        private readonly Timer _connTimer;
-
         private readonly object _handlerLock = new object();
 
         public StarboundClient(Socket socket, Direction dir)
@@ -76,10 +74,6 @@ namespace SharpStar.Lib.Server
 
             PacketQueue = new ConcurrentQueue<IPacket>();
             PacketReader = new PacketReader();
-
-            _connTimer = new Timer(TimeSpan.FromSeconds(15).TotalMilliseconds);
-            _connTimer.Elapsed += (sender, e) => CheckConnection();
-            _connTimer.Start();
         }
 
         public void RegisterPacketHandler(IPacketHandler handler)
@@ -169,6 +163,11 @@ namespace SharpStar.Lib.Server
                             handler.HandleAfter(packet, this);
                     }
 
+                    if (packet is DisconnectResponsePacket)
+                    {
+                        ForceDisconnect();
+                    }
+
                 }
 
                 if (PacketReader != null && PacketReader.NetworkBuffer != null)
@@ -177,14 +176,18 @@ namespace SharpStar.Lib.Server
             }
             catch (SocketException)
             {
+                ForceDisconnect();
             }
             catch (ObjectDisposedException)
             {
+                ForceDisconnect();
             }
             catch (Exception)
             {
                 if (PacketReader != null && PacketReader.NetworkBuffer != null)
                     sock.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None, ClientDataReceived, sock);
+                else
+                    ForceDisconnect();
             }
 
         }
@@ -197,7 +200,7 @@ namespace SharpStar.Lib.Server
             }
             catch (Exception)
             {
-                //    ForceDisconnect();
+                ForceDisconnect();
             }
         }
 
@@ -271,20 +274,6 @@ namespace SharpStar.Lib.Server
                     //ForceDisconnect();
                 }
             }
-        }
-
-        public bool CheckConnection()
-        {
-
-            if (Socket == null || (Socket != null && !Socket.IsConnected()))
-            {
-                ForceDisconnect();
-
-                return false;
-            }
-
-            return true;
-
         }
 
         #endregion
@@ -368,16 +357,19 @@ namespace SharpStar.Lib.Server
                 if (PacketReader != null)
                     PacketReader.Dispose();
 
-                if (_connTimer != null)
-                {
-                    _connTimer.Stop();
-                    _connTimer.Close();
-                }
+
+                if (Socket != null)
+                    Socket.Dispose();
 
             }
 
             Socket = null;
 
+        }
+
+        ~StarboundClient()
+        {
+            Dispose(false);
         }
 
         #endregion

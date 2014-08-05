@@ -101,6 +101,9 @@ namespace SharpStar.Lib.Server
         {
             if (Socket != null && PacketReader != null)
             {
+
+                Socket.SetSocketKeepAliveValues(100, 250);
+
                 Socket.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None,
                     ClientDataReceived, Socket);
             }
@@ -133,6 +136,7 @@ namespace SharpStar.Lib.Server
 
                 int length = sock.EndReceive(iar);
 
+                
                 List<IPacket> packets = PacketReader.UpdateBuffer(null, length);
 
                 foreach (var packet in packets)

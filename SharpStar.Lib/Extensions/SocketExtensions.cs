@@ -15,72 +15,61 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using SharpStar.Lib.Logging;
 
 namespace SharpStar.Lib.Extensions
 {
-	public static class SocketExtensions
-	{
-		public static bool IsConnected(this Socket socket)
-		{
-			try
-			{
-				return !(socket.Poll(1, SelectMode.SelectRead) && (socket.Available == 0) || !socket.Connected);
-			}
-			catch (Exception)
-			{
-				return false;
-			}
-		}
+    public static class SocketExtensions
+    {
+        public static bool IsConnected(this Socket socket)
+        {
+            try
+            {
+                return !(socket.Poll(1, SelectMode.SelectRead) && (socket.Available == 0) || !socket.Connected);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
 
-		private const int BytesPerLong = 4; // 32 / 8
-		private const int BitsPerByte = 8;
+        //found at http://www.extensionmethod.net/Details.aspx?ID=271, slightly modified
+        /// <summary>
+        /// Using IOControl code to configue socket KeepAliveValues for line disconnection detection(because default is toooo slow) 
+        /// </summary>
+        /// <param name="instance">A socket instance</param>
+        /// <param name="KeepAliveTime">The keep alive time. (ms)</param>
+        /// <param name="KeepAliveInterval">The keep alive interval. (ms)</param>
+        public static void SetSocketKeepAliveValues(this Socket instance, int KeepAliveTime, int KeepAliveInterval)
+        {
+            //KeepAliveTime: default value is 2hr
+            //KeepAliveInterval: default value is 1s and Detect 5 times
 
-		//Credit: http://snipplr.com/view/54476/
-		/// <summary>
-		/// Sets the keep-alive interval for the socket.
-		/// </summary>
-		/// <param name="socket">The socket.</param>
-		/// <param name="time">Time between two keep alive "pings".</param>
-		/// <param name="interval">Time between two keep alive "pings" when first one fails.</param>
-		/// <returns>If the keep alive infos were succefully modified.</returns>
-		public static bool SetKeepAlive(this Socket socket, ulong time, ulong interval)
-		{
-			try
-			{
-				// Array to hold input values.
-				var input = new[]
-				{
-					(time == 0 || interval == 0) ? 0UL : 1UL, // on or off
-					time,
-					interval
-				};
+            //the native structure
+            //struct tcp_keepalive {
+            //ULONG onoff;
+            //ULONG keepalivetime;
+            //ULONG keepaliveinterval;
+            //};
 
-				// Pack input into byte struct.
-				byte[] inValue = new byte[3 * BytesPerLong];
-				for (int i = 0; i < input.Length; i++)
-				{
-					inValue[i * BytesPerLong + 3] = (byte)(input[i] >> ((BytesPerLong - 1) * BitsPerByte) & 0xff);
-					inValue[i * BytesPerLong + 2] = (byte)(input[i] >> ((BytesPerLong - 2) * BitsPerByte) & 0xff);
-					inValue[i * BytesPerLong + 1] = (byte)(input[i] >> ((BytesPerLong - 3) * BitsPerByte) & 0xff);
-					inValue[i * BytesPerLong + 0] = (byte)(input[i] >> ((BytesPerLong - 4) * BitsPerByte) & 0xff);
-				}
+            uint dummy = 0; //lenth = 4
+            byte[] inOptionValues = new byte[Marshal.SizeOf(dummy) * 3]; //size = lenth * 3 = 12
+            bool OnOff = true;
 
-				// Create bytestruct for result (bytes pending on server socket).
-				byte[] outValue = BitConverter.GetBytes(0);
+            BitConverter.GetBytes((uint)(OnOff ? 1 : 0)).CopyTo(inOptionValues, 0);
+            BitConverter.GetBytes((uint)KeepAliveTime).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
+            BitConverter.GetBytes((uint)KeepAliveInterval).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
+            // of course there are other ways to marshal up this byte array, this is just one way
+            // call WSAIoctl via IOControl
 
-				// Write SIO_VALS to Socket IOControl.
-				socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-				socket.IOControl(IOControlCode.KeepAliveValues, inValue, outValue);
-			}
-			catch (SocketException e)
-			{
-				SharpStarLogger.DefaultLogger.Error("Failed to set keep-alive: {0} {1}", e.ErrorCode, e);
-				return false;
-			}
+            // .net 1.1 type
+            //int SIO_KEEPALIVE_VALS = -1744830460; //(or 0x98000004)
+            //socket.IOControl(SIO_KEEPALIVE_VALS, inOptionValues, null); 
 
-			return true;
-		}
+            // .net 3.5 type
+            instance.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+        }
 
-	}
+    }
 }

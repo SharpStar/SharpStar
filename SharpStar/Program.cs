@@ -2,11 +2,11 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 using log4net.Config;
 using SharpStar.Lib;
 using SharpStar.Lib.Database;
 using SharpStar.Lib.Logging;
+using SharpStar.Lib.Mono;
 using SharpStar.Lib.Plugins;
 
 namespace SharpStar
@@ -16,7 +16,6 @@ namespace SharpStar
 
         private static SharpStarLogger Logger;
 
-        [HandleProcessCorruptedStateExceptions]
         private static void Main(string[] args)
         {
 
@@ -31,6 +30,26 @@ namespace SharpStar
             Version ver = Assembly.GetExecutingAssembly().GetName().Version;
 
             Logger.Info("SharpStar Version {0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision);
+
+
+            if (MonoHelper.IsRunningOnMono())
+            {
+
+                string monoVer = MonoHelper.GetMonoVersion();
+
+                if (!string.IsNullOrEmpty(monoVer))
+                {
+                    Logger.Info("Running on Mono version {0}", monoVer);
+
+                    if (!monoVer.StartsWith("3.2"))
+                    {
+                        Logger.Warn("You are running a version of Mono that has not been tested with SharpStar!");
+                        Logger.Warn("SharpStar has been tested with Mono version 3.2.8. Versions other than that are not supported and may cause problems!");
+                    }
+
+                }
+            }
+
 
             m.Start();
 
@@ -101,8 +120,10 @@ namespace SharpStar
 
                         m.PluginManager.CSPluginManager.UpdatePlugins();
 
+                        Logger.Info("Finished updating plugins!");
+
                         break;
-                        
+
                     case "updateplugin":
 
                         string updPlugin = string.Join(" ", cmd.Skip(1));
@@ -256,7 +277,6 @@ namespace SharpStar
             }
         }
 
-        [HandleProcessCorruptedStateExceptions]
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Logger.Error(((Exception)e.ExceptionObject).Message);

@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace SharpStar.Lib.Mono
@@ -26,6 +27,18 @@ namespace SharpStar.Lib.Mono
         public static bool IsRunningOnMono()
         {
             return Type.GetType("Mono.Runtime") != null;
+        }
+
+        public static string GetMonoVersion()
+        {
+            Type type = Type.GetType("Mono.Runtime");
+            if (type != null)
+            {
+                MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
+                if (displayName != null)
+                    return displayName.Invoke(null, null) as string;
+            }
+            return String.Empty;
         }
 
     }

@@ -16,6 +16,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Timers;
 using log4net;
 using SharpStar.Lib.Config;
 using SharpStar.Lib.Database;
@@ -55,6 +56,9 @@ namespace SharpStar.Lib
         private const int DefaultListenPort = 21025;
         private const int DefaultServerPort = 21024;
 
+        private Timer addinUpdateChecker;
+
+
         public SharpStarConfig Config { get; set; }
 
         public StarboundServer Server { get; private set; }
@@ -62,6 +66,7 @@ namespace SharpStar.Lib
         public PluginManager PluginManager { get; set; }
 
         public SharpStarDb Database { get; private set; }
+
 
         public void Start()
         {
@@ -105,10 +110,25 @@ namespace SharpStar.Lib
 
             PluginManager.LoadPlugins();
 
+            if (Config.ConfigFile.AutoUpdatePlugins)
+            {
+                addinUpdateChecker = new Timer();
+                addinUpdateChecker.Interval = TimeSpan.FromMinutes(30).TotalMilliseconds;
+                addinUpdateChecker.Elapsed += (s, e) => PluginManager.CSPluginManager.UpdatePlugins();
+            }
+
+
         }
 
         public void Shutdown()
         {
+
+            if (addinUpdateChecker != null)
+            {
+                addinUpdateChecker.Stop();
+                addinUpdateChecker.Dispose();
+                addinUpdateChecker = null;
+            }
 
             PluginManager.UnloadPlugins();
 

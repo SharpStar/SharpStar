@@ -128,8 +128,6 @@ namespace SharpStar.Lib.Server
                 ServerTcpClient.EndConnect(iar);
                 Connected = true;
 
-                ServerTcpClient.Client.SetKeepAlive(250, 100);
-
                 PlayerClient.PacketReader = new PacketReader();
                 PlayerClient.PacketQueue = new ConcurrentQueue<IPacket>();
 

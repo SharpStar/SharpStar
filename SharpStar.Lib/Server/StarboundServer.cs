@@ -147,7 +147,6 @@ namespace SharpStar.Lib.Server
             {
                 Socket socket = Listener.EndAcceptSocket(iar);
                 socket.NoDelay = true;
-                socket.SetKeepAlive(250, 100);
 
                 IPEndPoint ipe = (IPEndPoint)socket.RemoteEndPoint;
 

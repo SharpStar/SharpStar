@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
+using System.Linq;
 using SharpStar.Lib.Entities;
 using SharpStar.Lib.Misc;
 using SharpStar.Lib.Server;
@@ -26,23 +27,18 @@ namespace SharpStar.Lib.Packets.Handlers
         {
             foreach (var ent in packet.Entities)
             {
-
                 if (ent.EntityType == EntityType.Player && ent is PlayerEntity)
                 {
-
                     PlayerEntity pent = (PlayerEntity)ent;
 
                     if (pent.UUID == client.Server.Player.UUID)
                     {
                         client.Server.Player.EntityId = ent.EntityId;
                     }
-
                 }
-
             }
 
             SharpStarMain.Instance.PluginManager.CallEvent("entityCreate", packet, client);
-        
         }
 
         public override void HandleAfter(EntityCreatePacket packet, StarboundClient client)

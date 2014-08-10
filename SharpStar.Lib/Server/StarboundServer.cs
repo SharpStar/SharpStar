@@ -80,7 +80,8 @@ namespace SharpStar.Lib.Server
             new EntityUpdatePacketHandler(),
             new EntityDestroyPacketHandler(),
             new UpdateWorldPropertiesPacketHandler(),
-            new HeartbeatPacketHandler()
+            new HeartbeatPacketHandler(),
+            //new SpawnEntityPacketHandler()
         };
 
         public event EventHandler<ClientConnectedEventArgs> ClientConnected;
@@ -161,11 +162,6 @@ namespace SharpStar.Lib.Server
                     ssc = new StarboundServerClient(sc);
                     ssc.ClientId = _clientCtr;
 
-                    foreach (IPacketHandler packetHandler in DefaultPacketHandlers)
-                    {
-                        ssc.RegisterPacketHandler(packetHandler);
-                    }
-
                     ssc.Disconnected += (sender, args) =>
                     {
                         lock (_clientLocker)
@@ -183,8 +179,8 @@ namespace SharpStar.Lib.Server
 
                                 Clients.Remove(ssc);
 
-                                ssc.Dispose();
-                                ssc = null;
+                                //ssc.Dispose();
+                                //ssc = null;
 
                             }
                         }
@@ -194,6 +190,11 @@ namespace SharpStar.Lib.Server
                     {
                         ssc.SClientConnected += (sender, args) =>
                         {
+                            foreach (IPacketHandler packetHandler in DefaultPacketHandlers)
+                            {
+                                ssc.RegisterPacketHandler(packetHandler);
+                            }
+
                             if (ClientConnected != null)
                                 ClientConnected(this, new ClientConnectedEventArgs(ssc));
                         };
@@ -219,13 +220,20 @@ namespace SharpStar.Lib.Server
             }
             catch (ObjectDisposedException)
             {
-                return;
             }
             catch (Exception)
             {
             }
-
-            Listener.BeginAcceptSocket(AcceptClient, null);
+            finally
+            {
+                try
+                {
+                    Listener.BeginAcceptSocket(AcceptClient, null);
+                }
+                catch
+                {
+                }
+            }
 
         }
 

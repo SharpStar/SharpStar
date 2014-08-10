@@ -15,9 +15,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq.Expressions;
 using Ionic.Zlib;
+using SharpStar.Lib.Logging;
 using SharpStar.Lib.Networking;
 
 namespace SharpStar.Lib.Packets
@@ -77,6 +79,7 @@ namespace SharpStar.Lib.Packets
             RegisterPacketType((byte)KnownPacket.DamageNotification, typeof(DamageNotificationPacket));
             RegisterPacketType((byte)KnownPacket.UpdateWorldProperties, typeof(UpdateWorldPropertiesPacket));
             RegisterPacketType((byte)KnownPacket.Heartbeat, typeof(HeartbeatPacket));
+            //RegisterPacketType((byte)KnownPacket.SpawnEntity, typeof(SpawnEntityPacket));
         }
 
         public static void RegisterPacketType(byte id, Type packetType)
@@ -187,7 +190,20 @@ namespace SharpStar.Lib.Packets
 
                 packet.IsReceive = true;
 
-                packet.Read(stream);
+                try
+                {
+                    packet.Read(stream);
+                }
+                catch (Exception e)
+                {
+                    StackTrace st = new StackTrace(e);
+                    StackFrame[] sf = st.GetFrames();
+
+                    foreach (StackFrame f in sf)
+                    {
+                        SharpStarLogger.DefaultLogger.Error(f.ToString());
+                    }
+                }
 
             }
 

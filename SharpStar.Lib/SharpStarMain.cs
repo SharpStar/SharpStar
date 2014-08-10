@@ -99,7 +99,6 @@ namespace SharpStar.Lib
 
             }
 
-            PluginManager = new PluginManager();
             Database = new SharpStarDb("SharpStar.db");
             Database.CreateTables();
 
@@ -108,12 +107,13 @@ namespace SharpStar.Lib
             Server = new StarboundServer(Config.ConfigFile.ListenPort, Config.ConfigFile.ServerPort);
             Server.Start();
 
+            PluginManager = new PluginManager();
             PluginManager.LoadPlugins();
 
             if (Config.ConfigFile.AutoUpdatePlugins)
             {
                 addinUpdateChecker = new Timer();
-                addinUpdateChecker.Interval = TimeSpan.FromMinutes(30).TotalMilliseconds;
+                addinUpdateChecker.Interval = TimeSpan.FromHours(2).TotalMilliseconds;
                 addinUpdateChecker.Elapsed += (s, e) => PluginManager.CSPluginManager.UpdatePlugins();
             }
 

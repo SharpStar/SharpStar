@@ -17,11 +17,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using SharpStar.Lib.Server;
 
-namespace SharpStar.Lib.Networking
+namespace SharpStar.Lib.Packets.Handlers
 {
-    public interface IWriteable
+    public class SpawnEntityPacketHandler : PacketHandler<SpawnEntityPacket>
     {
-        void WriteTo(IStarboundStream stream);
+        public override void Handle(SpawnEntityPacket packet, StarboundClient client)
+        {
+            SharpStarMain.Instance.PluginManager.CallEvent("spawnEntity", packet, client);
+        }
+
+        public override void HandleAfter(SpawnEntityPacket packet, StarboundClient client)
+        {
+            SharpStarMain.Instance.PluginManager.CallEvent("afterSpawnEntity", packet, client);
+        }
     }
 }

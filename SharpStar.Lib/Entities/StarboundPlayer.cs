@@ -133,12 +133,10 @@ namespace SharpStar.Lib.Entities
         /// <param name="allowed"></param>
         public void AddPermission(string permission, bool allowed)
         {
-
             if (UserAccount == null)
                 return;
 
             SharpStarMain.Instance.Database.AddPlayerPermission(UserAccount.Id, permission, allowed);
-
         }
 
         /// <summary>

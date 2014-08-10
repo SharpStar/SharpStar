@@ -20,6 +20,7 @@ using System.Net.Sockets;
 using SharpStar.Lib.Entities;
 using System.Threading;
 using SharpStar.Lib.Extensions;
+using SharpStar.Lib.Logging;
 using SharpStar.Lib.Packets;
 using SharpStar.Lib.Packets.Handlers;
 
@@ -51,46 +52,57 @@ namespace SharpStar.Lib.Server
 
         private volatile bool _disconnectEventCalled;
 
-        private readonly object _locker = new object();
+        private readonly object _eventLocker = new object();
+
+        private bool _connecting;
 
 
         public StarboundServerClient(StarboundClient plrClient)
         {
-
             Player = new StarboundPlayer();
 
             _disconnectEventCalled = false;
+            _connecting = false;
 
             PlayerClient = plrClient;
             PlayerClient.Server = this;
 
-            ServerTcpClient = new TcpClient { NoDelay = true };
-
-            ServerClient = new StarboundClient(ServerTcpClient.Client, Direction.Server);
-            ServerClient.OtherClient = PlayerClient;
-            ServerClient.Server = this;
-
-            PlayerClient.OtherClient = ServerClient;
-
             Connected = false;
-
         }
 
         public void Connect(string host, int port)
         {
+            _connecting = true;
 
-            if (ServerTcpClient != null && ServerTcpClient.Client.IsConnected())
+            PlayerClient.PacketReader = null;
+            PlayerClient.OtherClient = null;
+
+            try
             {
-                ServerTcpClient.Client.Disconnect(true);
+                if (ServerTcpClient != null)
+                {
+
+                    if (ServerClient != null)
+                    {
+                        ServerClient.OtherClient = null;
+                        ServerClient.Dispose();
+                    }
+
+                    ServerTcpClient.Client.Disconnect(true);
+                }
+            }
+            catch
+            {
+            }
+            finally
+            {
                 ServerTcpClient = null;
             }
 
             if (ServerTcpClient == null)
             {
-
                 ServerTcpClient = new TcpClient { NoDelay = true };
 
-                ServerClient.Dispose();
                 ServerClient = new StarboundClient(ServerTcpClient.Client, Direction.Server)
                 {
                     OtherClient = PlayerClient,
@@ -105,7 +117,6 @@ namespace SharpStar.Lib.Server
             ServerTcpClient.BeginConnect(host, port, ServerClientConnected, null);
 
             ConnectionTime = DateTime.Now;
-
         }
 
         public void RegisterPacketHandler(IPacketHandler handler)
@@ -124,8 +135,10 @@ namespace SharpStar.Lib.Server
         {
             try
             {
+                _connecting = false;
 
                 ServerTcpClient.EndConnect(iar);
+
                 Connected = true;
 
                 PlayerClient.PacketReader = new PacketReader();
@@ -146,45 +159,56 @@ namespace SharpStar.Lib.Server
 
         public void ForceDisconnect()
         {
-
             Connected = false;
 
-            try
+            //try
+            //{
+            //    if (ServerClient != null)
+            //    {
+            //        if (ServerClient.Socket != null)
+            //        {
+            //            ServerClient.Socket.Disconnect(true);
+            //        }
+
+            //        ServerClient.Dispose();
+            //    }
+
+            //}
+            //catch (Exception)
+            //{
+            //}
+
+            //try
+            //{
+            //    if (PlayerClient != null)
+            //    {
+            //        if (PlayerClient.Socket != null)
+            //        {
+            //            PlayerClient.Socket.Disconnect(true);
+            //        }
+
+            //        PlayerClient.Dispose();
+            //    }
+            //}
+            //catch (Exception)
+            //{
+            //}
+
+
+            lock (_eventLocker)
             {
-                if (ServerClient != null)
-                {
-                    if (ServerClient.Socket != null)
-                    {
-                        ServerClient.Socket.Disconnect(true);
-                    }
-
-                    ServerClient.Dispose();
-                }
-
-                if (PlayerClient != null)
-                {
-                    if (PlayerClient.Socket != null)
-                    {
-                        PlayerClient.Socket.Disconnect(true);
-                    }
-
-                    PlayerClient.Dispose();
-                }
-
-            }
-            catch (Exception)
-            {
-            }
-            finally
-            {
-                lock (_locker)
+                try
                 {
                     if (Disconnected != null && !_disconnectEventCalled)
                         Disconnected(this, new ClientDisconnectedEventArgs(this));
 
                     _disconnectEventCalled = true;
                 }
+                catch
+                {
+                }
             }
+
         }
 
         #region Disposal

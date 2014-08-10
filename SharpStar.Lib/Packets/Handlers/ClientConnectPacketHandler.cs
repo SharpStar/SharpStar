@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
+using System.Linq;
 using SharpStar.Lib.Database;
 using SharpStar.Lib.Entities;
+using SharpStar.Lib.Logging;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
@@ -28,7 +30,16 @@ namespace SharpStar.Lib.Packets.Handlers
             if (packet.IsReceive)
             {
 
-                client.Server.Player = new StarboundPlayer(packet.PlayerName, BitConverter.ToString(packet.UUID, 0).Replace("-", String.Empty).ToLower())
+                string uuid = BitConverter.ToString(packet.UUID, 0).Replace("-", String.Empty).ToLower();
+
+                var clients = SharpStarMain.Instance.Server.Clients.Where(p => p.Player != null && p.Player.UUID == uuid);
+                clients.ToList().ForEach(p =>
+                {
+                    SharpStarLogger.DefaultLogger.Info("Duplicate UUID ({0}) detected. Killing old client!", uuid);
+                    p.PlayerClient.ForceDisconnect();
+                });
+
+                client.Server.Player = new StarboundPlayer(packet.PlayerName, uuid)
                 {
                     Claim = packet.Claim,
                     Species = packet.Species,

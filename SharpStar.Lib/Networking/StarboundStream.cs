@@ -15,10 +15,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
 using SharpStar.Lib.DataTypes;
+using SharpStar.Lib.Logging;
 
 namespace SharpStar.Lib.Networking
 {
@@ -84,7 +86,21 @@ namespace SharpStar.Lib.Networking
         {
             int value = BaseStream.ReadByte();
             if (value == -1)
+            {
+                StackTrace st = new StackTrace();
+                StackFrame[] sf = st.GetFrames();
+
+                if (sf != null)
+                {
+                    foreach (StackFrame f in sf)
+                    {
+                        SharpStarLogger.DefaultLogger.Error(f.ToString());
+                    }
+                }
+
                 throw new EndOfStreamException();
+            }
+
             return (byte)value;
         }
 

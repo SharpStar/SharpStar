@@ -26,7 +26,7 @@ namespace SharpStar.Lib.Extensions
         {
             try
             {
-                return !(socket.Poll(1, SelectMode.SelectRead) && (socket.Available == 0) || !socket.Connected);
+                return !(socket.Poll(100, SelectMode.SelectRead) && (socket.Available == 0) || !socket.Connected);
             }
             catch (Exception)
             {
@@ -68,7 +68,14 @@ namespace SharpStar.Lib.Extensions
             //socket.IOControl(SIO_KEEPALIVE_VALS, inOptionValues, null); 
 
             // .net 3.5 type
-            instance.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+            try
+            {
+                instance.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                instance.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+            }
+            catch
+            {
+            }
         }
 
     }

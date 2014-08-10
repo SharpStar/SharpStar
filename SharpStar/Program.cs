@@ -265,7 +265,7 @@ namespace SharpStar
 
                         break;
 
-                    default:
+                    default: 
 
                         if (cmd.Length > 1)
                             m.PluginManager.PassConsoleCommand(cmd[0], new string(line.Skip(cmd[0].Length + 1).ToArray()).Split(' '));

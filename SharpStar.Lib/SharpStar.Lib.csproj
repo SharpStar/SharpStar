@@ -138,11 +138,13 @@
     <Compile Include="Logging\SharpStarLogger.cs" />
     <Compile Include="Misc\DamageKind.cs" />
     <Compile Include="Misc\HitResultKind.cs" />
+    <Compile Include="Misc\InteractAction.cs" />
     <Compile Include="Misc\OS.cs" />
     <Compile Include="Misc\Python.cs" />
     <Compile Include="Misc\LogSector.cs" />
     <Compile Include="Misc\StarboundItem.cs" />
     <Compile Include="Misc\StarboundSector.cs" />
+    <Compile Include="Packets\Handlers\SpawnEntityPacketHandler.cs" />
     <Compile Include="Tiles\TileDamage.cs" />
     <Compile Include="Tiles\TileDamageParameters.cs" />
     <Compile Include="Tiles\TileDamageStatus.cs" />

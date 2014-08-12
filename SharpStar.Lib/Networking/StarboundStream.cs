@@ -87,7 +87,7 @@ namespace SharpStar.Lib.Networking
             int value = BaseStream.ReadByte();
             if (value == -1)
             {
-                StackTrace st = new StackTrace();
+                StackTrace st = new StackTrace(true);
                 StackFrame[] sf = st.GetFrames();
 
                 if (sf != null)

@@ -101,6 +101,7 @@ namespace SharpStar.Lib.Server
 
             if (ServerTcpClient == null)
             {
+
                 ServerTcpClient = new TcpClient { NoDelay = true };
 
                 ServerClient = new StarboundClient(ServerTcpClient.Client, Direction.Server)
@@ -112,6 +113,11 @@ namespace SharpStar.Lib.Server
                 PlayerClient.PacketReader = null;
                 PlayerClient.OtherClient = ServerClient;
 
+            }
+
+            lock (_eventLocker)
+            {
+                _disconnectEventCalled = false;
             }
 
             ServerTcpClient.BeginConnect(host, port, ServerClientConnected, null);

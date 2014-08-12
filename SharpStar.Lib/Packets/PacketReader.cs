@@ -21,6 +21,7 @@ using System.Linq.Expressions;
 using Ionic.Zlib;
 using SharpStar.Lib.Logging;
 using SharpStar.Lib.Networking;
+using SharpStar.Lib.Extensions;
 
 namespace SharpStar.Lib.Packets
 {
@@ -97,14 +98,12 @@ namespace SharpStar.Lib.Packets
 
             if (buf == null)
             {
-
                 if (PacketBuffer.Length < index + length)
                 {
                     Array.Resize(ref PacketBuffer, index + length);
                 }
 
                 Buffer.BlockCopy(NetworkBuffer, 0, PacketBuffer, index, length);
-
             }
 
             using (MemoryStream ms = new MemoryStream(PacketBuffer))
@@ -112,13 +111,21 @@ namespace SharpStar.Lib.Packets
                 using (StarboundStream s = new StarboundStream(ms))
                 {
 
-
                     if (WorkingLength == long.MaxValue && s.Length > 1)
                     {
 
                         _packetId = s.ReadUInt8();
 
-                        WorkingLength = s.ReadSignedVLQ(out DataIndex);
+                        try
+                        {
+
+                            WorkingLength = s.ReadSignedVLQ(out DataIndex);
+                        }
+                        catch (Exception)
+                        {
+                            return new List<IPacket>();
+                        }
+                         
                         DataIndex++;
 
                         Compressed = WorkingLength < 0;
@@ -130,8 +137,6 @@ namespace SharpStar.Lib.Packets
 
                     if (WorkingLength != long.MaxValue)
                     {
-
-
                         if (PacketBuffer.Length >= WorkingLength + DataIndex)
                         {
 
@@ -157,7 +162,6 @@ namespace SharpStar.Lib.Packets
                             }
 
                             return packets;
-
                         }
 
                     }
@@ -196,13 +200,9 @@ namespace SharpStar.Lib.Packets
                 }
                 catch (Exception e)
                 {
-                    StackTrace st = new StackTrace(e);
-                    StackFrame[] sf = st.GetFrames();
+                    SharpStarLogger.DefaultLogger.Error("Packet {0} caused and error!", packet.GetType().Name);
 
-                    foreach (StackFrame f in sf)
-                    {
-                        SharpStarLogger.DefaultLogger.Error(f.ToString());
-                    }
+                    e.LogError();
                 }
 
             }

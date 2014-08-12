@@ -59,11 +59,13 @@ namespace SharpStar.Lib.Server
         public Direction Direction { get; private set; }
 
 
-        public List<IPacketHandler> PacketHandlers { get; private set; }
+        public BlockingCollection<IPacketHandler> PacketHandlers { get; private set; }
 
         public event EventHandler<PacketEventArgs> PacketReceived;
 
         public event EventHandler<PacketEventArgs> SendingPacket;
+
+        public event EventHandler<ClientDisconnectedEventArgs> ClientDisconnected;
 
         private readonly object _handlerLock = new object();
 
@@ -82,7 +84,7 @@ namespace SharpStar.Lib.Server
             Socket = socket;
             Direction = dir;
 
-            PacketHandlers = new List<IPacketHandler>();
+            PacketHandlers = new BlockingCollection<IPacketHandler>();
 
             PacketQueue = new ConcurrentQueue<IPacket>();
             PacketReader = new PacketReader();
@@ -96,15 +98,12 @@ namespace SharpStar.Lib.Server
 
         public void UnregisterPacketHandler(IPacketHandler handler)
         {
-            PacketHandlers.Remove(handler);
+            PacketHandlers.TryTake(out handler);
         }
 
         public void ClearPacketHandlers()
         {
-            lock (_handlerLock)
-            {
-                PacketHandlers.Clear();
-            }
+            PacketHandlers = new BlockingCollection<IPacketHandler>();
         }
 
         #region Connection
@@ -167,6 +166,9 @@ namespace SharpStar.Lib.Server
             if (OtherClient != null && OtherClient.Socket != null)
                 OtherClient.ForceDisconnect();
 
+            if (ClientDisconnected != null && Server != null)
+                ClientDisconnected(this, new ClientDisconnectedEventArgs(Server));
+
         }
 
         public void SendPacket(IPacket packet)
@@ -180,7 +182,6 @@ namespace SharpStar.Lib.Server
 
         private void ClientDataReceived(IAsyncResult iar)
         {
-
             Socket sock = (Socket)iar.AsyncState;
 
             if (sock == null)
@@ -324,7 +325,8 @@ namespace SharpStar.Lib.Server
 
                     byte[] toSend = finalMemStream.ToArray();
 
-                    Socket.BeginSend(toSend, 0, toSend.Length, SocketFlags.None, PacketSent, null);
+                    if (Socket != null)
+                        Socket.BeginSend(toSend, 0, toSend.Length, SocketFlags.None, PacketSent, null);
 
                     stream.Close();
                     finalStream.Close();

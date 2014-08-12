@@ -133,6 +133,7 @@
     <Compile Include="Entities\PlayerEntity.cs" />
     <Compile Include="Entities\ProjectileEntity.cs" />
     <Compile Include="Entities\StarboundPlayer.cs" />
+    <Compile Include="Extensions\ExceptionExtensions.cs" />
     <Compile Include="Extensions\SocketExtensions.cs" />
     <Compile Include="Extensions\StarboundClientExtensions.cs" />
     <Compile Include="Logging\SharpStarLogger.cs" />
@@ -145,6 +146,7 @@
     <Compile Include="Misc\StarboundItem.cs" />
     <Compile Include="Misc\StarboundSector.cs" />
     <Compile Include="Packets\Handlers\SpawnEntityPacketHandler.cs" />
+    <Compile Include="Server\IServer.cs" />
     <Compile Include="Tiles\TileDamage.cs" />
     <Compile Include="Tiles\TileDamageParameters.cs" />
     <Compile Include="Tiles\TileDamageStatus.cs" />

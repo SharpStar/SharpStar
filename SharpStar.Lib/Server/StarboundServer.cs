@@ -25,7 +25,7 @@ using SharpStar.Lib.Packets.Handlers;
 
 namespace SharpStar.Lib.Server
 {
-    public class StarboundServer : IDisposable
+    public class StarboundServer : IServer, IDisposable
     {
 
         private readonly object _clientLocker = new object();

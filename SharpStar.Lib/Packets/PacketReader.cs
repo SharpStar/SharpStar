@@ -113,15 +113,13 @@ namespace SharpStar.Lib.Packets
 
                     if (WorkingLength == long.MaxValue && s.Length > 1)
                     {
-
                         _packetId = s.ReadUInt8();
 
                         try
                         {
-
                             WorkingLength = s.ReadSignedVLQ(out DataIndex);
                         }
-                        catch (Exception)
+                        catch
                         {
                             return new List<IPacket>();
                         }
@@ -132,7 +130,6 @@ namespace SharpStar.Lib.Packets
 
                         if (Compressed)
                             WorkingLength = -WorkingLength;
-
                     }
 
                     if (WorkingLength != long.MaxValue)

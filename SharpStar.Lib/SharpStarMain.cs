@@ -80,6 +80,9 @@ namespace SharpStar.Lib
                 Config.ConfigFile.ServerPort = DefaultServerPort;
                 Config.ConfigFile.EnableAccounts = true;
 
+                Config.ConfigFile.AllowedStarboundCommands.Add("pvp");
+                Config.ConfigFile.AllowedStarboundCommands.Add("w");
+
                 Config.Save(configFile);
             }
             else

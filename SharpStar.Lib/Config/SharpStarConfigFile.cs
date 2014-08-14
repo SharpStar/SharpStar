@@ -13,6 +13,8 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace SharpStar.Lib.Config
@@ -53,6 +55,9 @@ namespace SharpStar.Lib.Config
         [JsonProperty("sharpstarBind")]
         public string SharpStarBind { get; set; }
 
+        [JsonProperty("allowedStarboundCommands")]
+        public List<string> AllowedStarboundCommands { get; set; }
+
         public SharpStarConfigFile()
         {
             EnableAccounts = true;
@@ -63,6 +68,7 @@ namespace SharpStar.Lib.Config
             AutoUpdatePlugins = true;
             StarboundBind = null;
             SharpStarBind = "*";
+            AllowedStarboundCommands = new List<string>();
         }
 
     }

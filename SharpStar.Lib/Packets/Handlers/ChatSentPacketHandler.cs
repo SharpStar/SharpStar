@@ -63,11 +63,15 @@ namespace SharpStar.Lib.Packets.Handlers
                 }
                 else
                 {
-                    if (!SharpStarMain.Instance.PluginManager.PassChatCommand(client, cmd, args))
-                        client.SendChatMessage("Server", "Unknown Command!");
-                }
 
-                packet.Ignore = true;
+                    if (!SharpStarMain.Instance.Config.ConfigFile.AllowedStarboundCommands.Any(p => p.Equals(cmd, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        if (!SharpStarMain.Instance.PluginManager.PassChatCommand(client, cmd, args))
+                            client.SendChatMessage("Server", "Unknown Command!");
+
+                        packet.Ignore = true;
+                    }
+                }
             }
         }
 

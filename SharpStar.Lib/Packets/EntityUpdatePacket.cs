@@ -13,7 +13,11 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+using System;
+using System.IO;
 using SharpStar.Lib.Networking;
+using SharpStar.Lib.DataTypes;
 
 namespace SharpStar.Lib.Packets
 {
@@ -28,12 +32,37 @@ namespace SharpStar.Lib.Packets
 
         public byte[] Unknown { get; set; }
 
+        public VariantDict Data { get; set; }
+
         public override void Read(IStarboundStream stream)
         {
             int discarded;
 
             EntityId = stream.ReadSignedVLQ(out discarded);
             Unknown = stream.ReadUInt8Array((int)(stream.Length - stream.Position));
+
+            using (MemoryStream ms = new MemoryStream(Unknown))
+            {
+                using (StarboundStream ss = new StarboundStream(ms))
+                {
+                    while ((ss.Length - ss.Position) > 0 && ss.ReadUInt8() != 2)
+                    {
+                    }
+
+                    if (ss.Length - ss.Position == 0)
+                        return;
+
+                    if (ss.ReadUInt8() != 7)
+                        return;
+
+                    ss.Seek(-1, SeekOrigin.Current);
+
+                    Variant var = ss.ReadVariant();
+                    Data = (VariantDict)var.Value;
+
+                }
+            }
+
         }
 
         public override void Write(IStarboundStream stream)

@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using SharpStar.Lib.Entities;
+using SharpStar.Lib.Misc;
 using SharpStar.Lib.Networking;
 
 namespace SharpStar.Lib.Packets
@@ -33,26 +34,27 @@ namespace SharpStar.Lib.Packets
             }
         }
 
-        public List<Entity> Entities { get; set; }
+        public List<SpawnedEntity> SpawnedEntities { get; set; }
 
         public SpawnEntityPacket()
         {
-            Entities = new List<Entity>();
+            SpawnedEntities = new List<SpawnedEntity>();
         }
+
 
         public override void Read(IStarboundStream stream)
         {
             while ((stream.Length - stream.Position) > 0)
             {
-                Entities.Add(Entity.FromStream(stream));
+                SpawnedEntities.Add(SpawnedEntity.FromStream(stream));
             }
         }
 
         public override void Write(IStarboundStream stream)
         {
-            foreach (var entity in Entities)
+            foreach (SpawnedEntity se in SpawnedEntities)
             {
-                entity.WriteTo(stream);
+                se.WriteTo(stream);
             }
         }
 

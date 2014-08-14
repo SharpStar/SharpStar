@@ -80,7 +80,7 @@ namespace SharpStar.Lib.Packets
             RegisterPacketType((byte)KnownPacket.DamageNotification, typeof(DamageNotificationPacket));
             RegisterPacketType((byte)KnownPacket.UpdateWorldProperties, typeof(UpdateWorldPropertiesPacket));
             RegisterPacketType((byte)KnownPacket.Heartbeat, typeof(HeartbeatPacket));
-            //RegisterPacketType((byte)KnownPacket.SpawnEntity, typeof(SpawnEntityPacket));
+            RegisterPacketType((byte)KnownPacket.SpawnEntity, typeof(SpawnEntityPacket));
         }
 
         public static void RegisterPacketType(byte id, Type packetType)
@@ -110,7 +110,6 @@ namespace SharpStar.Lib.Packets
             {
                 using (StarboundStream s = new StarboundStream(ms))
                 {
-
                     if (WorkingLength == long.MaxValue && s.Length > 1)
                     {
                         _packetId = s.ReadUInt8();
@@ -136,7 +135,6 @@ namespace SharpStar.Lib.Packets
                     {
                         if (PacketBuffer.Length >= WorkingLength + DataIndex)
                         {
-
                             byte[] data = new byte[WorkingLength];
 
                             Buffer.BlockCopy(PacketBuffer, DataIndex, data, 0, (int)WorkingLength);
@@ -188,7 +186,6 @@ namespace SharpStar.Lib.Packets
 
             if (packet != null)
             {
-
                 packet.IsReceive = true;
 
                 try
@@ -201,7 +198,6 @@ namespace SharpStar.Lib.Packets
 
                     e.LogError();
                 }
-
             }
 
             stream.Close();

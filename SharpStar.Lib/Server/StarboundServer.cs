@@ -81,7 +81,7 @@ namespace SharpStar.Lib.Server
             new EntityDestroyPacketHandler(),
             new UpdateWorldPropertiesPacketHandler(),
             new HeartbeatPacketHandler(),
-            //new SpawnEntityPacketHandler()
+            new SpawnEntityPacketHandler()
         };
 
         public event EventHandler<ClientConnectedEventArgs> ClientConnected;

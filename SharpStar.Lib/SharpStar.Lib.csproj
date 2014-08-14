@@ -132,6 +132,8 @@
     <Compile Include="Entities\ObjectEntity.cs" />
     <Compile Include="Entities\PlayerEntity.cs" />
     <Compile Include="Entities\ProjectileEntity.cs" />
+    <Compile Include="Entities\SpawnedEntity.cs" />
+    <Compile Include="Entities\SpawnedProjectile.cs" />
     <Compile Include="Entities\StarboundPlayer.cs" />
     <Compile Include="Extensions\ExceptionExtensions.cs" />
     <Compile Include="Extensions\SocketExtensions.cs" />

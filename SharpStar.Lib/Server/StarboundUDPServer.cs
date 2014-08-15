@@ -15,17 +15,13 @@ namespace SharpStar.Lib.Server
         private readonly UdpClient udpServer;
         private readonly UdpClient udpClient;
 
-        private CancellationTokenSource tokenSource;
-
         private readonly IPAddress sharpStarBind;
         private readonly IPAddress starboundBind;
 
         private readonly int serverPort;
         private readonly int listenPort;
 
-        private volatile bool isRunning;
-
-        private readonly object locker = new object();
+        private Thread runThread;
 
         public StarboundUDPServer()
         {
@@ -52,12 +48,9 @@ namespace SharpStar.Lib.Server
 
         public void Start()
         {
-            if (tokenSource != null)
-            {
-                Stop();
-            }
+            Stop();
 
-            new Thread(() =>
+            runThread = new Thread(() =>
             {
 
                 var sIpe = new IPEndPoint(sharpStarBind, listenPort);
@@ -65,39 +58,38 @@ namespace SharpStar.Lib.Server
 
                 udpClient.Connect(cIpe);
 
-                lock (locker)
-                {
-                    isRunning = true;
-                }
-
                 while (true)
                 {
 
-                    lock (locker)
+                    try
                     {
-                        if (!isRunning)
-                            break;
+
+                        byte[] clientData = udpServer.Receive(ref sIpe);
+
+                        udpClient.Send(clientData, clientData.Length);
+
+                        byte[] recvData = udpClient.Receive(ref cIpe);
+
+                        udpServer.Send(recvData, recvData.Length, sIpe);
+
                     }
-
-                    byte[] clientData = udpServer.Receive(ref sIpe);
-
-                    udpClient.Send(clientData, clientData.Length);
-
-                    byte[] recvData = udpClient.Receive(ref cIpe);
-
-                    udpServer.Send(recvData, recvData.Length, sIpe);
+                    catch
+                    {
+                    }
                 }
 
 
-            }).Start();
+            });
+
+            runThread.Start();
 
         }
 
         public void Stop()
         {
-            lock (locker)
+            if (runThread != null)
             {
-                isRunning = false;
+                runThread.Abort();
             }
         }
     }

@@ -232,6 +232,9 @@ namespace SharpStar.Lib.Server
                 {
                     Listener.BeginAcceptSocket(AcceptClient, null);
                 }
+                catch (InvalidOperationException)
+                {
+                }
                 catch (Exception ex)
                 {
                     ex.LogError();

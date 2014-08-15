@@ -166,6 +166,8 @@ namespace SharpStar
 
                         running = false;
 
+                        Environment.Exit(0);
+
                         break;
 
                     case "addperm":

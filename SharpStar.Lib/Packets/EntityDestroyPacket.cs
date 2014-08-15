@@ -30,6 +30,11 @@ namespace SharpStar.Lib.Packets
 
         public byte[] Unknown { get; set; }
 
+        public EntityDestroyPacket()
+        {
+            Unknown = new byte[0];
+        }
+
         public override void Read(IStarboundStream stream)
         {
             int discarded;

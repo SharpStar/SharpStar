@@ -63,6 +63,8 @@ namespace SharpStar.Lib
 
         public StarboundServer Server { get; private set; }
 
+        public StarboundUDPServer UDPServer { get; private set; }
+
         public PluginManager PluginManager { get; set; }
 
         public SharpStarDb Database { get; private set; }
@@ -109,6 +111,9 @@ namespace SharpStar.Lib
 
             Server = new StarboundServer(Config.ConfigFile.ListenPort, Config.ConfigFile.ServerPort);
             Server.Start();
+
+            UDPServer = new StarboundUDPServer();
+            UDPServer.Start();
 
             PluginManager = new PluginManager();
             PluginManager.LoadPlugins();

@@ -15,6 +15,8 @@ namespace SharpStar.Lib.Extensions
             StackTrace st = new StackTrace(ex, true);
             StackFrame[] sf = st.GetFrames();
 
+            SharpStarLogger.DefaultLogger.Error(ex.ToString());
+
             foreach (StackFrame f in sf)
             {
                 SharpStarLogger.DefaultLogger.Error(f.ToString());

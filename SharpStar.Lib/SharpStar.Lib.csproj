@@ -149,6 +149,7 @@
     <Compile Include="Misc\StarboundSector.cs" />
     <Compile Include="Packets\Handlers\SpawnEntityPacketHandler.cs" />
     <Compile Include="Server\IServer.cs" />
+    <Compile Include="Server\StarboundUDPServer.cs" />
     <Compile Include="Tiles\TileDamage.cs" />
     <Compile Include="Tiles\TileDamageParameters.cs" />
     <Compile Include="Tiles\TileDamageStatus.cs" />

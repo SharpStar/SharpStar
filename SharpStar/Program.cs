@@ -2,9 +2,11 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using log4net.Config;
 using SharpStar.Lib;
 using SharpStar.Lib.Database;
+using SharpStar.Lib.Extensions;
 using SharpStar.Lib.Logging;
 using SharpStar.Lib.Mono;
 using SharpStar.Lib.Plugins;
@@ -16,6 +18,7 @@ namespace SharpStar
 
         private static SharpStarLogger Logger;
 
+        [HandleProcessCorruptedStateExceptions]
         private static void Main(string[] args)
         {
 
@@ -265,7 +268,7 @@ namespace SharpStar
 
                         break;
 
-                    default: 
+                    default:
 
                         if (cmd.Length > 1)
                             m.PluginManager.PassConsoleCommand(cmd[0], new string(line.Skip(cmd[0].Length + 1).ToArray()).Split(' '));
@@ -279,7 +282,7 @@ namespace SharpStar
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            Logger.Error(((Exception)e.ExceptionObject).Message);
+            (((Exception)e.ExceptionObject)).LogError();
         }
     }
 }

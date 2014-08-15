@@ -82,7 +82,10 @@ namespace SharpStar.Lib.DataTypes
                     var dict = new VariantDict();
                     var length = stream.ReadVLQ(out discarded);
                     while (length-- > 0)
+                    {
                         dict[stream.ReadString()] = Variant.FromStream(stream);
+                    }
+
                     variant.Value = dict;
                     break;
                 default:

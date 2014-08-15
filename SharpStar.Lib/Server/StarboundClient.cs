@@ -74,10 +74,10 @@ namespace SharpStar.Lib.Server
         public StarboundClient(Socket socket, Direction dir)
         {
             _connectionTimer = new Timer();
-            _connectionTimer.Interval = TimeSpan.FromSeconds(15).TotalMilliseconds;
+            _connectionTimer.Interval = TimeSpan.FromSeconds(30).TotalMilliseconds;
             _connectionTimer.Elapsed += (s, e) =>
             {
-                if (Socket != null && !Socket.IsConnected())
+                if (Socket == null || (Socket != null && !Socket.IsConnected()))
                     ForceDisconnect();
             };
 
@@ -182,17 +182,20 @@ namespace SharpStar.Lib.Server
 
         private void ClientDataReceived(IAsyncResult iar)
         {
-            Socket sock = (Socket)iar.AsyncState;
 
-            if (sock == null)
-            {
-                ForceDisconnect();
-
-                return;
-            }
+            Socket sock = null;
 
             try
             {
+
+                sock = iar.AsyncState as Socket;
+
+                if (sock == null)
+                {
+                    ForceDisconnect();
+
+                    return;
+                }
 
                 int length = sock.EndReceive(iar);
 
@@ -235,21 +238,26 @@ namespace SharpStar.Lib.Server
 
                 if (PacketReader != null && PacketReader.NetworkBuffer != null && sock.Connected)
                     sock.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None, ClientDataReceived, sock);
+                else
+                    ForceDisconnect();
 
             }
             catch (EndOfStreamException ex)
             {
-                SharpStarLogger.DefaultLogger.Error(ex.ToString());
+                ex.LogError();
             }
             catch (SocketException)
             {
+                ForceDisconnect();
             }
             catch (ObjectDisposedException)
             {
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                if (PacketReader != null && PacketReader.NetworkBuffer != null && Socket != null && Socket.Connected)
+                ex.LogError();
+
+                if (PacketReader != null && PacketReader.NetworkBuffer != null && sock != null && sock.Connected)
                     sock.BeginReceive(PacketReader.NetworkBuffer, 0, PacketReader.NetworkBuffer.Length, SocketFlags.None, ClientDataReceived, sock);
                 else
                     ForceDisconnect();
@@ -274,12 +282,17 @@ namespace SharpStar.Lib.Server
 
             while (PacketQueue.Count > 0)
             {
-
-                if (Socket == null || !Socket.Connected || OtherClient == null)
-                    return;
-
                 try
                 {
+
+                    if (Socket == null || !Socket.Connected || OtherClient == null)
+                    {
+                        ForceDisconnect();
+
+                        return;
+                    }
+
+
                     IPacket next;
 
                     while (!PacketQueue.TryDequeue(out next))
@@ -429,11 +442,12 @@ namespace SharpStar.Lib.Server
                 {
                     _connectionTimer.Stop();
                     _connectionTimer.Dispose();
-                    _connectionTimer = null;
                 }
             }
 
             Socket = null;
+            PacketReader = null;
+            _connectionTimer = null;
         }
 
         ~StarboundClient()

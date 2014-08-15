@@ -59,6 +59,12 @@ namespace SharpStar.Lib.Packets.Handlers
                         }
 
                     }
+                    else
+                    {
+                        client.SendChatMessage("Server", "Syntax: /createacct <username> <password>");
+                    }
+
+                    packet.Ignore = true;
 
                 }
                 else

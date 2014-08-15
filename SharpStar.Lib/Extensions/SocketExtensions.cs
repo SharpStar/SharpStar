@@ -26,7 +26,7 @@ namespace SharpStar.Lib.Extensions
         {
             try
             {
-                return !(socket.Poll(100, SelectMode.SelectRead) && (socket.Available == 0) || !socket.Connected);
+                return !(socket.Poll(1, SelectMode.SelectRead) && (socket.Available == 0) || !socket.Connected);
             }
             catch (Exception)
             {

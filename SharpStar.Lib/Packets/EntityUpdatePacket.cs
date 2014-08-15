@@ -16,6 +16,7 @@
 
 using System;
 using System.IO;
+using SharpStar.Lib.Extensions;
 using SharpStar.Lib.Networking;
 using SharpStar.Lib.DataTypes;
 
@@ -41,27 +42,34 @@ namespace SharpStar.Lib.Packets
             EntityId = stream.ReadSignedVLQ(out discarded);
             Unknown = stream.ReadUInt8Array((int)(stream.Length - stream.Position));
 
-            using (MemoryStream ms = new MemoryStream(Unknown))
-            {
-                using (StarboundStream ss = new StarboundStream(ms))
-                {
-                    while ((ss.Length - ss.Position) > 0 && ss.ReadUInt8() != 2)
-                    {
-                    }
+            //using (MemoryStream ms = new MemoryStream(Unknown))
+            //{
+            //    using (StarboundStream ss = new StarboundStream(ms))
+            //    {
+            //        while ((ss.Length - ss.Position) > 0 && ss.ReadUInt8() != 2)
+            //        {
+            //        }
 
-                    if (ss.Length - ss.Position == 0)
-                        return;
+            //        if (ss.Length - ss.Position == 0)
+            //            return;
 
-                    if (ss.ReadUInt8() != 7)
-                        return;
+            //        if (ss.ReadUInt8() != 7)
+            //            return;
 
-                    ss.Seek(-1, SeekOrigin.Current);
+            //        ss.Seek(-1, SeekOrigin.Current);
 
-                    Variant var = ss.ReadVariant();
-                    Data = (VariantDict)var.Value;
+            //        try
+            //        {
+            //            Variant var = ss.ReadVariant();
+            //            Data = (VariantDict)var.Value;
+            //        }
+            //        catch (Exception e)
+            //        {
+            //            e.LogError();
+            //        }
 
-                }
-            }
+            //    }
+            //}
 
         }
 

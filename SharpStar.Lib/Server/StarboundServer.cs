@@ -211,11 +211,13 @@ namespace SharpStar.Lib.Server
                 }).Start();
 
             }
-            catch (SocketException)
+            catch (SocketException ex)
             {
+                ex.LogError();
+
                 if (ssc != null)
                 {
-                    ssc.ForceDisconnect();
+                    ssc.PlayerClient.ForceDisconnect();
                 }
             }
             catch (ObjectDisposedException)
@@ -230,8 +232,9 @@ namespace SharpStar.Lib.Server
                 {
                     Listener.BeginAcceptSocket(AcceptClient, null);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    ex.LogError();
                 }
             }
 

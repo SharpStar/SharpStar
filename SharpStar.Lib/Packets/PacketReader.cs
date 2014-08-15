@@ -120,6 +120,8 @@ namespace SharpStar.Lib.Packets
                         }
                         catch
                         {
+                            WorkingLength = long.MaxValue;
+
                             return new List<IPacket>();
                         }
                          

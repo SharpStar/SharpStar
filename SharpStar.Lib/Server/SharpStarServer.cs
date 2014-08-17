@@ -81,9 +81,15 @@ namespace SharpStar.Lib.Server
             m_maxNumberAcceptedClients = new Semaphore(numConnections, numConnections);
 
             if (!string.IsNullOrEmpty(_starboundBind))
+            {
+                SharpStarLogger.DefaultLogger.Info("Starbound is bound to {0}", _starboundBind);
+
                 sbServerEndPoint = new IPEndPoint(IPAddress.Parse(_starboundBind), sbPort);
+            }
             else
+            {
                 sbServerEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), sbPort);
+            }
 
             _clients = new List<SharpStarServerClient>();
 

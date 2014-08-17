@@ -50,8 +50,6 @@ namespace SharpStar.Lib.Server
 
         public void Connect(IPEndPoint ipe)
         {
-            PlayerClient.OtherClient = null;
-
             var connectArgs = new SocketAsyncEventArgs();
 
             var token = new AsyncUserToken();
@@ -74,27 +72,34 @@ namespace SharpStar.Lib.Server
         private void connectArgs_Completed(object sender, SocketAsyncEventArgs e)
         {
 
-            ConnectionTime = DateTime.Now;
+            if (e.SocketError == SocketError.Success)
+            {
+                ConnectionTime = DateTime.Now;
 
-            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-            args.RemoteEndPoint = e.RemoteEndPoint;
-            args.UserToken = e.UserToken;
+                SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+                args.RemoteEndPoint = e.RemoteEndPoint;
+                args.UserToken = e.UserToken;
 
-            byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[1024];
 
-            args.SetBuffer(buffer, 0, buffer.Length);
+                args.SetBuffer(buffer, 0, buffer.Length);
 
-            ServerClient = new SharpStarClient(args, Direction.Server);
-            ServerClient.Server = this;
-            ServerClient.OtherClient = PlayerClient;
+                ServerClient = new SharpStarClient(args, Direction.Server);
+                ServerClient.Server = this;
+                ServerClient.OtherClient = PlayerClient;
 
-            PlayerClient.OtherClient = ServerClient;
+                PlayerClient.OtherClient = ServerClient;
 
-            if (SClientConnected != null)
-                SClientConnected(this, new ClientConnectedEventArgs(ServerClient));
+                if (SClientConnected != null)
+                    SClientConnected(this, new ClientConnectedEventArgs(ServerClient));
 
-            PlayerClient.StartReceive();
-            ServerClient.StartReceive();
+                PlayerClient.StartReceive();
+                ServerClient.StartReceive();
+            }
+            else
+            {
+                new SocketException((int)e.SocketError).LogError();
+            }
 
         }
 

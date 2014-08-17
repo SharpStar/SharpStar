@@ -115,9 +115,15 @@ namespace SharpStar.Lib
             IPEndPoint ipe;
 
             if (Config.ConfigFile.SharpStarBind == "*" || string.IsNullOrEmpty(Config.ConfigFile.SharpStarBind))
+            {
                 ipe = new IPEndPoint(IPAddress.Any, Config.ConfigFile.ListenPort);
+            }
             else
+            {
+                SharpStarLogger.DefaultLogger.Info("SharpStar is bound to {0}", Config.ConfigFile.SharpStarBind);
+
                 ipe = new IPEndPoint(IPAddress.Parse(Config.ConfigFile.SharpStarBind), Config.ConfigFile.ListenPort);
+            }
 
             Server.Start(ipe);
 

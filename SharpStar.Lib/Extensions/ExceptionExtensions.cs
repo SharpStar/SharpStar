@@ -17,9 +17,12 @@ namespace SharpStar.Lib.Extensions
 
             SharpStarLogger.DefaultLogger.Error(ex.ToString());
 
-            foreach (StackFrame f in sf)
+            if (sf != null)
             {
-                SharpStarLogger.DefaultLogger.Error(f.ToString());
+                foreach (StackFrame f in sf)
+                {
+                    SharpStarLogger.DefaultLogger.Error(f.ToString());
+                }
             }
         }
 

@@ -108,35 +108,44 @@ namespace SharpStar.Lib.Server
 
                 foreach (var packet in packets)
                 {
-                    if (PacketReceived != null)
-                        PacketReceived(this, new PacketEventArgs(this, packet));
 
-                    SharpStarMain.Instance.PluginManager.CallEvent("packetReceived", packet, OtherClient);
-
-
-                    foreach (var handler in Server.PacketHandlers)
+                    try
                     {
-                        if (packet.PacketId == handler.PacketId)
+                        if (PacketReceived != null)
+                            PacketReceived(this, new PacketEventArgs(this, packet));
+
+                        SharpStarMain.Instance.PluginManager.CallEvent("packetReceived", packet, OtherClient);
+
+
+                        foreach (var handler in Server.PacketHandlers)
                         {
-                            handler.Handle(packet, this);
+                            if (packet.PacketId == handler.PacketId)
+                            {
+                                handler.Handle(packet, this);
+                            }
                         }
+
+                        if (!packet.Ignore)
+                            OtherClient.SendPacket(packet);
+
+                        SharpStarMain.Instance.PluginManager.CallEvent("afterPacketReceived", packet, OtherClient);
+
+
+                        foreach (var handler in Server.PacketHandlers)
+                        {
+                            if (packet.PacketId == handler.PacketId)
+                                handler.HandleAfter(packet, this);
+                        }
+
+                        if (packet is DisconnectResponsePacket)
+                        {
+                            this.CloseClientSocket(e);
+                        }
+
                     }
-
-                    if (!packet.Ignore)
-                        OtherClient.SendPacket(packet);
-
-                    SharpStarMain.Instance.PluginManager.CallEvent("afterPacketReceived", packet, OtherClient);
-
-
-                    foreach (var handler in Server.PacketHandlers)
+                    catch (Exception ex)
                     {
-                        if (packet.PacketId == handler.PacketId)
-                            handler.HandleAfter(packet, this);
-                    }
-
-                    if (packet is DisconnectResponsePacket)
-                    {
-                        this.CloseClientSocket(e);
+                        ex.LogError();
                     }
 
                 }

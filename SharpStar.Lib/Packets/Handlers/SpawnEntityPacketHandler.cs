@@ -23,12 +23,12 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class SpawnEntityPacketHandler : PacketHandler<SpawnEntityPacket>
     {
-        public override void Handle(SpawnEntityPacket packet, StarboundClient client)
+        public override void Handle(SpawnEntityPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("spawnEntity", packet, client);
         }
 
-        public override void HandleAfter(SpawnEntityPacket packet, StarboundClient client)
+        public override void HandleAfter(SpawnEntityPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterSpawnEntity", packet, client);
         }

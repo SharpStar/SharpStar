@@ -23,12 +23,12 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class ProtocolVersionPacketHandler : PacketHandler<ProtocolVersionPacket>
     {
-        public override void Handle(ProtocolVersionPacket packet, StarboundClient client)
+        public override void Handle(ProtocolVersionPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("protocolVersion", packet, client);
         }
 
-        public override void HandleAfter(ProtocolVersionPacket packet, StarboundClient client)
+        public override void HandleAfter(ProtocolVersionPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterProtocolVersion", packet, client);
         }

@@ -27,27 +27,27 @@ namespace SharpStar.Lib.Plugins
 
         public abstract string Name { get; }
 
-        private readonly Dictionary<string, Action<IPacket, StarboundClient>> _registeredEvents;
+        private readonly Dictionary<string, Action<IPacket, SharpStarClient>> _registeredEvents;
 
-        private readonly Dictionary<string, Action<StarboundClient, string[]>> _registeredCommands;
+        private readonly Dictionary<string, Action<SharpStarClient, string[]>> _registeredCommands;
 
         private readonly Dictionary<string, Action<string[]>> _registeredConsoleCommands;
 
 
-        public readonly Dictionary<object, Dictionary<Tuple<string, string>, Action<StarboundClient, string[]>>> RegisteredCommandObjects;
+        public readonly Dictionary<object, Dictionary<Tuple<string, string>, Action<SharpStarClient, string[]>>> RegisteredCommandObjects;
 
         public readonly Dictionary<object, Dictionary<Tuple<string, string>, Action<string[]>>> RegisteredConsoleCommandObjects;
 
-        public readonly Dictionary<object, Dictionary<string, Action<IPacket, StarboundClient>>> RegisteredEventObjects;
+        public readonly Dictionary<object, Dictionary<string, Action<IPacket, SharpStarClient>>> RegisteredEventObjects;
 
         protected CSPlugin()
         {
-            _registeredEvents = new Dictionary<string, Action<IPacket, StarboundClient>>();
-            _registeredCommands = new Dictionary<string, Action<StarboundClient, string[]>>();
+            _registeredEvents = new Dictionary<string, Action<IPacket, SharpStarClient>>();
+            _registeredCommands = new Dictionary<string, Action<SharpStarClient, string[]>>();
             _registeredConsoleCommands = new Dictionary<string, Action<string[]>>();
 
-            RegisteredCommandObjects = new Dictionary<object, Dictionary<Tuple<string, string>, Action<StarboundClient, string[]>>>();
-            RegisteredEventObjects = new Dictionary<object, Dictionary<string, Action<IPacket, StarboundClient>>>();
+            RegisteredCommandObjects = new Dictionary<object, Dictionary<Tuple<string, string>, Action<SharpStarClient, string[]>>>();
+            RegisteredEventObjects = new Dictionary<object, Dictionary<string, Action<IPacket, SharpStarClient>>>();
             RegisteredConsoleCommandObjects = new Dictionary<object, Dictionary<Tuple<string, string>, Action<string[]>>>();
         }
 
@@ -67,7 +67,7 @@ namespace SharpStar.Lib.Plugins
         {
         }
 
-        public void RegisterEvent(string name, Action<IPacket, StarboundClient> toCall)
+        public void RegisterEvent(string name, Action<IPacket, SharpStarClient> toCall)
         {
             if (!_registeredEvents.ContainsKey(name))
             {
@@ -81,7 +81,7 @@ namespace SharpStar.Lib.Plugins
             if (!RegisteredCommandObjects.ContainsKey(obj))
             {
 
-                var dict = new Dictionary<Tuple<string, string>, Action<StarboundClient, string[]>>();
+                var dict = new Dictionary<Tuple<string, string>, Action<SharpStarClient, string[]>>();
 
                 MethodInfo[] methods = obj.GetType().GetMethods();
 
@@ -95,7 +95,7 @@ namespace SharpStar.Lib.Plugins
 
                         CommandAttribute attrib = (CommandAttribute)attribs[0];
 
-                        dict.Add(Tuple.Create(attrib.CommandName, attrib.CommandDescription), (Action<StarboundClient, string[]>)Delegate.CreateDelegate(typeof(Action<StarboundClient, string[]>), obj, mi));
+                        dict.Add(Tuple.Create(attrib.CommandName, attrib.CommandDescription), (Action<SharpStarClient, string[]>)Delegate.CreateDelegate(typeof(Action<SharpStarClient, string[]>), obj, mi));
 
                     }
 
@@ -151,7 +151,7 @@ namespace SharpStar.Lib.Plugins
             if (!RegisteredEventObjects.ContainsKey(obj))
             {
 
-                var dict = new Dictionary<string, Action<IPacket, StarboundClient>>();
+                var dict = new Dictionary<string, Action<IPacket, SharpStarClient>>();
 
                 MethodInfo[] methods = obj.GetType().GetMethods();
 
@@ -165,7 +165,7 @@ namespace SharpStar.Lib.Plugins
 
                         EventAttribute attrib = (EventAttribute)attribs[0];
 
-                        var act = (Action<IPacket, StarboundClient>)Delegate.CreateDelegate(typeof(Action<IPacket, StarboundClient>), obj, mi);
+                        var act = (Action<IPacket, SharpStarClient>)Delegate.CreateDelegate(typeof(Action<IPacket, SharpStarClient>), obj, mi);
 
                         foreach (string evt in attrib.EventNames)
                             dict.Add(evt, act);
@@ -180,7 +180,7 @@ namespace SharpStar.Lib.Plugins
 
         }
 
-        public void RegisterCommand(string name, Action<StarboundClient, string[]> toCall)
+        public void RegisterCommand(string name, Action<SharpStarClient, string[]> toCall)
         {
 
             if (!_registeredCommands.ContainsKey(name))
@@ -216,7 +216,7 @@ namespace SharpStar.Lib.Plugins
             }
         }
 
-        public virtual void OnEventOccurred(string evtName, IPacket packet, StarboundClient client, params object[] args)
+        public virtual void OnEventOccurred(string evtName, IPacket packet, SharpStarClient client, params object[] args)
         {
 
             if (_registeredEvents.ContainsKey(evtName))
@@ -238,7 +238,7 @@ namespace SharpStar.Lib.Plugins
 
         }
 
-        public virtual bool OnChatCommandReceived(StarboundClient client, string command, string[] args)
+        public virtual bool OnChatCommandReceived(SharpStarClient client, string command, string[] args)
         {
 
             var cmd = _registeredCommands.SingleOrDefault(p => p.Key.Equals(command, StringComparison.OrdinalIgnoreCase));

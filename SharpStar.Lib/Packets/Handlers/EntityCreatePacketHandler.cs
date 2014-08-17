@@ -23,7 +23,7 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class EntityCreatePacketHandler : PacketHandler<EntityCreatePacket>
     {
-        public override void Handle(EntityCreatePacket packet, StarboundClient client)
+        public override void Handle(EntityCreatePacket packet, SharpStarClient client)
         {
             foreach (var ent in packet.Entities)
             {
@@ -41,7 +41,7 @@ namespace SharpStar.Lib.Packets.Handlers
             SharpStarMain.Instance.PluginManager.CallEvent("entityCreate", packet, client);
         }
 
-        public override void HandleAfter(EntityCreatePacket packet, StarboundClient client)
+        public override void HandleAfter(EntityCreatePacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterEntityCreate", packet, client);
         }

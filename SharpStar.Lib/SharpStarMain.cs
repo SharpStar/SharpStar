@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Timers;
 using log4net;
@@ -61,7 +62,7 @@ namespace SharpStar.Lib
 
         public SharpStarConfig Config { get; set; }
 
-        public StarboundServer Server { get; private set; }
+        public SharpStarServer Server { get; private set; }
 
         public StarboundUDPServer UDPServer { get; private set; }
 
@@ -109,8 +110,16 @@ namespace SharpStar.Lib
 
             SharpStarLogger.DefaultLogger.Info("Listening on port {0}", Config.ConfigFile.ListenPort);
 
-            Server = new StarboundServer(Config.ConfigFile.ListenPort, Config.ConfigFile.ServerPort);
-            Server.Start();
+            Server = new SharpStarServer(Config.ConfigFile.ServerPort, 100, 1024);
+
+            IPEndPoint ipe;
+
+            if (Config.ConfigFile.SharpStarBind == "*" || string.IsNullOrEmpty(Config.ConfigFile.SharpStarBind))
+                ipe = new IPEndPoint(IPAddress.Any, Config.ConfigFile.ListenPort);
+            else
+                ipe = new IPEndPoint(IPAddress.Parse(Config.ConfigFile.SharpStarBind), Config.ConfigFile.ListenPort);
+
+            Server.Start(ipe);
 
             UDPServer = new StarboundUDPServer();
             UDPServer.Start();
@@ -121,7 +130,7 @@ namespace SharpStar.Lib
             if (Config.ConfigFile.AutoUpdatePlugins)
             {
                 addinUpdateChecker = new Timer();
-                addinUpdateChecker.Interval = TimeSpan.FromHours(2).TotalMilliseconds;
+                addinUpdateChecker.Interval = TimeSpan.FromDays(1).TotalMilliseconds;
                 addinUpdateChecker.Elapsed += (s, e) => PluginManager.CSPluginManager.UpdatePlugins();
             }
 

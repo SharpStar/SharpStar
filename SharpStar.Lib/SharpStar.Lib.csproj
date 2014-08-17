@@ -148,7 +148,13 @@
     <Compile Include="Misc\StarboundItem.cs" />
     <Compile Include="Misc\StarboundSector.cs" />
     <Compile Include="Packets\Handlers\SpawnEntityPacketHandler.cs" />
+    <Compile Include="Server\AsyncUserToken.cs" />
+    <Compile Include="Server\BufferManager.cs" />
     <Compile Include="Server\IServer.cs" />
+    <Compile Include="Server\SharpStarClient.cs" />
+    <Compile Include="Server\SharpStarServer.cs" />
+    <Compile Include="Server\SharpStarServerClient.cs" />
+    <Compile Include="Server\SocketAsyncEventArgsPool.cs" />
     <Compile Include="Server\StarboundUDPServer.cs" />
     <Compile Include="Tiles\TileDamage.cs" />
     <Compile Include="Tiles\TileDamageParameters.cs" />
@@ -258,9 +264,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\Direction.cs" />
     <Compile Include="Server\IClient.cs" />
-    <Compile Include="Server\StarboundClient.cs" />
-    <Compile Include="Server\StarboundServer.cs" />
-    <Compile Include="Server\StarboundServerClient.cs" />
     <Compile Include="SharpStarMain.cs" />
     <Compile Include="Starbound\Tile.cs" />
     <Compile Include="Starbound\VariantDatabase.cs" />

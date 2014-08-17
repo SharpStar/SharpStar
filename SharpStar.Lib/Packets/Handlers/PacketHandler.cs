@@ -20,9 +20,9 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public abstract class PacketHandler<T> : IPacketHandler where T : Packet, new()
     {
-        public abstract void Handle(T packet, StarboundClient client);
+        public abstract void Handle(T packet, SharpStarClient client);
 
-        public abstract void HandleAfter(T packet, StarboundClient client);
+        public abstract void HandleAfter(T packet, SharpStarClient client);
 
         private static readonly int _packetId = new T().PacketId;
 
@@ -42,7 +42,7 @@ namespace SharpStar.Lib.Packets.Handlers
         public void Handle(IPacket packet, IClient client)
         {
             if (packet is T)
-                Handle((T) packet, (StarboundClient) client);
+                Handle((T) packet, (SharpStarClient) client);
             else
                 throw new Exception(String.Format("Was given packet type {0}, expected {1}", packet.GetType().Name,
                     typeof (T).Name));
@@ -51,7 +51,7 @@ namespace SharpStar.Lib.Packets.Handlers
         public void HandleAfter(IPacket packet, IClient client)
         {
             if (packet is T)
-                HandleAfter((T) packet, (StarboundClient) client);
+                HandleAfter((T) packet, (SharpStarClient) client);
             else
                 throw new Exception(String.Format("Was given packet type {0}, expected {1}", packet.GetType().Name,
                     typeof (T).Name));

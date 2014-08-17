@@ -23,12 +23,12 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class ClientDisconnectPacketHandler : PacketHandler<ClientDisconnectPacket>
     {
-        public override void Handle(ClientDisconnectPacket packet, StarboundClient client)
+        public override void Handle(ClientDisconnectPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("clientDisconnected", packet, client);
         }
 
-        public override void HandleAfter(ClientDisconnectPacket packet, StarboundClient client)
+        public override void HandleAfter(ClientDisconnectPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterClientDisconnected", packet, client);
         }

@@ -23,26 +23,28 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class ConnectionResponsePacketHandler : PacketHandler<ConnectionResponsePacket>
     {
-        public override void Handle(ConnectionResponsePacket packet, StarboundClient client)
+        public override void Handle(ConnectionResponsePacket packet, SharpStarClient client)
         {
-
-            if (client.Server.Player.UserAccount == null && SharpStarMain.Instance.Config.ConfigFile.RequireAccountLogin)
+            if (packet.IsReceive)
             {
-                packet.Success = false;
-                packet.RejectionReason = SharpStarMain.Instance.Config.ConfigFile.RequireAccountLoginError;
-            }
-            else if (client.Server.Player.UserAccount != null)
-            {
-                SharpStarMain.Instance.Database.UpdateUserLastLogin(client.Server.Player.UserAccount.Username, DateTime.Now);
-            }
+                if (client.Server.Player.UserAccount == null && SharpStarMain.Instance.Config.ConfigFile.RequireAccountLogin)
+                {
+                    packet.Success = false;
+                    packet.RejectionReason = SharpStarMain.Instance.Config.ConfigFile.RequireAccountLoginError;
+                }
+                else if (client.Server.Player.UserAccount != null)
+                {
+                    SharpStarMain.Instance.Database.UpdateUserLastLogin(client.Server.Player.UserAccount.Username, DateTime.Now);
+                }
 
-            if (packet.Success && client.Server.Player != null && !string.IsNullOrEmpty(client.Server.Player.Name))
-                SharpStarLogger.DefaultLogger.Info("Player {0} has successfully joined!", client.Server.Player.Name);
+                if (packet.Success && client.Server.Player != null && !string.IsNullOrEmpty(client.Server.Player.Name))
+                    SharpStarLogger.DefaultLogger.Info("Player {0} has successfully joined!", client.Server.Player.Name);
+            }
 
             SharpStarMain.Instance.PluginManager.CallEvent("connectionResponse", packet, client);
         }
 
-        public override void HandleAfter(ConnectionResponsePacket packet, StarboundClient client)
+        public override void HandleAfter(ConnectionResponsePacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterConnectionResponse", packet, client);
         }

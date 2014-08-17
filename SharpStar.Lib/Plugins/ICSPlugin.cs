@@ -33,9 +33,9 @@ namespace SharpStar.Lib.Plugins
 
         void OnPluginUnloaded(ICSPlugin plugin);
 
-        void OnEventOccurred(string evtName, IPacket packet, StarboundClient client, params object[] args);
+        void OnEventOccurred(string evtName, IPacket packet, SharpStarClient client, params object[] args);
 
-        bool OnChatCommandReceived(StarboundClient client, string command, string[] args);
+        bool OnChatCommandReceived(SharpStarClient client, string command, string[] args);
 
         bool OnConsoleCommand(string command, string[] args);
 

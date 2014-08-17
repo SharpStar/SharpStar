@@ -19,12 +19,12 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class GiveItemPacketHandler : PacketHandler<GiveItemPacket>
     {
-        public override void Handle(GiveItemPacket packet, StarboundClient client)
+        public override void Handle(GiveItemPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("giveItem", packet, client);
         }
 
-        public override void HandleAfter(GiveItemPacket packet, StarboundClient client)
+        public override void HandleAfter(GiveItemPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterGiveItem", packet, client);
         }

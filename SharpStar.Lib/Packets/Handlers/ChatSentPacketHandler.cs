@@ -21,7 +21,7 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class ChatSentPacketHandler : PacketHandler<ChatSentPacket>
     {
-        public override void Handle(ChatSentPacket packet, StarboundClient client)
+        public override void Handle(ChatSentPacket packet, SharpStarClient client)
         {
 
             SharpStarMain.Instance.PluginManager.CallEvent("chatSent", packet, client);
@@ -81,7 +81,7 @@ namespace SharpStar.Lib.Packets.Handlers
             }
         }
 
-        public override void HandleAfter(ChatSentPacket packet, StarboundClient client)
+        public override void HandleAfter(ChatSentPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterChatSent", packet, client);
         }

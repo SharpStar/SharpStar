@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
 using Ionic.Zlib;
 using SharpStar.Lib.Logging;
@@ -28,24 +29,22 @@ namespace SharpStar.Lib.Packets
     //Credit to StarNet (https://github.com/SirCmpwn/StarNet)
     public class PacketReader : IDisposable
     {
-        public const int MaxPacketLength = 1048576; // 1 MB (compressed, if applicable)
-        public const int MaxInflatedPacketLength = 10485760; // 10 MB
-        public const int NetworkBufferLength = 1024;
 
         public static Dictionary<byte, Func<IPacket>> RegisteredPacketTypes;
 
-        public byte[] NetworkBuffer { get; set; }
+        public List<byte> NetworkBuffer { get; set; }
+        private List<byte> PacketBuffer = new List<byte>();
 
-        private byte[] PacketBuffer = new byte[0];
         private long WorkingLength = long.MaxValue;
         private int DataIndex = 0;
-        private bool Compressed = false;
+        private bool Compressed;
 
         private byte _packetId;
 
         public PacketReader()
         {
-            NetworkBuffer = new byte[1024];
+            NetworkBuffer = new List<byte>();
+            Compressed = false;
         }
 
         static PacketReader()
@@ -91,22 +90,15 @@ namespace SharpStar.Lib.Packets
             RegisteredPacketTypes.Add(id, Expression.Lambda<Func<IPacket>>(Expression.New(packetType)).Compile());
         }
 
-        public List<IPacket> UpdateBuffer(byte[] buf, int length)
+        public List<IPacket> UpdateBuffer(bool shouldCopy)
         {
 
-            int index = PacketBuffer.Length;
-
-            if (buf == null)
+            if (shouldCopy)
             {
-                if (PacketBuffer.Length < index + length)
-                {
-                    Array.Resize(ref PacketBuffer, index + length);
-                }
-
-                Buffer.BlockCopy(NetworkBuffer, 0, PacketBuffer, index, length);
+                PacketBuffer.AddRange(NetworkBuffer);
             }
 
-            using (MemoryStream ms = new MemoryStream(PacketBuffer))
+            using (MemoryStream ms = new MemoryStream(PacketBuffer.ToArray()))
             {
                 using (StarboundStream s = new StarboundStream(ms))
                 {
@@ -124,7 +116,7 @@ namespace SharpStar.Lib.Packets
 
                             return new List<IPacket>();
                         }
-                         
+
                         DataIndex++;
 
                         Compressed = WorkingLength < 0;
@@ -135,27 +127,27 @@ namespace SharpStar.Lib.Packets
 
                     if (WorkingLength != long.MaxValue)
                     {
-                        if (PacketBuffer.Length >= WorkingLength + DataIndex)
+                        if (PacketBuffer.Count >= WorkingLength + DataIndex)
                         {
-                            byte[] data = new byte[WorkingLength];
-
-                            Buffer.BlockCopy(PacketBuffer, DataIndex, data, 0, (int)WorkingLength);
-
-                            Buffer.BlockCopy(PacketBuffer, DataIndex + (int)WorkingLength, PacketBuffer, 0, PacketBuffer.Length - (DataIndex + (int)WorkingLength));
-                            Array.Resize(ref PacketBuffer, (int)(PacketBuffer.Length - (DataIndex + WorkingLength)));
+                            byte[] data = PacketBuffer.Skip(DataIndex).Take((int)WorkingLength).ToArray();
 
                             if (Compressed)
+                            {
                                 data = ZlibStream.UncompressBuffer(data);
+                            }
 
                             var packets = new List<IPacket>();
 
                             packets.Add(Decode(_packetId, data));
 
+                            var rest = PacketBuffer.Skip((int)(DataIndex + WorkingLength)).ToList();
+                            PacketBuffer = rest;
+
                             WorkingLength = long.MaxValue;
 
-                            if (PacketBuffer.Length > 0)
+                            if (rest.Any())
                             {
-                                packets.AddRange(UpdateBuffer(PacketBuffer, PacketBuffer.Length));
+                                packets.AddRange(UpdateBuffer(false));
                             }
 
                             return packets;

@@ -84,6 +84,8 @@ namespace SharpStar.Lib.Plugins
             if (!Directory.Exists(CSPluginDirectory))
                 Directory.CreateDirectory(CSPluginDirectory);
 
+            AddinManager.Registry.Update(null);
+
             if (SharpStarMain.Instance.Config.ConfigFile.AutoUpdatePlugins)
             {
                 UpdatePlugins();
@@ -91,10 +93,30 @@ namespace SharpStar.Lib.Plugins
 
             foreach (Addin addin in AddinManager.Registry.GetAddins())
             {
-                AddinManager.Registry.EnableAddin(addin.Id);
-            }
 
-            AddinManager.Registry.Update(null);
+                var property = addin.Properties.SingleOrDefault(p => p.Name.Equals("sharpstar", StringComparison.OrdinalIgnoreCase));
+
+                if (property != null)
+                {
+
+                    Version ver = Assembly.GetEntryAssembly().GetName().Version;
+
+                    string verStr = String.Format("{0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision);
+
+                    if (Addin.CompareVersions(verStr, property.Value) <= 0)
+                    {
+                        AddinManager.Registry.EnableAddin(addin.Id);
+                    }
+                    else
+                    {
+                        Logger.Error("Plugin {0} requires SharpStar version {1}+. Load failed!", addin.Description.LocalId, property.Value);
+                    }
+                }
+                else
+                {
+                    Logger.Error("Plugin {0} does not define a minimum SharpStar version requirement. Update failed!", addin.Description.LocalId);
+                }
+            }
 
         }
 
@@ -131,14 +153,35 @@ namespace SharpStar.Lib.Plugins
             {
                 var entry = entries.First();
 
-                Logger.Info("Plugin {0} is now updating to version {1}!", addin.Description.LocalId, entry.Addin.Version);
+                var property = entry.Addin.Properties.SingleOrDefault(p => p.Name.Equals("sharpstar", StringComparison.OrdinalIgnoreCase));
 
-                setupService.Install(new ProgressStatus(), entries);
+                if (property != null)
+                {
 
-                AddinManager.Registry.EnableAddin(entry.Addin.Id);
-                AddinManager.Registry.Update();
+                    Version ver = Assembly.GetEntryAssembly().GetName().Version;
 
-                return true;
+                    string verStr = String.Format("{0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision);
+
+                    if (Addin.CompareVersions(verStr, property.Value) <= 0)
+                    {
+                        Logger.Info("Plugin {0} is now updating to version {1}!", addin.Description.LocalId, entry.Addin.Version);
+
+                        setupService.Install(new ProgressStatus(), entries);
+
+                        AddinManager.Registry.EnableAddin(entry.Addin.Id);
+                        AddinManager.Registry.Update();
+                    }
+                    else
+                    {
+                        Logger.Error("Plugin {0} now requires SharpStar version {1}+. Update failed!", addin.Description.LocalId, property.Value);
+                    }
+
+                    return true;
+                }
+                else
+                {
+                    Logger.Error("Plugin {0} does not define a minimum SharpStar version requirement. Update failed!", addin.Description.LocalId);
+                }
             }
 
             return false;
@@ -163,15 +206,34 @@ namespace SharpStar.Lib.Plugins
 
                 AddinRepositoryEntry avAddin = addins.First();
 
-                setupService.Install(new ProgressStatus(), addins);
+                var property = avAddin.Addin.Properties.SingleOrDefault(p => p.Name.Equals("sharpstar", StringComparison.OrdinalIgnoreCase));
 
-                AddinManager.Registry.EnableAddin(avAddin.Addin.Id);
+                if (property != null)
+                {
+                    Version ver = Assembly.GetEntryAssembly().GetName().Version;
+
+                    string verStr = String.Format("{0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision);
+
+                    if (Addin.CompareVersions(verStr, property.Value) <= 0)
+                    {
+                        setupService.Install(new ProgressStatus(), addins);
+
+                        AddinManager.Registry.EnableAddin(avAddin.Addin.Id);
+                    }
+                    else
+                    {
+                        Logger.Error("Plugin {0} now requires SharpStar version {1}+. Update failed!", avAddin.Addin.Id, property.Value);
+                    }
+                }
+                else
+                {
+                    Logger.Error("Plugin {0} does not define a minimum SharpStar version requirement. Installation failed!", avAddin.Addin.Id);
+                }
             }
             else
             {
                 Logger.Error("Could not find plugin by the name \"{0}\"", name);
             }
-
         }
 
         public void UninstallPlugin(string name)
@@ -191,7 +253,7 @@ namespace SharpStar.Lib.Plugins
 
         }
 
-        public void CallEvent(string evtName, IPacket packet, StarboundClient client, params object[] args)
+        public void CallEvent(string evtName, IPacket packet, SharpStarClient client, params object[] args)
         {
             foreach (ICSPlugin csPlugin in _csPlugins.Values)
             {
@@ -199,7 +261,7 @@ namespace SharpStar.Lib.Plugins
             }
         }
 
-        public bool PassChatCommand(StarboundClient client, string command, string[] args)
+        public bool PassChatCommand(SharpStarClient client, string command, string[] args)
         {
             bool result = false;
 

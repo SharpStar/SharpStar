@@ -25,12 +25,12 @@ namespace SharpStar.Lib.Extensions
     public static class StarboundClientExtensions
     {
 
-        public static bool IsAdmin(this StarboundClient client)
+        public static bool IsAdmin(this SharpStarClient client)
         {
             return client.Server.Player.UserAccount != null && client.Server.Player.UserAccount.IsAdmin;
         }
 
-        public static bool CanUserAccess(this StarboundClient client, string command, bool sendMsg = false)
+        public static bool CanUserAccess(this SharpStarClient client, string command, bool sendMsg = false)
         {
             if (client.IsAdmin())
                 return true;

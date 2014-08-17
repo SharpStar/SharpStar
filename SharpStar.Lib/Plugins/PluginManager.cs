@@ -129,7 +129,7 @@ namespace SharpStar.Lib.Plugins
 
         }
 
-        public void CallEvent(string evtName, IPacket packet, StarboundClient client, params object[] args)
+        public void CallEvent(string evtName, IPacket packet, SharpStarClient client, params object[] args)
         {
             lock (_pluginLocker)
             {
@@ -162,7 +162,7 @@ namespace SharpStar.Lib.Plugins
             return anyRegistered;
         }
 
-        public bool PassChatCommand(StarboundClient client, string command, string[] args)
+        public bool PassChatCommand(SharpStarClient client, string command, string[] args)
         {
 
             bool anyRegistered;

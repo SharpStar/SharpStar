@@ -24,7 +24,7 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class EnvironmentUpdatePacketHandler : PacketHandler<EnvironmentUpdatePacket>
     {
-        public override void Handle(EnvironmentUpdatePacket packet, StarboundClient client)
+        public override void Handle(EnvironmentUpdatePacket packet, SharpStarClient client)
         {
 
 
@@ -40,7 +40,7 @@ namespace SharpStar.Lib.Packets.Handlers
 
         }
 
-        public override void HandleAfter(EnvironmentUpdatePacket packet, StarboundClient client)
+        public override void HandleAfter(EnvironmentUpdatePacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterEnvironmentUpdate", packet, client);
         }

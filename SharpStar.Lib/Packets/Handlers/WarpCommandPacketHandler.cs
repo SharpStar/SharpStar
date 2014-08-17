@@ -19,7 +19,7 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class WarpCommandPacketHandler : PacketHandler<WarpCommandPacket>
     {
-        public override void Handle(WarpCommandPacket packet, StarboundClient client)
+        public override void Handle(WarpCommandPacket packet, SharpStarClient client)
         {
 
             if (packet.WarpType == WarpType.WarpHome)
@@ -41,7 +41,7 @@ namespace SharpStar.Lib.Packets.Handlers
         
         }
 
-        public override void HandleAfter(WarpCommandPacket packet, StarboundClient client)
+        public override void HandleAfter(WarpCommandPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterWarpCommand", packet, client);
         }

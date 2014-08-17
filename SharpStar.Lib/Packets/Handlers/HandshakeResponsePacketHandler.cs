@@ -23,7 +23,7 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class HandshakeResponsePacketHandler : PacketHandler<HandshakeResponsePacket>
     {
-        public override void Handle(HandshakeResponsePacket packet, StarboundClient client)
+        public override void Handle(HandshakeResponsePacket packet, SharpStarClient client)
         {
 
             if (packet.IsReceive)
@@ -39,7 +39,7 @@ namespace SharpStar.Lib.Packets.Handlers
             //SharpStarMain.Instance.PluginManager.CallEvent("handshakeResponse", packet, client);
         }
 
-        public override void HandleAfter(HandshakeResponsePacket packet, StarboundClient client)
+        public override void HandleAfter(HandshakeResponsePacket packet, SharpStarClient client)
         {
             //SharpStarMain.Instance.PluginManager.CallEvent("afterHandshakeResponse", packet, client);
         }

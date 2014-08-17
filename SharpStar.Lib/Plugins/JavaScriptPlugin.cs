@@ -175,7 +175,7 @@ namespace SharpStar.Lib.Plugins
             if (!Enabled)
                 return;
 
-            foreach (StarboundServerClient client in SharpStarMain.Instance.Server.Clients)
+            foreach (SharpStarServerClient client in SharpStarMain.Instance.Server.Clients)
             {
                 SendPacket(client.ServerClient, packet);
             }
@@ -186,7 +186,7 @@ namespace SharpStar.Lib.Plugins
             if (!Enabled)
                 return;
 
-            foreach (StarboundServerClient client in SharpStarMain.Instance.Server.Clients)
+            foreach (SharpStarServerClient client in SharpStarMain.Instance.Server.Clients)
             {
                 SendPacket(client.PlayerClient, packet);
             }

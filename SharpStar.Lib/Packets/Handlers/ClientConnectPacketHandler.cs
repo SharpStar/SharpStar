@@ -24,7 +24,7 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class ClientConnectPacketHandler : PacketHandler<ClientConnectPacket>
     {
-        public override void Handle(ClientConnectPacket packet, StarboundClient client)
+        public override void Handle(ClientConnectPacket packet, SharpStarClient client)
         {
 
             if (packet.IsReceive)
@@ -48,12 +48,12 @@ namespace SharpStar.Lib.Packets.Handlers
                     OnOwnShip = true
                 };
 
-                if (!string.IsNullOrEmpty(packet.Account.Trim()))
+                if (!string.IsNullOrEmpty(packet.Account))
                 {
 
                     client.Server.Player.AttemptedLogin = true;
 
-                    SharpStarUser user = SharpStarMain.Instance.Database.GetUser(packet.Account.Trim());
+                    SharpStarUser user = SharpStarMain.Instance.Database.GetUser(packet.Account);
 
                     if (user == null)
                     {
@@ -85,7 +85,7 @@ namespace SharpStar.Lib.Packets.Handlers
             SharpStarMain.Instance.PluginManager.CallEvent("clientConnected", packet, client);
         }
 
-        public override void HandleAfter(ClientConnectPacket packet, StarboundClient client)
+        public override void HandleAfter(ClientConnectPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterClientConnected", packet, client);
         }

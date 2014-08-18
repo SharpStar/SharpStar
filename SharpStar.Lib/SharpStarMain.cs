@@ -138,6 +138,7 @@ namespace SharpStar.Lib
                 addinUpdateChecker = new Timer();
                 addinUpdateChecker.Interval = TimeSpan.FromDays(1).TotalMilliseconds;
                 addinUpdateChecker.Elapsed += (s, e) => PluginManager.CSPluginManager.UpdatePlugins();
+                addinUpdateChecker.Start();
             }
 
 

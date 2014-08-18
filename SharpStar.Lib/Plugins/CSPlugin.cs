@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using SharpStar.Lib.Packets;
 using SharpStar.Lib.Server;
 
@@ -80,7 +81,6 @@ namespace SharpStar.Lib.Plugins
 
             if (!RegisteredCommandObjects.ContainsKey(obj))
             {
-
                 var dict = new Dictionary<Tuple<string, string>, Action<SharpStarClient, string[]>>();
 
                 MethodInfo[] methods = obj.GetType().GetMethods();
@@ -92,17 +92,14 @@ namespace SharpStar.Lib.Plugins
 
                     if (attribs.Count == 1)
                     {
-
                         CommandAttribute attrib = (CommandAttribute)attribs[0];
 
                         dict.Add(Tuple.Create(attrib.CommandName, attrib.CommandDescription), (Action<SharpStarClient, string[]>)Delegate.CreateDelegate(typeof(Action<SharpStarClient, string[]>), obj, mi));
-
                     }
 
                 }
 
                 RegisteredCommandObjects.Add(obj, dict);
-
             }
 
         }
@@ -122,18 +119,14 @@ namespace SharpStar.Lib.Plugins
 
                 foreach (var mi in methods)
                 {
-
                     var attribs = mi.GetCustomAttributes(typeof(ConsoleCommandAttribute), false).ToList();
 
                     if (attribs.Count == 1)
                     {
-
                         ConsoleCommandAttribute attrib = (ConsoleCommandAttribute)attribs[0];
 
                         dict.Add(Tuple.Create(attrib.CommandName, attrib.CommandDescription), (Action<string[]>)Delegate.CreateDelegate(typeof(Action<string[]>), obj, mi));
-
                     }
-
                 }
 
                 RegisteredConsoleCommandObjects.Add(obj, dict);
@@ -147,17 +140,14 @@ namespace SharpStar.Lib.Plugins
 
         public void RegisterEventObject(object obj)
         {
-
             if (!RegisteredEventObjects.ContainsKey(obj))
             {
-
                 var dict = new Dictionary<string, Action<IPacket, SharpStarClient>>();
 
                 MethodInfo[] methods = obj.GetType().GetMethods();
 
                 foreach (var mi in methods)
                 {
-
                     var attribs = mi.GetCustomAttributes(typeof(EventAttribute), false).ToList();
 
                     if (attribs.Count == 1)
@@ -171,13 +161,10 @@ namespace SharpStar.Lib.Plugins
                             dict.Add(evt, act);
 
                     }
-
                 }
 
                 RegisteredEventObjects.Add(obj, dict);
-
             }
-
         }
 
         public void RegisterCommand(string name, Action<SharpStarClient, string[]> toCall)
@@ -218,34 +205,27 @@ namespace SharpStar.Lib.Plugins
 
         public virtual void OnEventOccurred(string evtName, IPacket packet, SharpStarClient client, params object[] args)
         {
-
             if (_registeredEvents.ContainsKey(evtName))
             {
                 _registeredEvents[evtName](packet, client);
             }
 
-            foreach (var kvp in RegisteredEventObjects)
+            Parallel.ForEach(RegisteredEventObjects.Where(p => p.Value.ContainsKey(evtName)), kvp =>
             {
-
-                var val = kvp.Value;
-
-                if (val.ContainsKey(evtName))
+                if (kvp.Value.ContainsKey(evtName))
                 {
-                    val[evtName](packet, client);
+                    kvp.Value[evtName](packet, client);
                 }
-
-            }
-
+            });
         }
 
         public virtual bool OnChatCommandReceived(SharpStarClient client, string command, string[] args)
         {
-
             var cmd = _registeredCommands.SingleOrDefault(p => p.Key.Equals(command, StringComparison.OrdinalIgnoreCase));
 
             bool contained = false;
 
-            foreach (var kvp in RegisteredCommandObjects)
+            Parallel.ForEach(RegisteredCommandObjects, kvp =>
             {
                 var val = kvp.Value.SingleOrDefault(p => p.Key.Item1.Equals(command, StringComparison.OrdinalIgnoreCase));
 
@@ -255,7 +235,7 @@ namespace SharpStar.Lib.Plugins
 
                     contained = true;
                 }
-            }
+            });
 
             if (cmd.Value != null)
             {
@@ -265,7 +245,6 @@ namespace SharpStar.Lib.Plugins
             }
 
             return contained;
-
         }
 
         public virtual bool OnConsoleCommand(string command, string[] args)
@@ -274,7 +253,7 @@ namespace SharpStar.Lib.Plugins
 
             bool contained = false;
 
-            foreach (var kvp in RegisteredConsoleCommandObjects)
+            Parallel.ForEach(RegisteredConsoleCommandObjects, kvp =>
             {
                 var val = kvp.Value.SingleOrDefault(p => p.Key.Item1.Equals(command, StringComparison.OrdinalIgnoreCase));
 
@@ -284,7 +263,7 @@ namespace SharpStar.Lib.Plugins
 
                     contained = true;
                 }
-            }
+            });
 
             if (cmd.Value != null)
             {

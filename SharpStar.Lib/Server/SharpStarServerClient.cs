@@ -101,6 +101,8 @@ namespace SharpStar.Lib.Server
                 new SocketException((int)e.SocketError).LogError();
             }
 
+            e.Dispose();
+
         }
 
     }

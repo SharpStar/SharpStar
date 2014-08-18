@@ -29,10 +29,9 @@ namespace SharpStar.Lib.Packets.Handlers
             {
                 if (client.Server.Player == null)
                 {
-                    SharpStarLogger.DefaultLogger.Error("An internal error has occurred at Connection Response!");
-
                     return;
                 }
+
                 if (client.Server.Player.UserAccount == null && SharpStarMain.Instance.Config.ConfigFile.RequireAccountLogin)
                 {
                     packet.Success = false;

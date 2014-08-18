@@ -103,7 +103,7 @@ namespace SharpStar.Lib.Server
             if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
             {
 
-                PacketReader.NetworkBuffer = e.Buffer.Skip(e.Offset).Take(e.BytesTransferred).ToList();
+                PacketReader.NetworkBuffer = new ArraySegment<byte>(e.Buffer, e.Offset, e.BytesTransferred);
                 List<IPacket> packets = PacketReader.UpdateBuffer(true);
 
                 foreach (var packet in packets)

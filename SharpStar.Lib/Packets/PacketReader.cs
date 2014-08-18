@@ -32,7 +32,7 @@ namespace SharpStar.Lib.Packets
 
         public static Dictionary<byte, Func<IPacket>> RegisteredPacketTypes;
 
-        public List<byte> NetworkBuffer { get; set; }
+        public ArraySegment<byte> NetworkBuffer { get; set; }
         private List<byte> PacketBuffer = new List<byte>();
 
         private long WorkingLength = long.MaxValue;
@@ -43,7 +43,7 @@ namespace SharpStar.Lib.Packets
 
         public PacketReader()
         {
-            NetworkBuffer = new List<byte>();
+            NetworkBuffer = new ArraySegment<byte>();
             Compressed = false;
         }
 
@@ -92,7 +92,6 @@ namespace SharpStar.Lib.Packets
 
         public List<IPacket> UpdateBuffer(bool shouldCopy)
         {
-
             if (shouldCopy)
             {
                 PacketBuffer.AddRange(NetworkBuffer);
@@ -216,7 +215,6 @@ namespace SharpStar.Lib.Packets
             {
             }
 
-            NetworkBuffer = null;
             PacketBuffer = null;
         }
     }

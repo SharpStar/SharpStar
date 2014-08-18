@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SharpStar.Lib.Extensions;
 
 namespace SharpStar.Lib.Server
 {
@@ -21,10 +22,15 @@ namespace SharpStar.Lib.Server
         private readonly int serverPort;
         private readonly int listenPort;
 
-        private Thread runThread;
+        private IPEndPoint sIpe;
+        private IPEndPoint cIpe;
+
+        private bool running;
 
         public StarboundUDPServer()
         {
+            running = false;
+
             string shBind = SharpStarMain.Instance.Config.ConfigFile.SharpStarBind;
 
             if (shBind == "*")
@@ -50,47 +56,103 @@ namespace SharpStar.Lib.Server
         {
             Stop();
 
-            runThread = new Thread(() =>
+            running = true;
+
+            sIpe = new IPEndPoint(sharpStarBind, listenPort);
+            cIpe = new IPEndPoint(starboundBind, serverPort);
+
+            udpClient.Connect(cIpe);
+
+            try
             {
+                udpServer.BeginReceive(Receive, null);
+            }
+            catch (Exception ex)
+            {
+                ex.LogError();
+            }
 
-                var sIpe = new IPEndPoint(sharpStarBind, listenPort);
-                var cIpe = new IPEndPoint(starboundBind, serverPort);
+        }
 
-                udpClient.Connect(cIpe);
+        private void Receive(IAsyncResult iar)
+        {
+            try
+            {
+                byte[] data = udpServer.EndReceive(iar, ref sIpe);
 
-                while (true)
+                udpClient.BeginSend(data, data.Length, Send, null);
+            }
+            catch
+            {
+                if (running)
                 {
+                    udpServer.BeginReceive(Receive, udpClient);
+                }
+            }
+        }
 
-                    try
+        private void Send(IAsyncResult iar)
+        {
+            try
+            {
+                udpClient.EndSend(iar);
+
+                udpClient.BeginReceive(Receive2, null);
+
+            }
+            catch
+            {
+                if (running)
+                {
+                    udpServer.BeginReceive(Receive, udpClient);
+                }
+            }
+        }
+
+        private void Receive2(IAsyncResult iar)
+        {
+            try
+            {
+                byte[] data = udpClient.EndReceive(iar, ref cIpe);
+
+                udpServer.BeginSend(data, data.Length, sIpe, Send2, null);
+            }
+            catch
+            {
+                if (running)
+                {
+                    udpServer.BeginReceive(Receive, udpClient);
+                }
+            }
+        }
+
+        private void Send2(IAsyncResult iar)
+        {
+            try
+            {
+                udpClient.EndSend(iar);
+            }
+            catch
+            {
+            }
+            finally
+            {
+                try
+                {
+                    if (running)
                     {
-
-                        byte[] clientData = udpServer.Receive(ref sIpe);
-
-                        udpClient.Send(clientData, clientData.Length);
-
-                        byte[] recvData = udpClient.Receive(ref cIpe);
-
-                        udpServer.Send(recvData, recvData.Length, sIpe);
-
-                    }
-                    catch
-                    {
+                        udpServer.BeginReceive(Receive, null);
                     }
                 }
-
-
-            });
-
-            runThread.Start();
-
+                catch
+                {
+                }
+            }
         }
 
         public void Stop()
         {
-            if (runThread != null)
-            {
-                runThread.Abort();
-            }
+            running = false;
         }
     }
 }

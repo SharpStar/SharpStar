@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Mono.Addins;
 using Mono.Addins.Setup;
 using SharpStar.Lib.Attributes;
@@ -255,21 +256,18 @@ namespace SharpStar.Lib.Plugins
 
         public void CallEvent(string evtName, IPacket packet, SharpStarClient client, params object[] args)
         {
-            foreach (ICSPlugin csPlugin in _csPlugins.Values)
-            {
-                csPlugin.OnEventOccurred(evtName, packet, client, args);
-            }
+            Parallel.ForEach(_csPlugins.Values, csPlugin => csPlugin.OnEventOccurred(evtName, packet, client, args));
         }
 
         public bool PassChatCommand(SharpStarClient client, string command, string[] args)
         {
             bool result = false;
 
-            foreach (ICSPlugin plugin in _csPlugins.Values)
+            Parallel.ForEach(_csPlugins.Values, plugin =>
             {
                 if (plugin.OnChatCommandReceived(client, command, args))
                     result = true;
-            }
+            });
 
             return result;
         }
@@ -278,11 +276,11 @@ namespace SharpStar.Lib.Plugins
         {
             bool result = false;
 
-            foreach (ICSPlugin plugin in _csPlugins.Values)
+            Parallel.ForEach(_csPlugins.Values, plugin =>
             {
                 if (plugin.OnConsoleCommand(command, args))
                     result = true;
-            }
+            });
 
             return result;
         }
@@ -293,15 +291,12 @@ namespace SharpStar.Lib.Plugins
             if (AddinManager.IsInitialized)
             {
 
-                foreach (ICSPlugin plugin in _csPlugins.Values)
+                Parallel.ForEach(_csPlugins.Values, plugin =>
                 {
                     plugin.OnUnload();
 
-                    foreach (ICSPlugin otherPlugin in _csPlugins.Values.Except(new[] { plugin }))
-                    {
-                        otherPlugin.OnPluginUnloaded(plugin);
-                    }
-                }
+                    Parallel.ForEach(_csPlugins.Values.Except(new[] { plugin }), otherPlugin => otherPlugin.OnPluginUnloaded(plugin));
+                });
 
                 foreach (Addin addin in AddinManager.Registry.GetAddins())
                 {
@@ -324,10 +319,7 @@ namespace SharpStar.Lib.Plugins
 
                     plugin.OnLoad();
 
-                    foreach (ICSPlugin p in _csPlugins.Values)
-                    {
-                        p.OnPluginLoaded(plugin);
-                    }
+                    Parallel.ForEach(_csPlugins.Values, p => p.OnPluginLoaded(plugin));
 
                     _csPlugins.Add(Addin.GetFullId(null, args.ExtensionNode.Addin.Id, args.ExtensionNode.Addin.Version), plugin);
 
@@ -339,8 +331,7 @@ namespace SharpStar.Lib.Plugins
 
                     plugin.OnUnload();
 
-                    foreach (ICSPlugin p in _csPlugins.Values)
-                        p.OnPluginUnloaded(plugin);
+                    Parallel.ForEach(_csPlugins.Values, p => p.OnPluginUnloaded(plugin));
 
                     _csPlugins.Remove(Addin.GetFullId(null, args.ExtensionNode.Addin.Id, args.ExtensionNode.Addin.Version));
 
@@ -395,7 +386,7 @@ namespace SharpStar.Lib.Plugins
 
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
-                foreach (Assembly assm in assemblies.Where(p => p.GetTypes().Any(x => typeof(ICSPlugin).IsAssignableFrom(x))))
+                Parallel.ForEach(assemblies.Where(p => p.GetTypes().Any(x => typeof(ICSPlugin).IsAssignableFrom(x))), assm =>
                 {
                     Type[] types = assm.GetTypes();
 
@@ -440,7 +431,7 @@ namespace SharpStar.Lib.Plugins
 
                     }
 
-                }
+                });
             }
         }
 

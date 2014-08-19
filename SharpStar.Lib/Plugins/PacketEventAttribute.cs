@@ -17,18 +17,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using SharpStar.Lib.Packets;
 
 namespace SharpStar.Lib.Plugins
 {
-    public class EventAttribute : SharpStarObjectAttribute
+    public class PacketEventAttribute : SharpStarObjectAttribute
     {
+        public KnownPacket[] PacketTypes { get; set; }
 
-        public string[] EventNames { get; set; }
-
-        public EventAttribute(params string[] evtNames)
+        public PacketEventAttribute(params KnownPacket[] packetTypes)
         {
-            EventNames = evtNames;
+            PacketTypes = packetTypes;
         }
-
     }
 }

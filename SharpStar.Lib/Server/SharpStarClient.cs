@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Ionic.Zlib;
 using SharpStar.Lib.DataTypes;
 using SharpStar.Lib.Entities;
@@ -106,7 +107,7 @@ namespace SharpStar.Lib.Server
                 PacketReader.NetworkBuffer = new ArraySegment<byte>(e.Buffer, e.Offset, e.BytesTransferred);
                 List<IPacket> packets = PacketReader.UpdateBuffer(true);
 
-                foreach (var packet in packets)
+                foreach (IPacket packet in packets)
                 {
 
                     try
@@ -114,28 +115,24 @@ namespace SharpStar.Lib.Server
                         if (PacketReceived != null)
                             PacketReceived(this, new PacketEventArgs(this, packet));
 
-                        SharpStarMain.Instance.PluginManager.CallEvent("packetReceived", packet, OtherClient);
-
-
-                        foreach (var handler in Server.PacketHandlers)
+                        foreach (IPacketHandler handler in Server.PacketHandlers)
                         {
                             if (packet.PacketId == handler.PacketId)
-                            {
                                 handler.Handle(packet, this);
-                            }
                         }
+
+                        SharpStarMain.Instance.PluginManager.CallEvent(packet, OtherClient);
 
                         if (!packet.Ignore)
                             OtherClient.SendPacket(packet);
 
-                        SharpStarMain.Instance.PluginManager.CallEvent("afterPacketReceived", packet, OtherClient);
-
-
-                        foreach (var handler in Server.PacketHandlers)
+                        foreach (IPacketHandler handler in Server.PacketHandlers)
                         {
                             if (packet.PacketId == handler.PacketId)
                                 handler.HandleAfter(packet, this);
                         }
+
+                        SharpStarMain.Instance.PluginManager.CallEvent(packet, OtherClient, true);
 
                         if (packet is DisconnectResponsePacket)
                         {
@@ -147,7 +144,6 @@ namespace SharpStar.Lib.Server
                     {
                         ex.LogError();
                     }
-
                 }
 
                 try
@@ -217,14 +213,11 @@ namespace SharpStar.Lib.Server
                 {
                     IPacket next;
 
-                    while (!PacketQueue.TryDequeue(out next))
-                    {
-                    }
+                    if (!PacketQueue.TryDequeue(out next))
+                        continue;
 
                     if (!next.IsReceive)
                     {
-
-                        SharpStarMain.Instance.PluginManager.CallEvent("customPacketSending", next, OtherClient);
 
                         foreach (var handler in Server.PacketHandlers)
                         {

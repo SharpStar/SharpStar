@@ -4,8 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using SharpStar.Lib.Extensions;
 
 namespace SharpStar.Lib.Server
@@ -63,15 +61,20 @@ namespace SharpStar.Lib.Server
 
             udpClient.Connect(cIpe);
 
+            StartReceive();
+
+        }
+
+        private void StartReceive()
+        {
             try
             {
                 udpServer.BeginReceive(Receive, null);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                ex.LogError();
+                StartReceive();
             }
-
         }
 
         private void Receive(IAsyncResult iar)
@@ -84,10 +87,7 @@ namespace SharpStar.Lib.Server
             }
             catch
             {
-                if (running)
-                {
-                    udpServer.BeginReceive(Receive, udpClient);
-                }
+                StartReceive();
             }
         }
 
@@ -102,10 +102,7 @@ namespace SharpStar.Lib.Server
             }
             catch
             {
-                if (running)
-                {
-                    udpServer.BeginReceive(Receive, udpClient);
-                }
+                StartReceive();
             }
         }
 
@@ -119,10 +116,7 @@ namespace SharpStar.Lib.Server
             }
             catch
             {
-                if (running)
-                {
-                    udpServer.BeginReceive(Receive, udpClient);
-                }
+                StartReceive();
             }
         }
 
@@ -137,16 +131,7 @@ namespace SharpStar.Lib.Server
             }
             finally
             {
-                try
-                {
-                    if (running)
-                    {
-                        udpServer.BeginReceive(Receive, null);
-                    }
-                }
-                catch
-                {
-                }
+                StartReceive();
             }
         }
 

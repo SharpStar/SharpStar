@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using SharpStar.Lib.Packets;
 using SharpStar.Lib.Server;
@@ -28,27 +29,32 @@ namespace SharpStar.Lib.Plugins
 
         public abstract string Name { get; }
 
-        private readonly Dictionary<string, Action<IPacket, SharpStarClient>> _registeredEvents;
+        //private readonly Dictionary<string, Action<IPacket, SharpStarClient>> _registeredEvents;
 
         private readonly Dictionary<string, Action<SharpStarClient, string[]>> _registeredCommands;
 
         private readonly Dictionary<string, Action<string[]>> _registeredConsoleCommands;
 
+        private readonly List<KnownPacket> _registeredEvents;
+
+        private readonly List<KnownPacket> _registeredAfterEvents;
 
         public readonly Dictionary<object, Dictionary<Tuple<string, string>, Action<SharpStarClient, string[]>>> RegisteredCommandObjects;
 
         public readonly Dictionary<object, Dictionary<Tuple<string, string>, Action<string[]>>> RegisteredConsoleCommandObjects;
 
-        public readonly Dictionary<object, Dictionary<string, Action<IPacket, SharpStarClient>>> RegisteredEventObjects;
+        public readonly Dictionary<object, Dictionary<Tuple<KnownPacket, bool>, Action<IPacket, SharpStarClient>>> RegisteredPacketEventObjects;
 
         protected CSPlugin()
         {
-            _registeredEvents = new Dictionary<string, Action<IPacket, SharpStarClient>>();
+            //_registeredEvents = new Dictionary<string, Action<IPacket, SharpStarClient>>();
+            _registeredEvents = new List<KnownPacket>();
+            _registeredAfterEvents = new List<KnownPacket>();
             _registeredCommands = new Dictionary<string, Action<SharpStarClient, string[]>>();
             _registeredConsoleCommands = new Dictionary<string, Action<string[]>>();
 
             RegisteredCommandObjects = new Dictionary<object, Dictionary<Tuple<string, string>, Action<SharpStarClient, string[]>>>();
-            RegisteredEventObjects = new Dictionary<object, Dictionary<string, Action<IPacket, SharpStarClient>>>();
+            RegisteredPacketEventObjects = new Dictionary<object, Dictionary<Tuple<KnownPacket, bool>, Action<IPacket, SharpStarClient>>>();
             RegisteredConsoleCommandObjects = new Dictionary<object, Dictionary<Tuple<string, string>, Action<string[]>>>();
         }
 
@@ -70,10 +76,11 @@ namespace SharpStar.Lib.Plugins
 
         public void RegisterEvent(string name, Action<IPacket, SharpStarClient> toCall)
         {
-            if (!_registeredEvents.ContainsKey(name))
-            {
-                _registeredEvents.Add(name, toCall);
-            }
+            throw new NotImplementedException();
+            //if (!_registeredEvents.ContainsKey(name))
+            //{
+            //    _registeredEvents.Add(name, toCall);
+            //}
         }
 
         public void RegisterCommandObject(object obj)
@@ -140,30 +147,43 @@ namespace SharpStar.Lib.Plugins
 
         public void RegisterEventObject(object obj)
         {
-            if (!RegisteredEventObjects.ContainsKey(obj))
+            if (!RegisteredPacketEventObjects.ContainsKey(obj))
             {
-                var dict = new Dictionary<string, Action<IPacket, SharpStarClient>>();
+                var dict = new Dictionary<Tuple<KnownPacket, bool>, Action<IPacket, SharpStarClient>>();
 
                 MethodInfo[] methods = obj.GetType().GetMethods();
 
-                foreach (var mi in methods)
+                foreach (MethodInfo mi in methods)
                 {
-                    var attribs = mi.GetCustomAttributes(typeof(EventAttribute), false).ToList();
+                    var attribs = mi.GetCustomAttributes(typeof(PacketEventAttribute), true).ToList();
 
                     if (attribs.Count == 1)
                     {
-
-                        EventAttribute attrib = (EventAttribute)attribs[0];
+                        PacketEventAttribute attrib = (PacketEventAttribute)attribs[0];
 
                         var act = (Action<IPacket, SharpStarClient>)Delegate.CreateDelegate(typeof(Action<IPacket, SharpStarClient>), obj, mi);
 
-                        foreach (string evt in attrib.EventNames)
-                            dict.Add(evt, act);
+                        bool isAfter = attrib is AfterPacketEventAttribute;
 
+                        foreach (KnownPacket kp in attrib.PacketTypes)
+                        {
+                            if (!isAfter)
+                            {
+                                if (!_registeredEvents.Contains(kp))
+                                    _registeredEvents.Add(kp);
+                            }
+                            else
+                            {
+                                if (!_registeredAfterEvents.Contains(kp))
+                                    _registeredAfterEvents.Add(kp);
+                            }
+
+                            dict.Add(Tuple.Create(kp, isAfter), act);
+                        }
                     }
                 }
 
-                RegisteredEventObjects.Add(obj, dict);
+                RegisteredPacketEventObjects.Add(obj, dict);
             }
         }
 
@@ -203,20 +223,29 @@ namespace SharpStar.Lib.Plugins
             }
         }
 
-        public virtual void OnEventOccurred(string evtName, IPacket packet, SharpStarClient client, params object[] args)
+        public virtual void OnEventOccurred(IPacket packet, SharpStarClient client, bool isAfter = false)
         {
-            if (_registeredEvents.ContainsKey(evtName))
+            KnownPacket kp = (KnownPacket)packet.PacketId;
+
+            if (!isAfter && !_registeredEvents.Contains(kp))
+                return;
+
+            if (isAfter && !_registeredAfterEvents.Contains(kp))
+                return;
+
+            var tasks = new List<Task>();
+
+            foreach (var kvp in RegisteredPacketEventObjects)
             {
-                _registeredEvents[evtName](packet, client);
+                var t = kvp.Value.SingleOrDefault(p => p.Key.Item1 == (KnownPacket)packet.PacketId && p.Key.Item2 == isAfter);
+
+                if (t.Value != null)
+                {
+                    tasks.Add(Task.Run(() => t.Value(packet, client)));
+                }
             }
 
-            Parallel.ForEach(RegisteredEventObjects.Where(p => p.Value.ContainsKey(evtName)), kvp =>
-            {
-                if (kvp.Value.ContainsKey(evtName))
-                {
-                    kvp.Value[evtName](packet, client);
-                }
-            });
+            Task.WaitAll(tasks.ToArray());
         }
 
         public virtual bool OnChatCommandReceived(SharpStarClient client, string command, string[] args)

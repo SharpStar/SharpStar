@@ -155,6 +155,7 @@
     <Compile Include="Misc\StarboundItem.cs" />
     <Compile Include="Misc\StarboundSector.cs" />
     <Compile Include="Packets\Handlers\SpawnEntityPacketHandler.cs" />
+    <Compile Include="Plugins\AfterPacketEventAttribute.cs" />
     <Compile Include="Server\AsyncUserToken.cs" />
     <Compile Include="Server\BufferManager.cs" />
     <Compile Include="Server\IServer.cs" />
@@ -183,7 +184,7 @@
     <Compile Include="Packets\SpawnEntityPacket.cs" />
     <Compile Include="Plugins\CommandAttribute.cs" />
     <Compile Include="Plugins\ConsoleCommandAttribute.cs" />
-    <Compile Include="Plugins\EventAttribute.cs" />
+    <Compile Include="Plugins\PacketEventAttribute.cs" />
     <Compile Include="Plugins\PyPlugin.cs" />
     <Compile Include="Plugins\SharpStarObjectAttribute.cs" />
     <Compile Include="Security\SharpStarSecurity.cs" />

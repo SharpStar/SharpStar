@@ -239,7 +239,6 @@ namespace SharpStar.Lib.Plugins
 
         public void UninstallPlugin(string name)
         {
-
             Addin addin = AddinManager.Registry.GetAddins().SingleOrDefault(p => p.Description.LocalId.Equals(name, StringComparison.OrdinalIgnoreCase));
 
             if (addin != null)
@@ -251,12 +250,14 @@ namespace SharpStar.Lib.Plugins
             {
                 Logger.Error("The plugin {0} is not installed", name);
             }
-
         }
 
-        public void CallEvent(string evtName, IPacket packet, SharpStarClient client, params object[] args)
+        public void CallEvent(IPacket packet, SharpStarClient client, bool isAfter = false)
         {
-            Parallel.ForEach(_csPlugins.Values, csPlugin => csPlugin.OnEventOccurred(evtName, packet, client, args));
+            foreach (ICSPlugin csPlugin in _csPlugins.Values)
+            {
+                csPlugin.OnEventOccurred(packet, client, isAfter);
+            }
         }
 
         public bool PassChatCommand(SharpStarClient client, string command, string[] args)
@@ -287,10 +288,8 @@ namespace SharpStar.Lib.Plugins
 
         public void UnloadPlugins()
         {
-
             if (AddinManager.IsInitialized)
             {
-
                 Parallel.ForEach(_csPlugins.Values, plugin =>
                 {
                     plugin.OnUnload();
@@ -302,9 +301,7 @@ namespace SharpStar.Lib.Plugins
                 {
                     AddinManager.Registry.DisableAddin(addin.Id);
                 }
-
             }
-
         }
 
         private void OnExtensionChanged(object sender, ExtensionNodeEventArgs args)

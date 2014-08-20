@@ -110,7 +110,7 @@ namespace SharpStar.Lib
 
             SharpStarLogger.DefaultLogger.Info("Listening on port {0}", Config.ConfigFile.ListenPort);
 
-            Server = new SharpStarServer(Config.ConfigFile.ServerPort, 100, 1024);
+            Server = new SharpStarServer(Config.ConfigFile.ServerPort, 100);
 
             IPEndPoint ipe;
 

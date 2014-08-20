@@ -19,6 +19,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using SharpStar.Lib.Extensions;
+using SharpStar.Lib.Logging;
 using SharpStar.Lib.Packets;
 using SharpStar.Lib.Server;
 
@@ -235,17 +237,32 @@ namespace SharpStar.Lib.Plugins
 
             var tasks = new List<Task>();
 
-            foreach (var kvp in RegisteredPacketEventObjects)
+            try
             {
-                var t = kvp.Value.SingleOrDefault(p => p.Key.Item1 == (KnownPacket)packet.PacketId && p.Key.Item2 == isAfter);
 
-                if (t.Value != null)
+                foreach (var kvp in RegisteredPacketEventObjects)
                 {
-                    tasks.Add(Task.Run(() => t.Value(packet, client)));
-                }
-            }
+                    var t = kvp.Value.SingleOrDefault(p => p.Key.Item1 == (KnownPacket)packet.PacketId && p.Key.Item2 == isAfter);
 
-            Task.WaitAll(tasks.ToArray());
+                    if (t.Value != null)
+                    {
+                        tasks.Add(Task.Run(() => t.Value(packet, client)));
+                    }
+                }
+
+                Task.WaitAll(tasks.ToArray());
+            }
+            catch (Exception ex)
+            {
+                SharpStarLogger.DefaultLogger.Error("Plugin {0} has casued an error with packet event {01}!", Name, ((KnownPacket)packet.PacketId).ToString());
+
+                if (ex.InnerException != null)
+                {
+                    SharpStarLogger.DefaultLogger.Error(ex.InnerException.ToString());
+                }
+
+                ex.LogError();
+            }
         }
 
         public virtual bool OnChatCommandReceived(SharpStarClient client, string command, string[] args)

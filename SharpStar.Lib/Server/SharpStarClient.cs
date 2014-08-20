@@ -281,7 +281,7 @@ namespace SharpStar.Lib.Server
         private void CloseClientSocket(SocketAsyncEventArgs e)
         {
 
-            if (readEventArgs == null || Socket == null)
+            if (readEventArgs == null || Socket == null || (Socket != null && !Socket.Connected) || !Connected)
                 return;
 
             AsyncUserToken token = e.UserToken as AsyncUserToken;

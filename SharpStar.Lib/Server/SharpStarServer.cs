@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using SharpStar.Lib.Extensions;
 using SharpStar.Lib.Logging;
 using SharpStar.Lib.Packets;
 using SharpStar.Lib.Packets.Handlers;
@@ -15,9 +16,7 @@ namespace SharpStar.Lib.Server
     {
 
         private int m_numConnections;
-        private BufferManager m_bufferManager;
         private Socket listenSocket;
-        private SocketAsyncEventArgsPool m_readWritePool;
         private int m_numConnectedSockets;
         private Semaphore m_maxNumberAcceptedClients;
 
@@ -71,13 +70,11 @@ namespace SharpStar.Lib.Server
             new SpawnEntityPacketHandler()
         };
 
-        public SharpStarServer(int sbPort, int numConnections, int receiveBufferSize)
+        public SharpStarServer(int sbPort, int numConnections)
         {
             m_numConnectedSockets = 0;
             m_numConnections = numConnections;
-            m_bufferManager = new BufferManager(receiveBufferSize * numConnections, receiveBufferSize);
 
-            m_readWritePool = new SocketAsyncEventArgsPool(numConnections);
             m_maxNumberAcceptedClients = new Semaphore(numConnections, numConnections);
 
             if (!string.IsNullOrEmpty(_starboundBind))
@@ -98,17 +95,17 @@ namespace SharpStar.Lib.Server
 
         public void Init()
         {
-            m_bufferManager.InitBuffer();
+            //    m_bufferManager.InitBuffer();
 
-            for (int i = 0; i < m_numConnections; i++)
-            {
-                SocketAsyncEventArgs readWriteEventArg = new SocketAsyncEventArgs();
-                readWriteEventArg.UserToken = new AsyncUserToken();
+            //for (int i = 0; i < m_numConnections; i++)
+            //{
+            //    SocketAsyncEventArgs readWriteEventArg = new SocketAsyncEventArgs();
+            //    readWriteEventArg.UserToken = new AsyncUserToken();
 
-                m_bufferManager.SetBuffer(readWriteEventArg);
+            //    m_bufferManager.SetBuffer(readWriteEventArg);
 
-                m_readWritePool.Push(readWriteEventArg);
-            }
+            //    m_readWritePool.Push(readWriteEventArg);
+            //}
         }
 
         public void Start(IPEndPoint localEndPoint)
@@ -127,7 +124,7 @@ namespace SharpStar.Lib.Server
                 if (acceptEventArg == null)
                 {
                     acceptEventArg = new SocketAsyncEventArgs();
-                    acceptEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(AcceptEventArg_Completed);
+                    acceptEventArg.Completed += AcceptEventArg_Completed;
                 }
                 else
                 {
@@ -155,25 +152,37 @@ namespace SharpStar.Lib.Server
         {
             Interlocked.Increment(ref m_numConnectedSockets);
 
-            SocketAsyncEventArgs readEventArgs = m_readWritePool.Pop();
+            SocketAsyncEventArgs readEventArgs = new SocketAsyncEventArgs();
+            readEventArgs.UserToken = new AsyncUserToken();
+
+            byte[] buffer = new byte[1024];
+            readEventArgs.SetBuffer(buffer, 0, buffer.Length);
+
             ((AsyncUserToken)readEventArgs.UserToken).Socket = e.AcceptSocket;
 
             SharpStarLogger.DefaultLogger.Info("Connection from {0}", e.AcceptSocket.RemoteEndPoint);
 
-            SharpStarClient client = new SharpStarClient(readEventArgs, Direction.Client);
-
-            SharpStarServerClient ssc = new SharpStarServerClient(client);
-            ssc.SClientConnected += ssc_SClientConnected;
-            ssc.ClientId = m_numConnectedSockets;
-
-            foreach (IPacketHandler packetHandler in DefaultPacketHandlers)
-            {
-                ssc.RegisterPacketHandler(packetHandler);
-            }
-
-            ssc.Connect(sbServerEndPoint);
-
             StartAccept(e);
+
+            try
+            {
+                SharpStarClient client = new SharpStarClient(readEventArgs, Direction.Client);
+
+                SharpStarServerClient ssc = new SharpStarServerClient(client);
+                ssc.SClientConnected += ssc_SClientConnected;
+                ssc.ClientId = m_numConnectedSockets;
+
+                foreach (IPacketHandler packetHandler in DefaultPacketHandlers)
+                {
+                    ssc.RegisterPacketHandler(packetHandler);
+                }
+
+                ssc.Connect(sbServerEndPoint);
+            }
+            catch (Exception ex)
+            {
+                ex.LogError();
+            }
         }
 
         void ssc_SClientConnected(object sender, ClientConnectedEventArgs e)
@@ -207,6 +216,7 @@ namespace SharpStar.Lib.Server
 
             try
             {
+                e.Client.Server.PlayerClient.ForceDisconnect();
                 e.Client.Dispose();
             }
             catch
@@ -229,6 +239,15 @@ namespace SharpStar.Lib.Server
                 }
 
                 _clients.Remove(e.Client.Server);
+
+                try
+                {
+                    e.Client.Server.ServerClient.ForceDisconnect();
+                }
+                catch
+                {
+                }
+
             }
 
             try
@@ -284,14 +303,9 @@ namespace SharpStar.Lib.Server
             if (disposing)
             {
                 Stop();
-
-                m_readWritePool.Dispose();
             }
 
             listenSocket = null;
-            m_bufferManager = null;
-            m_readWritePool = null;
-
         }
 
         ~SharpStarServer()

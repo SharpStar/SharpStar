@@ -138,8 +138,9 @@ namespace SharpStar.Lib.Server
                     ProcessAccept(acceptEventArg);
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                ex.LogError();
             }
         }
 
@@ -240,18 +241,13 @@ namespace SharpStar.Lib.Server
 
                 _clients.Remove(e.Client.Server);
 
-                try
-                {
-                    e.Client.Server.ServerClient.ForceDisconnect();
-                }
-                catch
-                {
-                }
-
             }
 
             try
             {
+                if (e.Client.Server != null && e.Client.Server.ServerClient != null)
+                    e.Client.Server.ServerClient.ForceDisconnect();
+
                 e.Client.Dispose();
             }
             catch

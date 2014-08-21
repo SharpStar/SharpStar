@@ -133,12 +133,6 @@ namespace SharpStar.Lib.Server
                         }
 
                         SharpStarMain.Instance.PluginManager.CallEvent(packet, OtherClient, true);
-
-                        if (packet is DisconnectResponsePacket)
-                        {
-                            this.CloseClientSocket(e);
-                        }
-
                     }
                     catch (Exception ex)
                     {
@@ -239,12 +233,16 @@ namespace SharpStar.Lib.Server
                     memoryStream.Dispose();
 
                     int length = buffer.Length;
-                    byte[] compressed = ZlibStream.CompressBuffer(buffer);
 
-                    if (compressed.Length < buffer.Length)
+                    if (length >= 1024)
                     {
-                        buffer = compressed;
-                        length = -buffer.Length;
+                        byte[] compressed = ZlibStream.CompressBuffer(buffer);
+
+                        if (compressed.Length < buffer.Length)
+                        {
+                            buffer = compressed;
+                            length = -buffer.Length;
+                        }
                     }
 
                     var finalMemStream = new MemoryStream();

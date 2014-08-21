@@ -254,7 +254,7 @@ namespace SharpStar.Lib.Plugins
             }
             catch (Exception ex)
             {
-                SharpStarLogger.DefaultLogger.Error("Plugin {0} has casued an error with packet event {01}!", Name, ((KnownPacket)packet.PacketId).ToString());
+                SharpStarLogger.DefaultLogger.Error("Plugin {0} has casued an error with packet event {1}!", Name, ((KnownPacket)packet.PacketId).ToString());
 
                 if (ex.InnerException != null)
                 {

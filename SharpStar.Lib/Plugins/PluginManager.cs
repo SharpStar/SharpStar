@@ -132,7 +132,10 @@ namespace SharpStar.Lib.Plugins
 
         public void CallEvent(string evtName, IPacket packet, SharpStarClient client, params object[] args)
         {
-            Parallel.ForEach(_plugins, plugin => plugin.CallEvent(evtName, packet, client, args));
+            foreach (IPlugin plugin in _plugins)
+            {
+                plugin.CallEvent(evtName, packet, client, args);
+            }
         }
 
         public void CallEvent(IPacket packet, SharpStarClient client, bool isAfter = false)

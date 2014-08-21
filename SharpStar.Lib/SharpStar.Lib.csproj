@@ -152,6 +152,7 @@
     <Compile Include="Misc\OS.cs" />
     <Compile Include="Misc\Python.cs" />
     <Compile Include="Misc\LogSector.cs" />
+    <Compile Include="Misc\StarboundColorHelper.cs" />
     <Compile Include="Misc\StarboundItem.cs" />
     <Compile Include="Misc\StarboundSector.cs" />
     <Compile Include="Packets\Handlers\SpawnEntityPacketHandler.cs" />

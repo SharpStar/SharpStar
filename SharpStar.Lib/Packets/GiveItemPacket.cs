@@ -40,10 +40,8 @@ namespace SharpStar.Lib.Packets
 
         public override void Read(IStarboundStream stream)
         {
-            int discarded;
-
             ItemName = stream.ReadString();
-            Count = stream.ReadVLQ(out discarded);
+            Count = stream.ReadVLQ();
             ItemProperties = (VariantDict) stream.ReadVariant().Value;
         }
 

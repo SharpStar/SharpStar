@@ -28,63 +28,31 @@ namespace SharpStar.Lib.Networking
     /// <summary>
     /// A specialized Stream that reads Starbound data types.
     /// </summary>
-    public class StarboundStream : Stream, IStarboundStream
+    public class StarboundStream : MemoryStream, IStarboundStream
     {
-        public StarboundStream(Stream baseStream)
+        //public StarboundStream(Stream baseStream)
+        //{
+        //    BaseStream = baseStream;
+        //    StringEncoding = Encoding.UTF8;
+        //}
+
+        public StarboundStream()
         {
-            BaseStream = baseStream;
+            StringEncoding = Encoding.UTF8;
+        }
+
+        public StarboundStream(byte[] buffer)
+            : base(buffer)
+        {
             StringEncoding = Encoding.UTF8;
         }
 
         public Encoding StringEncoding { get; set; }
 
-        public Stream BaseStream { get; set; }
-
-        public override bool CanRead { get { return BaseStream.CanRead; } }
-
-        public override bool CanSeek { get { return BaseStream.CanSeek; } }
-
-        public override bool CanWrite { get { return BaseStream.CanWrite; } }
-
-        public override void Flush()
-        {
-            BaseStream.Flush();
-        }
-
-        public override long Length
-        {
-            get { return BaseStream.Length; }
-        }
-
-        public override long Position
-        {
-            get { return BaseStream.Position; }
-            set { BaseStream.Position = value; }
-        }
-
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            return BaseStream.Read(buffer, offset, count);
-        }
-
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            return BaseStream.Seek(offset, origin);
-        }
-
-        public override void SetLength(long value)
-        {
-            BaseStream.SetLength(value);
-        }
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            BaseStream.Write(buffer, offset, count);
-        }
-
+        
         public byte ReadUInt8()
         {
-            int value = BaseStream.ReadByte();
+            int value = ReadByte();
             if (value == -1)
             {
                 throw new EndOfStreamException();
@@ -204,8 +172,7 @@ namespace SharpStar.Lib.Networking
 
         public byte[] ReadUInt8Array()
         {
-            int discarded;
-            int length = (int)ReadVLQ(out discarded);
+            int length = (int)ReadVLQ();
             return ReadUInt8Array(length);
         }
 
@@ -256,7 +223,7 @@ namespace SharpStar.Lib.Networking
         public ushort[] ReadUInt16Array()
         {
             int discarded;
-            int length = (int)ReadVLQ(out discarded);
+            int length = (int)ReadVLQ();
             return ReadUInt16Array(length);
         }
 
@@ -295,7 +262,7 @@ namespace SharpStar.Lib.Networking
         public uint[] ReadUInt32Array()
         {
             int discarded;
-            int length = (int)ReadVLQ(out discarded);
+            int length = (int)ReadVLQ();
             return ReadUInt32Array(length);
         }
 
@@ -334,7 +301,7 @@ namespace SharpStar.Lib.Networking
         public ulong[] ReadUInt64Array()
         {
             int discarded;
-            int length = (int)ReadVLQ(out discarded);
+            int length = (int)ReadVLQ();
             return ReadUInt64Array(length);
         }
 
@@ -414,21 +381,16 @@ namespace SharpStar.Lib.Networking
             Write(buffer, 0, buffer.Length);
         }
 
-        public ulong ReadVLQ(out int length)
+        public ulong ReadVLQ()
         {
 
             ulong value = 0L;
-
-            length = 0;
-
             while (true)
             {
 
                 byte tmp = ReadUInt8();
 
                 value = (value << 7) | (ulong)(tmp & 0x7f);
-
-                length++;
 
                 if ((tmp & 0x80) == 0)
                     break;
@@ -439,10 +401,10 @@ namespace SharpStar.Lib.Networking
 
         }
 
-        public long ReadSignedVLQ(out int length)
+        public long ReadSignedVLQ()
         {
 
-            ulong value = ReadVLQ(out length);
+            ulong value = ReadVLQ();
 
             if ((value & 1) == 0x00)
                 return (long)value >> 1;
@@ -547,14 +509,7 @@ namespace SharpStar.Lib.Networking
 
             if (disposing)
             {
-                if (BaseStream != null)
-                {
-                    BaseStream.Close();
-                    BaseStream.Dispose();
-                }
             }
-
-            BaseStream = null;
 
         }
 

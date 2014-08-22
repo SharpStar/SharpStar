@@ -36,20 +36,17 @@ namespace SharpStar.Lib.Entities
         {
             stream.WriteUInt8((byte)EntityType);
 
-            using (MemoryStream ms = new MemoryStream())
+            using (StarboundStream s = new StarboundStream())
             {
-                using (StarboundStream s = new StarboundStream(ms))
-                {
-                    s.WriteString(Object);
-                    s.WriteVariant(Information);
-                    s.WriteUInt8Array(Unknown, false);
-                }
+                s.WriteString(Object);
+                s.WriteVariant(Information);
+                s.WriteUInt8Array(Unknown, false);
 
-                stream.WriteUInt8Array(ms.ToArray());
+                stream.WriteUInt8Array(s.ToArray());
             }
-        
+
             stream.WriteSignedVLQ(EntityId);
-        
+
         }
 
     }

@@ -43,8 +43,7 @@ namespace SharpStar.Lib.Packets
 
         public override void Read(IStarboundStream stream)
         {
-            int discarded;
-            ulong vlq = stream.ReadVLQ(out discarded);
+            ulong vlq = stream.ReadVLQ();
 
             Position = new List<Vec2I>();
 

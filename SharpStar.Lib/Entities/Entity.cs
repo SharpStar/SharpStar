@@ -37,9 +37,6 @@ namespace SharpStar.Lib.Entities
 
         public static Entity FromStream(IStarboundStream stream)
         {
-
-            int discarded;
-
             EntityType et = (EntityType)stream.ReadUInt8();
 
             byte[] storeData = stream.ReadUInt8Array();
@@ -51,16 +48,13 @@ namespace SharpStar.Lib.Entities
 
                 ProjectileEntity pent = new ProjectileEntity();
 
-                using (MemoryStream ms = new MemoryStream(storeData))
+                using (StarboundStream s = new StarboundStream(storeData))
                 {
-                    using (StarboundStream s = new StarboundStream(ms))
-                    {
-                        pent.Projectile = s.ReadString();
-                        pent.Information = s.ReadVariant().Value as VariantDict;
-                        pent.Unknown1 = s.ReadUInt8Array(17);
-                        pent.ThrowerEntityId = s.ReadSignedVLQ(out discarded);
-                        pent.Unknown2 = s.ReadUInt8Array((int)(s.Length - s.Position));
-                    }
+                    pent.Projectile = s.ReadString();
+                    pent.Information = s.ReadVariant().Value as VariantDict;
+                    pent.Unknown1 = s.ReadUInt8Array(17);
+                    pent.ThrowerEntityId = s.ReadSignedVLQ();
+                    pent.Unknown2 = s.ReadUInt8Array((int)(s.Length - s.Position));
                 }
 
                 ent = pent;
@@ -71,23 +65,20 @@ namespace SharpStar.Lib.Entities
 
                 PlayerEntity pent = new PlayerEntity();
 
-                using (MemoryStream ms = new MemoryStream(storeData))
+                using (StarboundStream s = new StarboundStream(storeData))
                 {
-                    using (StarboundStream s = new StarboundStream(ms))
+
+                    bool uuid = s.ReadBoolean();
+
+                    if (uuid)
                     {
 
-                        bool uuid = s.ReadBoolean();
+                        byte[] uuidDat = s.ReadUInt8Array(16);
 
-                        if (uuid)
-                        {
-
-                            byte[] uuidDat = s.ReadUInt8Array(16);
-
-                            pent.UUID = BitConverter.ToString(uuidDat, 0).Replace("-", "").ToLower();
-                        
-                        }
+                        pent.UUID = BitConverter.ToString(uuidDat, 0).Replace("-", "").ToLower();
 
                     }
+
                 }
 
                 ent = pent;
@@ -98,14 +89,11 @@ namespace SharpStar.Lib.Entities
 
                 ObjectEntity oent = new ObjectEntity();
 
-                using (MemoryStream ms = new MemoryStream(storeData))
+                using (StarboundStream s = new StarboundStream(storeData))
                 {
-                    using (StarboundStream s = new StarboundStream(ms))
-                    {
-                        oent.Object = s.ReadString();
-                        oent.Information = s.ReadVariant();
-                        oent.Unknown = s.ReadUInt8Array((int)(s.Length - s.Position));
-                    }
+                    oent.Object = s.ReadString();
+                    oent.Information = s.ReadVariant();
+                    oent.Unknown = s.ReadUInt8Array((int)(s.Length - s.Position));
                 }
 
                 ent = oent;
@@ -118,7 +106,7 @@ namespace SharpStar.Lib.Entities
 
             ent.EntityType = et;
             ent.StoreData = storeData;
-            ent.EntityId = stream.ReadSignedVLQ(out discarded);
+            ent.EntityId = stream.ReadSignedVLQ();
 
             return ent;
 

@@ -18,7 +18,6 @@ namespace SharpStar.Lib.Server
         private int m_numConnections;
         private Socket listenSocket;
         private int m_numConnectedSockets;
-        private Semaphore m_maxNumberAcceptedClients;
 
         private IPEndPoint sbServerEndPoint;
 
@@ -75,8 +74,6 @@ namespace SharpStar.Lib.Server
             m_numConnectedSockets = 0;
             m_numConnections = numConnections;
 
-            m_maxNumberAcceptedClients = new Semaphore(numConnections, numConnections);
-
             if (!string.IsNullOrEmpty(_starboundBind))
             {
                 SharpStarLogger.DefaultLogger.Info("Starbound is bound to {0}", _starboundBind);
@@ -111,6 +108,7 @@ namespace SharpStar.Lib.Server
         public void Start(IPEndPoint localEndPoint)
         {
             listenSocket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            listenSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
             listenSocket.Bind(localEndPoint);
             listenSocket.Listen(100);
 
@@ -131,7 +129,6 @@ namespace SharpStar.Lib.Server
                     acceptEventArg.AcceptSocket = null;
                 }
 
-                m_maxNumberAcceptedClients.WaitOne();
                 bool willRaiseEvent = listenSocket.AcceptAsync(acceptEventArg);
                 if (!willRaiseEvent)
                 {
@@ -151,8 +148,6 @@ namespace SharpStar.Lib.Server
 
         private void ProcessAccept(SocketAsyncEventArgs e)
         {
-            Interlocked.Increment(ref m_numConnectedSockets);
-
             SocketAsyncEventArgs readEventArgs = new SocketAsyncEventArgs();
             readEventArgs.UserToken = new AsyncUserToken();
 
@@ -168,6 +163,7 @@ namespace SharpStar.Lib.Server
             try
             {
                 SharpStarClient client = new SharpStarClient(readEventArgs, Direction.Client);
+                client.ClientDisconnected += PlayerClient_ClientDisconnected;
 
                 SharpStarServerClient ssc = new SharpStarServerClient(client);
                 ssc.SClientConnected += ssc_SClientConnected;
@@ -196,7 +192,6 @@ namespace SharpStar.Lib.Server
                 ClientConnected(this, new ClientConnectedEventArgs(ssc.PlayerClient));
 
             ssc.ServerClient.ClientDisconnected += ServerClient_ClientDisconnected;
-            ssc.PlayerClient.ClientDisconnected += PlayerClient_ClientDisconnected;
         }
 
         private void ServerClient_ClientDisconnected(object sender, ClientDisconnectedEventArgs e)
@@ -217,7 +212,9 @@ namespace SharpStar.Lib.Server
 
             try
             {
-                e.Client.Server.PlayerClient.ForceDisconnect();
+                if (e.Client.Server != null && e.Client.Server.PlayerClient != null)
+                    e.Client.Server.PlayerClient.ForceDisconnect();
+
                 e.Client.Dispose();
             }
             catch
@@ -239,14 +236,19 @@ namespace SharpStar.Lib.Server
                     SharpStarLogger.DefaultLogger.Info("Player {0} ({1}) has disconnected", e.Client.Server.Player.Name, e.Client.Server.PlayerClient.RemoteEndPoint);
                 }
 
-                _clients.Remove(e.Client.Server);
+            }
 
+            if (e.Client.Server != null)
+            {
+                _clients.Remove(e.Client.Server);
             }
 
             try
             {
                 if (e.Client.Server != null && e.Client.Server.ServerClient != null)
+                {
                     e.Client.Server.ServerClient.ForceDisconnect();
+                }
 
                 e.Client.Dispose();
             }

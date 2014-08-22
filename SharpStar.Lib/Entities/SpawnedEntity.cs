@@ -21,22 +21,20 @@ namespace SharpStar.Lib.Entities
             EntityType et = (EntityType)stream.ReadUInt8();
             byte[] storeData = stream.ReadUInt8Array((int)(stream.Length - stream.Position));
 
-            using (MemoryStream ms = new MemoryStream(storeData))
-            {
-                using (StarboundStream ss = new StarboundStream(ms))
-                {
-                    if (et == EntityType.Projectile)
-                    {
-                        var sp = new SpawnedProjectile();
-                        sp.ProjectileKey = ss.ReadString();
-                        sp.Parameters = ss.ReadVariant();
 
-                        se = sp;
-                    }
-                    else
-                    {
-                        se = new SpawnedEntity();
-                    }
+            using (StarboundStream ss = new StarboundStream(storeData))
+            {
+                if (et == EntityType.Projectile)
+                {
+                    var sp = new SpawnedProjectile();
+                    sp.ProjectileKey = ss.ReadString();
+                    sp.Parameters = ss.ReadVariant();
+
+                    se = sp;
+                }
+                else
+                {
+                    se = new SpawnedEntity();
                 }
             }
 

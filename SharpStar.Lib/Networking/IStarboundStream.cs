@@ -21,8 +21,6 @@ namespace SharpStar.Lib.Networking
     public interface IStarboundStream
     {
 
-        Stream BaseStream { get; set; }
-
         long Length { get; }
 
         long Position { get; }
@@ -129,9 +127,9 @@ namespace SharpStar.Lib.Networking
 
         void WriteSignedVLQ(long value);
 
-        ulong ReadVLQ(out int length);
+        ulong ReadVLQ();
 
-        long ReadSignedVLQ(out int length);
+        long ReadSignedVLQ();
 
         string ReadString();
 

@@ -67,20 +67,20 @@ namespace SharpStar.Lib.DataTypes
                     variant.Value = stream.ReadBoolean();
                     break;
                 case 4:
-                    variant.Value = stream.ReadVLQ(out discarded);
+                    variant.Value = stream.ReadVLQ();
                     break;
                 case 5:
                     variant.Value = stream.ReadString();
                     break;
                 case 6:
-                    var array = new Variant[stream.ReadVLQ(out discarded)];
+                    var array = new Variant[stream.ReadVLQ()];
                     for (int i = 0; i < array.Length; i++)
                         array[i] = Variant.FromStream(stream);
                     variant.Value = array;
                     break;
                 case 7:
                     var dict = new VariantDict();
-                    var length = stream.ReadVLQ(out discarded);
+                    var length = stream.ReadVLQ();
                     while (length-- > 0)
                     {
                         dict[stream.ReadString()] = Variant.FromStream(stream);

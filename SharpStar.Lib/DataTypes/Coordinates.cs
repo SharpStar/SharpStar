@@ -257,23 +257,17 @@ namespace SharpStar.Lib.DataTypes
 
                         Buffer.BlockCopy(data, i - 1, sectorData, 0, sector.Length + 21);
 
-                        using (MemoryStream ms = new MemoryStream(sectorData))
+                        using (StarboundStream s = new StarboundStream(sectorData))
                         {
 
-                            using (StarboundStream s = new StarboundStream(ms))
-                            {
+                            WorldCoordinate coords = FromStream(s);
 
-                                WorldCoordinate coords = FromStream(s);
+                            if (string.IsNullOrEmpty(coords.Sector))
+                                return null;
 
-                                if (string.IsNullOrEmpty(coords.Sector))
-                                    return null;
-
-                                return coords;
-
-                            }
+                            return coords;
 
                         }
-
                     }
 
                 }

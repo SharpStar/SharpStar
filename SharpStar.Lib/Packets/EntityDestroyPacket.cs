@@ -37,9 +37,7 @@ namespace SharpStar.Lib.Packets
 
         public override void Read(IStarboundStream stream)
         {
-            int discarded;
-
-            EntityId = stream.ReadSignedVLQ(out discarded);
+            EntityId = stream.ReadSignedVLQ();
             Death = stream.ReadBoolean();
 
             Unknown = new byte[stream.Length - stream.Position];

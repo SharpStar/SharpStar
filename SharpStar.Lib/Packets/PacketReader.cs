@@ -97,64 +97,62 @@ namespace SharpStar.Lib.Packets
                 PacketBuffer.AddRange(NetworkBuffer);
             }
 
-            using (MemoryStream ms = new MemoryStream(PacketBuffer.ToArray()))
+
+            using (StarboundStream s = new StarboundStream(PacketBuffer.ToArray()))
             {
-                using (StarboundStream s = new StarboundStream(ms))
+                if (WorkingLength == long.MaxValue && s.Length > 1)
                 {
-                    if (WorkingLength == long.MaxValue && s.Length > 1)
+                    _packetId = s.ReadUInt8();
+
+                    try
                     {
-                        _packetId = s.ReadUInt8();
+                        WorkingLength = s.ReadSignedVLQ();
+                    }
+                    catch
+                    {
+                        WorkingLength = long.MaxValue;
 
-                        try
-                        {
-                            WorkingLength = s.ReadSignedVLQ(out DataIndex);
-                        }
-                        catch
-                        {
-                            WorkingLength = long.MaxValue;
-
-                            return new List<IPacket>();
-                        }
-
-                        DataIndex++;
-
-                        Compressed = WorkingLength < 0;
-
-                        if (Compressed)
-                            WorkingLength = -WorkingLength;
+                        return new List<IPacket>();
                     }
 
-                    if (WorkingLength != long.MaxValue)
+                    DataIndex = (int)s.Position;
+
+                    Compressed = WorkingLength < 0;
+
+                    if (Compressed)
+                        WorkingLength = -WorkingLength;
+                }
+
+                if (WorkingLength != long.MaxValue)
+                {
+                    if (PacketBuffer.Count >= WorkingLength + DataIndex)
                     {
-                        if (PacketBuffer.Count >= WorkingLength + DataIndex)
+                        byte[] data = PacketBuffer.Skip(DataIndex).Take((int)WorkingLength).ToArray();
+
+                        if (Compressed)
                         {
-                            byte[] data = PacketBuffer.Skip(DataIndex).Take((int)WorkingLength).ToArray();
-
-                            if (Compressed)
-                            {
-                                data = ZlibStream.UncompressBuffer(data);
-                            }
-
-                            var packets = new List<IPacket>();
-
-                            packets.Add(Decode(_packetId, data));
-
-                            var rest = PacketBuffer.Skip((int)(DataIndex + WorkingLength)).ToList();
-                            PacketBuffer = rest;
-
-                            WorkingLength = long.MaxValue;
-
-                            if (rest.Any())
-                            {
-                                packets.AddRange(UpdateBuffer(false));
-                            }
-
-                            return packets;
+                            data = ZlibStream.UncompressBuffer(data);
                         }
 
+                        var packets = new List<IPacket>();
+
+                        packets.Add(Decode(_packetId, data));
+
+                        var rest = PacketBuffer.Skip((int)(DataIndex + WorkingLength)).ToList();
+                        PacketBuffer = rest;
+
+                        WorkingLength = long.MaxValue;
+
+                        if (rest.Any())
+                        {
+                            packets.AddRange(UpdateBuffer(false));
+                        }
+
+                        return packets;
                     }
 
                 }
+
             }
 
             return new List<IPacket>();
@@ -163,8 +161,7 @@ namespace SharpStar.Lib.Packets
 
         public IPacket Decode(byte packetId, byte[] payload)
         {
-            var memoryStream = new MemoryStream(payload);
-            var stream = new StarboundStream(memoryStream);
+            var stream = new StarboundStream(payload);
 
             IPacket packet;
 
@@ -193,11 +190,7 @@ namespace SharpStar.Lib.Packets
                 }
             }
 
-            stream.Close();
             stream.Dispose();
-
-            memoryStream.Close();
-            memoryStream.Dispose();
 
             return packet;
         }

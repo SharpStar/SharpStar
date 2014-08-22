@@ -84,24 +84,19 @@ namespace SharpStar.Lib.Starbound
             if (Metadata != null)
                 return Metadata;
 
-            using (MemoryStream ms = new MemoryStream(GetRaw(new byte[] { 0, 0, 0 })))
+            using (StarboundStream ss = new StarboundStream(GetRaw(new byte[] { 0, 0, 0 })))
             {
 
-                using (StarboundStream ss = new StarboundStream(ms))
-                {
+                var unpacked = DataConverter.Unpack("^ii", ss.ReadUInt8Array(8), 0); //unknown
 
-                    var unpacked = DataConverter.Unpack("^ii", ss.ReadUInt8Array(8), 0); //unknown
+                Document doc = Document.FromStream(ss);
 
-                    Document doc = Document.FromStream(ss);
+                if (doc.Name != "WorldMetadata")
+                    throw new Exception("Invalid world data!");
 
-                    if (doc.Name != "WorldMetadata")
-                        throw new Exception("Invalid world data!");
+                Metadata = new Metadata(doc.Data, doc.Version);
 
-                    Metadata = new Metadata(doc.Data, doc.Version);
-
-                    return Metadata;
-
-                }
+                return Metadata;
 
             }
 

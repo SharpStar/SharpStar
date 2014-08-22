@@ -125,13 +125,13 @@ namespace SharpStar.Lib
                 ipe = new IPEndPoint(IPAddress.Parse(Config.ConfigFile.SharpStarBind), Config.ConfigFile.ListenPort);
             }
 
+            PluginManager = new PluginManager();
+            PluginManager.LoadPlugins();
+
             Server.Start(ipe);
 
             UDPServer = new StarboundUDPServer();
             UDPServer.Start();
-
-            PluginManager = new PluginManager();
-            PluginManager.LoadPlugins();
 
             if (Config.ConfigFile.AutoUpdatePlugins)
             {

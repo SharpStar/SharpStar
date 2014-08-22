@@ -41,6 +41,9 @@
   <PropertyGroup>
     <ApplicationIcon>Resources\SharpStar.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Jint">
       <HintPath>..\Lib\Jint.dll</HintPath>
@@ -87,6 +90,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="app.manifest" />
     <None Include="packages.config" />
     <None Include="Resources\SharpStar.png" />
   </ItemGroup>

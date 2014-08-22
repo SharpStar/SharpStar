@@ -40,9 +40,8 @@ namespace SharpStar.Lib.Packets
 
         public override void Read(IStarboundStream stream)
         {
-            int discarded;
             Success = stream.ReadBoolean();
-            ClientId = stream.ReadVLQ(out discarded);
+            ClientId = stream.ReadVLQ();
             RejectionReason = stream.ReadString();
 
             Unknown = new byte[stream.Length - stream.Position];

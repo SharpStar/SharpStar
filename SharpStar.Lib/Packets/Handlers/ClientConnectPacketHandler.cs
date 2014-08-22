@@ -37,6 +37,7 @@ namespace SharpStar.Lib.Packets.Handlers
                 {
                     SharpStarLogger.DefaultLogger.Info("Duplicate UUID ({0}) detected. Killing old client!", uuid);
                     p.PlayerClient.ForceDisconnect();
+                    p.ServerClient.ForceDisconnect();
                 });
 
                 client.Server.Player = new StarboundPlayer(packet.PlayerName, uuid)

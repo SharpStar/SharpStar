@@ -44,13 +44,11 @@ namespace SharpStar.Lib.Packets
 
         public override void Read(IStarboundStream stream)
         {
-            int discarded;
-
-            CauseEntityId = stream.ReadSignedVLQ(out discarded);
-            TargetEntityId = stream.ReadSignedVLQ(out discarded);
-            PositionX = stream.ReadSignedVLQ(out discarded) / 100;
-            PositionY = stream.ReadSignedVLQ(out discarded) / 100;
-            Damage = stream.ReadSignedVLQ(out discarded) / 100;
+            CauseEntityId = stream.ReadSignedVLQ();
+            TargetEntityId = stream.ReadSignedVLQ();
+            PositionX = stream.ReadSignedVLQ() / 100;
+            PositionY = stream.ReadSignedVLQ() / 100;
+            Damage = stream.ReadSignedVLQ() / 100;
             DamageKind = stream.ReadUInt8();
             DamageSourceKind = stream.ReadString();
             TargetMaterialKind = stream.ReadString();

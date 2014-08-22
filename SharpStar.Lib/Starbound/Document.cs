@@ -67,19 +67,12 @@ namespace SharpStar.Lib.Starbound
 
             var documents = new List<Document>();
 
-            using (MemoryStream ms = new MemoryStream(data))
+            using (StarboundStream ss = new StarboundStream(data))
             {
+                int len = (int)VLQ.ReadVLQ(ss, out discarded);
 
-                using (StarboundStream ss = new StarboundStream(ms))
-                {
-
-                    int len = (int)VLQ.ReadVLQ(ms, out discarded);
-
-
-                    for (int i = 0; i < len; i++)
-                        documents.Add(FromStream(ss));
-
-                }
+                for (int i = 0; i < len; i++)
+                    documents.Add(FromStream(ss));
 
             }
 

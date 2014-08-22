@@ -33,8 +33,7 @@ namespace SharpStar.Lib.Packets
 
         public override void Read(IStarboundStream stream)
         {
-            int discarded;
-            Time = stream.ReadSignedVLQ(out discarded);
+            Time = stream.ReadSignedVLQ();
         }
 
         public override void Write(IStarboundStream stream)

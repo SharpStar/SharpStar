@@ -28,9 +28,7 @@ namespace SharpStar.Lib.Packets
 
         public override void Read(IStarboundStream stream)
         {
-            int discarded;
-
-            EntityId = stream.ReadSignedVLQ(out discarded);
+            EntityId = stream.ReadSignedVLQ();
         }
 
         public override void Write(IStarboundStream stream)

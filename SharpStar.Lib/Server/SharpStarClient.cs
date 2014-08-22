@@ -224,13 +224,11 @@ namespace SharpStar.Lib.Server
                     if (next.Ignore)
                         continue;
 
-                    var memoryStream = new MemoryStream();
-
-                    var stream = new StarboundStream(memoryStream);
+                    var stream = new StarboundStream();
                     next.Write(stream);
-                    byte[] buffer = memoryStream.ToArray();
-
-                    memoryStream.Dispose();
+                    byte[] buffer = stream.ToArray();
+                    
+                    stream.Dispose();
 
                     int length = buffer.Length;
 
@@ -245,16 +243,14 @@ namespace SharpStar.Lib.Server
                         }
                     }
 
-                    var finalMemStream = new MemoryStream();
-                    var finalStream = new StarboundStream(finalMemStream);
+                    var finalStream = new StarboundStream();
 
                     finalStream.WriteUInt8(next.PacketId);
                     finalStream.WriteSignedVLQ(length);
                     finalStream.Write(buffer, 0, buffer.Length);
 
-                    byte[] toSend = finalMemStream.ToArray();
+                    byte[] toSend = finalStream.ToArray();
 
-                    stream.Dispose();
                     finalStream.Dispose();
 
                     var token = new AsyncUserToken();
@@ -288,7 +284,7 @@ namespace SharpStar.Lib.Server
             {
                 try
                 {
-                    token.Socket.Shutdown(SocketShutdown.Send);
+                    token.Socket.Shutdown(SocketShutdown.Both);
 
                     if (ClientDisconnected != null && Connected)
                         ClientDisconnected(this, new ClientDisconnectedEventArgs(this));
@@ -299,9 +295,10 @@ namespace SharpStar.Lib.Server
                 finally
                 {
                     Interlocked.CompareExchange(ref connected, Convert.ToInt32(false), Convert.ToInt32(true));
-                }
 
-                token.Socket.Close();
+                    if (token.Socket != null)
+                        token.Socket.Close();
+                }
             }
         }
 

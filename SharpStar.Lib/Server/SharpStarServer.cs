@@ -216,9 +216,18 @@ namespace SharpStar.Lib.Server
                     e.Client.Server.PlayerClient.ForceDisconnect();
 
                 e.Client.Dispose();
+
+                if (e.Client.Server != null)
+                    e.Client.Server.Dispose();
+
             }
             catch
             {
+            }
+            finally
+            {
+                e.Client.Server = null;
+                e.Client = null;
             }
 
         }

@@ -502,16 +502,5 @@ namespace SharpStar.Lib.Networking
 
         }
 
-        protected override void Dispose(bool disposing)
-        {
-
-            base.Dispose(disposing);
-
-            if (disposing)
-            {
-            }
-
-        }
-
     }
 }

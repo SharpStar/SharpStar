@@ -44,7 +44,6 @@ namespace SharpStar.Lib.Packets.Handlers
                 {
                     Claim = packet.Claim,
                     Species = packet.Species,
-                    ShipWorld = packet.Shipworld,
                     AssetDigest = packet.AssetDigest,
                     OnOwnShip = true
                 };

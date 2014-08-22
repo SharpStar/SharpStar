@@ -13,6 +13,8 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+using System;
 using System.Collections.Generic;
 using SharpStar.Lib.Database;
 using SharpStar.Lib.DataTypes;
@@ -22,7 +24,7 @@ namespace SharpStar.Lib.Entities
     /// <summary>
     /// Represents a player in Starbound
     /// </summary>
-    public class StarboundPlayer
+    public class StarboundPlayer : IDisposable
     {
 
         /// <summary>
@@ -49,11 +51,6 @@ namespace SharpStar.Lib.Entities
         /// The player's species
         /// </summary>
         public string Species { get; set; }
-
-        /// <summary>
-        /// Shipworld data
-        /// </summary>
-        public byte[] ShipWorld { get; set; }
 
         public string AssetDigest { get; set; }
 
@@ -183,6 +180,30 @@ namespace SharpStar.Lib.Entities
 
             return perm != null && perm.Allowed;
 
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+            }
+
+            Claim = null;
+            UserAccount = null;
+            Coordinates = null;
+            HomeCoordinates = null;
+        }
+
+        ~StarboundPlayer()
+        {
+            Dispose(false);
         }
 
     }

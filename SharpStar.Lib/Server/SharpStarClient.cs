@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -39,11 +42,15 @@ namespace SharpStar.Lib.Server
 
         public event EventHandler<PacketEventArgs> PacketReceived;
 
+        public event EventHandler<PacketEventArgs> AfterPacketReceived;
+
         public event EventHandler<PacketEventArgs> SendingPacket;
 
         public event EventHandler<ClientDisconnectedEventArgs> ClientDisconnected;
 
         public ConcurrentQueue<IPacket> PacketQueue { get; set; }
+
+        private IDisposable heartbeatChecker;
 
         private int connected;
 
@@ -60,6 +67,13 @@ namespace SharpStar.Lib.Server
             this.readEventArgs = eventArgs;
             this.readEventArgs.Completed += IO_Completed;
             this.Direction = dir;
+
+            if (Direction == Direction.Client)
+            {
+                var afterPacket = Observable.FromEventPattern<PacketEventArgs>(p => AfterPacketReceived += p, p => AfterPacketReceived -= p);
+                var heartbeatPacket = (from p in afterPacket where p.EventArgs.Packet.PacketId == (int)KnownPacket.Heartbeat select p).Timeout(TimeSpan.FromSeconds(10));
+                heartbeatChecker = heartbeatPacket.Subscribe(e => { }, e => ForceDisconnect(), () => { });
+            }
 
             PacketReader = new PacketReader();
             PacketQueue = new ConcurrentQueue<IPacket>();
@@ -131,6 +145,9 @@ namespace SharpStar.Lib.Server
                             if (packet.PacketId == handler.PacketId)
                                 handler.HandleAfter(packet, this);
                         }
+
+                        if (AfterPacketReceived != null)
+                            AfterPacketReceived(this, new PacketEventArgs(this, packet));
 
                         SharpStarMain.Instance.PluginManager.CallEvent(packet, OtherClient, true);
                     }
@@ -227,7 +244,7 @@ namespace SharpStar.Lib.Server
                     var stream = new StarboundStream();
                     next.Write(stream);
                     byte[] buffer = stream.ToArray();
-                    
+
                     stream.Dispose();
 
                     int length = buffer.Length;
@@ -370,8 +387,10 @@ namespace SharpStar.Lib.Server
             if (disposing)
             {
                 readEventArgs.Dispose();
+                heartbeatChecker.Dispose();
             }
 
+            heartbeatChecker = null;
             Socket = null;
             readEventArgs = null;
 

@@ -36,7 +36,7 @@ namespace SharpStar.Lib.Packets
         private List<byte> PacketBuffer = new List<byte>();
 
         private long WorkingLength = long.MaxValue;
-        private int DataIndex = 0;
+        private int DataIndex;
         private bool Compressed;
 
         private byte _packetId;
@@ -45,6 +45,7 @@ namespace SharpStar.Lib.Packets
         {
             NetworkBuffer = new ArraySegment<byte>();
             Compressed = false;
+            DataIndex = 0;
         }
 
         static PacketReader()
@@ -96,7 +97,6 @@ namespace SharpStar.Lib.Packets
             {
                 PacketBuffer.AddRange(NetworkBuffer);
             }
-
 
             using (StarboundStream s = new StarboundStream(PacketBuffer.ToArray()))
             {
@@ -206,6 +206,7 @@ namespace SharpStar.Lib.Packets
         {
             if (disposing)
             {
+                PacketBuffer.Clear();
             }
 
             PacketBuffer = null;

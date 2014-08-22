@@ -11,7 +11,7 @@ using SharpStar.Lib.Packets.Handlers;
 
 namespace SharpStar.Lib.Server
 {
-    public sealed class SharpStarServerClient
+    public class SharpStarServerClient : IDisposable
     {
 
         public DateTime ConnectionTime { get; set; }
@@ -103,6 +103,25 @@ namespace SharpStar.Lib.Server
 
             e.Dispose();
 
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Player.Dispose();
+                PacketHandlers.Clear();
+            }
+
+            PacketHandlers = null;
+            Player = null;
         }
 
     }

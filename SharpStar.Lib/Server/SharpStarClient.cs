@@ -46,6 +46,8 @@ namespace SharpStar.Lib.Server
 
         public event EventHandler<PacketEventArgs> SendingPacket;
 
+        internal event EventHandler<ClientDisconnectedEventArgs> InternalClientDisconnected;
+
         public event EventHandler<ClientDisconnectedEventArgs> ClientDisconnected;
 
         public ConcurrentQueue<IPacket> PacketQueue { get; set; }
@@ -125,8 +127,10 @@ namespace SharpStar.Lib.Server
 
                     try
                     {
-                        if (PacketReceived != null)
-                            PacketReceived(this, new PacketEventArgs(this, packet));
+
+                        EventHandler<PacketEventArgs> packetArgs = PacketReceived;
+                        if (packetArgs != null)
+                            packetArgs(this, new PacketEventArgs(this, packet));
 
                         var handlers = Server.PacketHandlers;
 
@@ -147,8 +151,9 @@ namespace SharpStar.Lib.Server
                                 handler.HandleAfter(packet, this);
                         }
 
-                        if (AfterPacketReceived != null)
-                            AfterPacketReceived(this, new PacketEventArgs(this, packet));
+                        EventHandler<PacketEventArgs> afterPacketArgs = AfterPacketReceived;
+                        if (afterPacketArgs != null)
+                            afterPacketArgs(this, new PacketEventArgs(this, packet));
 
                         SharpStarMain.Instance.PluginManager.CallEvent(packet, OtherClient, true);
                     }
@@ -306,6 +311,9 @@ namespace SharpStar.Lib.Server
 
                     if (ClientDisconnected != null && Connected)
                         ClientDisconnected(this, new ClientDisconnectedEventArgs(this));
+
+                    if (InternalClientDisconnected != null && Connected)
+                        InternalClientDisconnected(this, new ClientDisconnectedEventArgs(this));
                 }
                 catch (Exception)
                 {

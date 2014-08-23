@@ -43,6 +43,9 @@ namespace SharpStar.Lib.Config
         [JsonProperty("maxPlayers")]
         public int MaxPlayers { get; set; }
 
+        [JsonProperty("maxPlayersRejectReason")]
+        public string MaxPlayerRejectionReason { get; set; }
+
         [JsonProperty("showDebug")]
         public bool ShowDebug { get; set; }
 
@@ -65,6 +68,7 @@ namespace SharpStar.Lib.Config
             RequireAccountLoginError = "You must have a registered account in order to access this server!";
             ShowDebug = false;
             MaxPlayers = 100;
+            MaxPlayerRejectionReason = "This server has reached the maximum player limit! Please try again later.";
             AutoUpdatePlugins = true;
             StarboundBind = null;
             SharpStarBind = "*";

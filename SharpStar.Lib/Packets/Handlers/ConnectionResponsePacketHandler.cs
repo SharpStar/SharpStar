@@ -27,6 +27,12 @@ namespace SharpStar.Lib.Packets.Handlers
         {
             if (packet.IsReceive)
             {
+                if (SharpStarMain.Instance.Server.Clients.Count > SharpStarMain.Instance.Config.ConfigFile.MaxPlayers)
+                {
+                    packet.Success = false;
+                    packet.RejectionReason = SharpStarMain.Instance.Config.ConfigFile.MaxPlayerRejectionReason;
+                }
+
                 if (client.Server.Player == null)
                 {
                     return;

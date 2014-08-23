@@ -163,7 +163,7 @@ namespace SharpStar.Lib.Server
             try
             {
                 SharpStarClient client = new SharpStarClient(readEventArgs, Direction.Client);
-                client.ClientDisconnected += PlayerClient_ClientDisconnected;
+                client.InternalClientDisconnected += PlayerClient_ClientDisconnected;
 
                 SharpStarServerClient ssc = new SharpStarServerClient(client);
                 ssc.SClientConnected += ssc_SClientConnected;
@@ -191,7 +191,7 @@ namespace SharpStar.Lib.Server
             if (ClientConnected != null)
                 ClientConnected(this, new ClientConnectedEventArgs(ssc.PlayerClient));
 
-            ssc.ServerClient.ClientDisconnected += ServerClient_ClientDisconnected;
+            ssc.ServerClient.InternalClientDisconnected += ServerClient_ClientDisconnected;
         }
 
         private void ServerClient_ClientDisconnected(object sender, ClientDisconnectedEventArgs e)

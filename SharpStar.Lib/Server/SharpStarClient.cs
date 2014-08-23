@@ -119,9 +119,8 @@ namespace SharpStar.Lib.Server
             {
 
                 PacketReader.NetworkBuffer = new ArraySegment<byte>(e.Buffer, e.Offset, e.BytesTransferred);
-                List<IPacket> packets = PacketReader.UpdateBuffer(true);
 
-                foreach (IPacket packet in packets)
+                foreach (IPacket packet in PacketReader.UpdateBuffer(true))
                 {
 
                     try
@@ -129,7 +128,9 @@ namespace SharpStar.Lib.Server
                         if (PacketReceived != null)
                             PacketReceived(this, new PacketEventArgs(this, packet));
 
-                        foreach (IPacketHandler handler in Server.PacketHandlers)
+                        var handlers = Server.PacketHandlers;
+
+                        foreach (IPacketHandler handler in handlers)
                         {
                             if (packet.PacketId == handler.PacketId)
                                 handler.Handle(packet, this);
@@ -140,7 +141,7 @@ namespace SharpStar.Lib.Server
                         if (!packet.Ignore)
                             OtherClient.SendPacket(packet);
 
-                        foreach (IPacketHandler handler in Server.PacketHandlers)
+                        foreach (IPacketHandler handler in handlers)
                         {
                             if (packet.PacketId == handler.PacketId)
                                 handler.HandleAfter(packet, this);

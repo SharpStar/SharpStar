@@ -26,25 +26,37 @@ namespace SharpStar.Lib.Server
 
         public event EventHandler<ClientConnectedEventArgs> SClientConnected;
 
-        public List<IPacketHandler> PacketHandlers { get; private set; }
+        private List<IPacketHandler> _packetHandlers;
+
+        public List<IPacketHandler> PacketHandlers
+        {
+            get
+            {
+
+                if (_packetHandlers == null)
+                    _packetHandlers = new List<IPacketHandler>();
+
+                return _packetHandlers;
+            }
+        }
 
         public SharpStarServerClient(SharpStarClient plrClient)
         {
             PlayerClient = plrClient;
             PlayerClient.Server = this;
 
-            PacketHandlers = new List<IPacketHandler>();
+            _packetHandlers = new List<IPacketHandler>();
         }
 
         public void RegisterPacketHandler(IPacketHandler handler)
         {
             if (PacketHandlers.All(p => p.GetType() != handler.GetType()))
-                PacketHandlers.Add(handler);
+                _packetHandlers.Add(handler);
         }
 
         public void UnregisterPacketHandler(IPacketHandler handler)
         {
-            PacketHandlers.Remove(handler);
+            _packetHandlers.Remove(handler);
         }
 
 
@@ -122,7 +134,7 @@ namespace SharpStar.Lib.Server
                 PacketHandlers.Clear();
             }
 
-            PacketHandlers = null;
+            _packetHandlers = null;
             Player = null;
         }
 

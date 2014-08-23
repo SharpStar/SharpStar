@@ -90,77 +90,80 @@ namespace SharpStar.Lib.Packets
             RegisteredPacketTypes.Add(id, Expression.Lambda<Func<IPacket>>(Expression.New(packetType)).Compile());
         }
 
-        public List<IPacket> UpdateBuffer(bool shouldCopy)
+        public IEnumerable<IPacket> UpdateBuffer(bool shouldCopy)
         {
             if (shouldCopy)
             {
                 PacketBuffer.AddRange(NetworkBuffer);
             }
 
-            using (StarboundStream s = new StarboundStream(PacketBuffer.ToArray()))
+            Queue<byte[]> toProcess = new Queue<byte[]>();
+            toProcess.Enqueue(PacketBuffer.ToArray());
+
+            while (toProcess.Count > 0)
             {
-                if (WorkingLength == long.MaxValue && s.Length > 1)
+
+                byte[] arr = toProcess.Dequeue();
+
+                using (StarboundStream s = new StarboundStream(arr))
                 {
-                    _packetId = s.ReadUInt8();
-
-                    try
+                    if (WorkingLength == long.MaxValue && s.Length > 1)
                     {
-                        WorkingLength = s.ReadSignedVLQ();
-                    }
-                    catch
-                    {
-                        WorkingLength = long.MaxValue;
+                        _packetId = s.ReadUInt8();
 
-                        return new List<IPacket>();
-                    }
+                        try
+                        {
+                            WorkingLength = s.ReadSignedVLQ();
+                        }
+                        catch
+                        {
+                            WorkingLength = long.MaxValue;
 
-                    DataIndex = (int)s.Position;
+                            yield break;
+                        }
 
-                    Compressed = WorkingLength < 0;
+                        DataIndex = (int)s.Position;
 
-                    if (Compressed)
-                        WorkingLength = -WorkingLength;
-                }
+                        Compressed = WorkingLength < 0;
 
-                if (WorkingLength != long.MaxValue)
-                {
-
-                    if (PacketBuffer.Count >= WorkingLength + DataIndex)
-                    {
-
-                        if (s.Position != DataIndex)
-                            s.Seek(DataIndex, SeekOrigin.Begin);
-
-                        
-                        byte[] data = s.ReadUInt8Array((int)WorkingLength);
-                        
                         if (Compressed)
+                            WorkingLength = -WorkingLength;
+                    }
+
+                    if (WorkingLength != long.MaxValue)
+                    {
+
+                        if (s.Length >= WorkingLength + DataIndex)
                         {
-                            data = ZlibStream.UncompressBuffer(data);
+
+                            if (s.Position != DataIndex)
+                                s.Seek(DataIndex, SeekOrigin.Begin);
+
+                            byte[] data = s.ReadUInt8Array((int)WorkingLength);
+
+                            if (Compressed)
+                            {
+                                data = ZlibStream.UncompressBuffer(data);
+                            }
+
+                            IPacket packet = Decode(_packetId, data);
+
+                            WorkingLength = long.MaxValue;
+
+                            byte[] rest = s.ReadToEnd();
+                            PacketBuffer = rest.ToList();
+
+                            if (rest.Length > 0)
+                                toProcess.Enqueue(rest);
+
+                            yield return packet;
                         }
 
-                        var packets = new List<IPacket>();
-
-                        packets.Add(Decode(_packetId, data));
-
-                        var rest = s.ReadToEnd().ToList();
-                        PacketBuffer = rest;
-
-                        WorkingLength = long.MaxValue;
-
-                        if (rest.Count > 0)
-                        {
-                            packets.AddRange(UpdateBuffer(false));
-                        }
-
-                        return packets;
                     }
 
                 }
 
             }
-
-            return new List<IPacket>();
 
         }
 

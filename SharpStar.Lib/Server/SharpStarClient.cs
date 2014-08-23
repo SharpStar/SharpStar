@@ -386,8 +386,11 @@ namespace SharpStar.Lib.Server
         {
             if (disposing)
             {
-                readEventArgs.Dispose();
-                heartbeatChecker.Dispose();
+                if (readEventArgs != null)
+                    readEventArgs.Dispose();
+
+                if (heartbeatChecker != null)
+                    heartbeatChecker.Dispose();
             }
 
             heartbeatChecker = null;

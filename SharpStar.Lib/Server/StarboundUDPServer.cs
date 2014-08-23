@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using SharpStar.Lib.Extensions;
 
 namespace SharpStar.Lib.Server
@@ -23,11 +25,19 @@ namespace SharpStar.Lib.Server
         private IPEndPoint sIpe;
         private IPEndPoint cIpe;
 
-        private bool running;
+        private int running;
+
+        public bool Running
+        {
+            get
+            {
+                return Convert.ToBoolean(running);
+            }
+        }
 
         public StarboundUDPServer()
         {
-            running = false;
+            running = Convert.ToInt32(false);
 
             string shBind = SharpStarMain.Instance.Config.ConfigFile.SharpStarBind;
 
@@ -54,90 +64,42 @@ namespace SharpStar.Lib.Server
         {
             Stop();
 
-            running = true;
+            Interlocked.CompareExchange(ref running, Convert.ToInt32(true), Convert.ToInt32(false));
 
             sIpe = new IPEndPoint(sharpStarBind, listenPort);
             cIpe = new IPEndPoint(starboundBind, serverPort);
 
             udpClient.Connect(cIpe);
 
-            StartReceive();
+            Task.Run(async () =>
+            {
+                while (Running)
+                {
+                    try
+                    {
+                        UdpReceiveResult result = await udpServer.ReceiveAsync();
 
-        }
+                        byte[] buffer = result.Buffer;
 
-        private void StartReceive()
-        {
-            try
-            {
-                udpServer.BeginReceive(Receive, null);
-            }
-            catch (Exception)
-            {
-                StartReceive();
-            }
-        }
+                        await udpClient.SendAsync(buffer, buffer.Length);
 
-        private void Receive(IAsyncResult iar)
-        {
-            try
-            {
-                byte[] data = udpServer.EndReceive(iar, ref sIpe);
+                        UdpReceiveResult result2 = await udpClient.ReceiveAsync();
 
-                udpClient.BeginSend(data, data.Length, Send, null);
-            }
-            catch
-            {
-                StartReceive();
-            }
-        }
+                        byte[] buffer2 = result2.Buffer;
 
-        private void Send(IAsyncResult iar)
-        {
-            try
-            {
-                udpClient.EndSend(iar);
+                        await udpServer.SendAsync(buffer2, buffer2.Length);
+                    }
+                    catch
+                    {
+                    }
+                }
+            });
 
-                udpClient.BeginReceive(Receive2, null);
-
-            }
-            catch
-            {
-                StartReceive();
-            }
-        }
-
-        private void Receive2(IAsyncResult iar)
-        {
-            try
-            {
-                byte[] data = udpClient.EndReceive(iar, ref cIpe);
-
-                udpServer.BeginSend(data, data.Length, sIpe, Send2, null);
-            }
-            catch
-            {
-                StartReceive();
-            }
-        }
-
-        private void Send2(IAsyncResult iar)
-        {
-            try
-            {
-                udpClient.EndSend(iar);
-            }
-            catch
-            {
-            }
-            finally
-            {
-                StartReceive();
-            }
         }
 
         public void Stop()
         {
-            running = false;
+            Interlocked.CompareExchange(ref running, Convert.ToInt32(false), Convert.ToInt32(true));
         }
     }
 }

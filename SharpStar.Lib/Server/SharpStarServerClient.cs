@@ -62,7 +62,7 @@ namespace SharpStar.Lib.Server
             token.Socket.ConnectAsync(connectArgs);
 
             SocketError errorCode = connectArgs.SocketError;
-            
+
             if (errorCode != SocketError.Success)
             {
                 new SocketException((int)errorCode).LogError();
@@ -116,7 +116,9 @@ namespace SharpStar.Lib.Server
         {
             if (disposing)
             {
-                Player.Dispose();
+                if (Player != null)
+                    Player.Dispose();
+                
                 PacketHandlers.Clear();
             }
 

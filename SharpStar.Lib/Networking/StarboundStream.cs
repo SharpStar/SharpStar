@@ -30,11 +30,6 @@ namespace SharpStar.Lib.Networking
     /// </summary>
     public class StarboundStream : MemoryStream, IStarboundStream
     {
-        //public StarboundStream(Stream baseStream)
-        //{
-        //    BaseStream = baseStream;
-        //    StringEncoding = Encoding.UTF8;
-        //}
 
         public StarboundStream()
         {
@@ -48,7 +43,6 @@ namespace SharpStar.Lib.Networking
         }
 
         public Encoding StringEncoding { get; set; }
-
         
         public byte ReadUInt8()
         {
@@ -369,6 +363,14 @@ namespace SharpStar.Lib.Networking
             WriteUInt8(value ? (byte)1 : (byte)0);
         }
 
+        public byte[] ReadToEnd()
+        {
+            byte[] buffer = new byte[Length - Position];
+            Read(buffer, 0, buffer.Length);
+
+            return buffer;
+        }
+
         public void WriteVLQ(ulong value)
         {
             var buffer = CreateVLQ(value);
@@ -383,7 +385,6 @@ namespace SharpStar.Lib.Networking
 
         public ulong ReadVLQ()
         {
-
             ulong value = 0L;
             while (true)
             {
@@ -398,19 +399,16 @@ namespace SharpStar.Lib.Networking
             }
 
             return value;
-
         }
 
         public long ReadSignedVLQ()
         {
-
             ulong value = ReadVLQ();
 
             if ((value & 1) == 0x00)
                 return (long)value >> 1;
 
             return -((long)(value >> 1) + 1);
-
         }
 
         public string ReadString()
@@ -460,46 +458,34 @@ namespace SharpStar.Lib.Networking
 
         public static byte[] CreateVLQ(ulong value)
         {
-
-            var result = new List<byte>();
+            var result = new Stack<byte>();
 
             if (value == 0)
-                result.Add(0);
+                result.Push(0);
 
             while (value > 0)
             {
-
                 byte tmp = (byte)(value & 0x7f);
 
                 value >>= 7;
 
-                if (value != 0)
+                if (result.Count > 0)
                     tmp |= 0x80;
 
-                result.Insert(0, tmp);
-
-            }
-
-            if (result.Count > 1)
-            {
-                result[0] |= 0x80;
-                result[result.Count - 1] ^= 0x80;
+                result.Push(tmp);
             }
 
             return result.ToArray();
-
         }
 
         public static byte[] CreateSignedVLQ(long value)
         {
-
             long result = Math.Abs(value * 2);
 
             if (value < 0)
                 result -= 1;
 
             return CreateVLQ((ulong)result);
-
         }
 
     }

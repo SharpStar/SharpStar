@@ -15,7 +15,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -125,10 +124,16 @@ namespace SharpStar.Lib.Packets
 
                 if (WorkingLength != long.MaxValue)
                 {
+
                     if (PacketBuffer.Count >= WorkingLength + DataIndex)
                     {
-                        byte[] data = PacketBuffer.Skip(DataIndex).Take((int)WorkingLength).ToArray();
 
+                        if (s.Position != DataIndex)
+                            s.Seek(DataIndex, SeekOrigin.Begin);
+
+                        
+                        byte[] data = s.ReadUInt8Array((int)WorkingLength);
+                        
                         if (Compressed)
                         {
                             data = ZlibStream.UncompressBuffer(data);
@@ -138,12 +143,12 @@ namespace SharpStar.Lib.Packets
 
                         packets.Add(Decode(_packetId, data));
 
-                        var rest = PacketBuffer.Skip((int)(DataIndex + WorkingLength)).ToList();
+                        var rest = s.ReadToEnd().ToList();
                         PacketBuffer = rest;
 
                         WorkingLength = long.MaxValue;
 
-                        if (rest.Any())
+                        if (rest.Count > 0)
                         {
                             packets.AddRange(UpdateBuffer(false));
                         }
@@ -161,7 +166,7 @@ namespace SharpStar.Lib.Packets
 
         public IPacket Decode(byte packetId, byte[] payload)
         {
-            var stream = new StarboundStream(payload);
+            StarboundStream stream = new StarboundStream(payload);
 
             IPacket packet;
 

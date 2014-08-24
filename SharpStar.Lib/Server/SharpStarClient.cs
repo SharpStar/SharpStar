@@ -16,6 +16,7 @@ using Ionic.Zlib;
 using SharpStar.Lib.DataTypes;
 using SharpStar.Lib.Entities;
 using SharpStar.Lib.Extensions;
+using SharpStar.Lib.Logging;
 using SharpStar.Lib.Networking;
 using SharpStar.Lib.Packets;
 using SharpStar.Lib.Packets.Handlers;
@@ -70,13 +71,6 @@ namespace SharpStar.Lib.Server
             this.readEventArgs.Completed += IO_Completed;
             this.Direction = dir;
 
-            if (Direction == Direction.Client)
-            {
-                var afterPacket = Observable.FromEventPattern<PacketEventArgs>(p => AfterPacketReceived += p, p => AfterPacketReceived -= p);
-                var heartbeatPacket = (from p in afterPacket where p.EventArgs.Packet.PacketId == (int)KnownPacket.Heartbeat select p).Timeout(TimeSpan.FromSeconds(10));
-                heartbeatChecker = heartbeatPacket.Subscribe(e => { }, e => ForceDisconnect(), () => { });
-            }
-
             PacketReader = new PacketReader();
             PacketQueue = new ConcurrentQueue<IPacket>();
         }
@@ -89,6 +83,22 @@ namespace SharpStar.Lib.Server
 
             Socket = token.Socket;
             RemoteEndPoint = (IPEndPoint)Socket.RemoteEndPoint;
+
+            if (Direction == Direction.Client)
+            {
+                var afterPacket = Observable.FromEventPattern<PacketEventArgs>(p => AfterPacketReceived += p, p => AfterPacketReceived -= p);
+                var heartbeatPacket = (from p in afterPacket where p.EventArgs.Packet.PacketId == (int)KnownPacket.Heartbeat select p).Timeout(TimeSpan.FromSeconds(15));
+                heartbeatChecker = heartbeatPacket.Subscribe(e => { }, e =>
+                {
+                    if (Server != null && Server.Player != null)
+                        SharpStarLogger.DefaultLogger.Warn("Did not receive a heartbeat packet in a certain amount of time from player {0}. Kicking client!", Server.Player.Name);
+                    else
+                        SharpStarLogger.DefaultLogger.Warn("Did not receive a heartbeat packet in a certain amount of time. Kicking client!");
+
+                    ForceDisconnect();
+                    OtherClient.ForceDisconnect();
+                }, () => { });
+            }
 
             bool willRaiseEvent = token.Socket.ReceiveAsync(readEventArgs);
 
@@ -127,6 +137,9 @@ namespace SharpStar.Lib.Server
 
                     try
                     {
+
+                        if (Server == null)
+                            break;
 
                         EventHandler<PacketEventArgs> packetArgs = PacketReceived;
                         if (packetArgs != null)

@@ -254,7 +254,7 @@ namespace SharpStar.Lib.Plugins
 
         public void CallEvent(IPacket packet, SharpStarClient client, bool isAfter = false)
         {
-            foreach (ICSPlugin csPlugin in _csPlugins.Values)
+            foreach (ICSPlugin csPlugin in _csPlugins.Values.ToList())
             {
                 csPlugin.OnEventOccurred(packet, client, isAfter);
             }

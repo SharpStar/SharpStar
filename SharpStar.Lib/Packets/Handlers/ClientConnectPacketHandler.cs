@@ -18,6 +18,7 @@ using System.Linq;
 using SharpStar.Lib.Database;
 using SharpStar.Lib.Entities;
 using SharpStar.Lib.Logging;
+using SharpStar.Lib.Misc;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
@@ -40,7 +41,7 @@ namespace SharpStar.Lib.Packets.Handlers
                     p.ServerClient.ForceDisconnect();
                 });
 
-                client.Server.Player = new StarboundPlayer(packet.PlayerName, uuid)
+                client.Server.Player = new StarboundPlayer(packet.PlayerName.StripColors(), uuid)
                 {
                     Claim = packet.Claim,
                     Species = packet.Species,

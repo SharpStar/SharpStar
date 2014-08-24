@@ -32,7 +32,6 @@ namespace SharpStar.Lib.Server
         {
             get
             {
-
                 if (_packetHandlers == null)
                     _packetHandlers = new List<IPacketHandler>();
 

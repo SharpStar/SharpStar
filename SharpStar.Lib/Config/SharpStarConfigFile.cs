@@ -61,6 +61,9 @@ namespace SharpStar.Lib.Config
         [JsonProperty("allowedStarboundCommands")]
         public List<string> AllowedStarboundCommands { get; set; }
 
+        [JsonProperty("serverOfflineError")]
+        public string ServerOfflineError { get; set; }
+
         public SharpStarConfigFile()
         {
             EnableAccounts = true;
@@ -73,6 +76,7 @@ namespace SharpStar.Lib.Config
             StarboundBind = null;
             SharpStarBind = "*";
             AllowedStarboundCommands = new List<string>();
+            ServerOfflineError = "This server is currently offline! Please try again later.";
         }
 
     }

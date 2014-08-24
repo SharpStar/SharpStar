@@ -96,7 +96,9 @@ namespace SharpStar.Lib.Server
                         SharpStarLogger.DefaultLogger.Warn("Did not receive a heartbeat packet in a certain amount of time. Kicking client!");
 
                     ForceDisconnect();
-                    OtherClient.ForceDisconnect();
+
+                    if (OtherClient != null)
+                        OtherClient.ForceDisconnect();
                 }, () => { });
             }
 
@@ -155,7 +157,7 @@ namespace SharpStar.Lib.Server
 
                         SharpStarMain.Instance.PluginManager.CallEvent(packet, OtherClient);
 
-                        if (!packet.Ignore)
+                        if (!packet.Ignore && OtherClient != null)
                             OtherClient.SendPacket(packet);
 
                         foreach (IPacketHandler handler in handlers)

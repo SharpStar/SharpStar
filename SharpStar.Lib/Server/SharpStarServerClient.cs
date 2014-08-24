@@ -4,10 +4,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using SharpStar.Lib.Entities;
 using SharpStar.Lib.Extensions;
+using SharpStar.Lib.Misc;
+using SharpStar.Lib.Packets;
 using SharpStar.Lib.Packets.Handlers;
+using SharpStar.Lib.Security;
 
 namespace SharpStar.Lib.Server
 {
@@ -80,7 +86,7 @@ namespace SharpStar.Lib.Server
             }
         }
 
-        private void connectArgs_Completed(object sender, SocketAsyncEventArgs e)
+        private async void connectArgs_Completed(object sender, SocketAsyncEventArgs e)
         {
 
             if (e.SocketError == SocketError.Success)
@@ -109,7 +115,70 @@ namespace SharpStar.Lib.Server
             }
             else
             {
-                new SocketException((int)e.SocketError).LogError();
+
+                if (PlayerClient == null)
+                {
+                    new SocketException((int)e.SocketError).LogError();
+
+                    return;
+                }
+
+                var packetRecv = Observable.FromEventPattern<PacketEventArgs>(p => PlayerClient.PacketReceived += p, p => PlayerClient.PacketReceived -= p);
+                var clientConnPacket = (from p in packetRecv where p.EventArgs.Packet.PacketId == (int)KnownPacket.ClientConnect select p);
+                var subscribeConn = clientConnPacket.Subscribe(args =>
+                {
+
+                    args.EventArgs.Packet.Ignore = true;
+
+                    SharpStarClient client = args.EventArgs.Client;
+
+                    if (client != null)
+                    {
+                        client.SendPacket(new HandshakeChallengePacket
+                        {
+                            Claim = String.Empty,
+                            Rounds = 5000,
+                            Salt = SharpStarSecurity.GenerateSalt()
+                        });
+                    }
+
+                }, args => { }, () => { });
+
+                var handshakeRespPacket = (from p in packetRecv where p.EventArgs.Packet.PacketId == (int)KnownPacket.HandshakeResponse select p);
+                var subscribeHandshake = handshakeRespPacket.Subscribe(args =>
+                {
+
+                    SharpStarClient client = args.EventArgs.Client;
+
+                    args.EventArgs.Packet.Ignore = true;
+
+                    if (client != null)
+                    {
+                        client.SendPacket(new ConnectionResponsePacket
+                        {
+                            Success = false,
+                            RejectionReason = SharpStarMain.Instance.Config.ConfigFile.ServerOfflineError,
+                            ClientId = 1,
+                            Unknown = new byte[2]
+                        });
+                    }
+
+                }, args => { }, () => { });
+
+                PlayerClient.StartReceive();
+                PlayerClient.SendPacket(new ProtocolVersionPacket
+                {
+                    ProtocolVersion = StarboundConstants.ProtocolVersion
+                });
+
+                await Task.Run(() =>
+                {
+                    Thread.Sleep(5000);
+
+                    subscribeConn.Dispose();
+                    subscribeHandshake.Dispose();
+                });
+
             }
 
             e.Dispose();
@@ -129,7 +198,7 @@ namespace SharpStar.Lib.Server
             {
                 if (Player != null)
                     Player.Dispose();
-                
+
                 PacketHandlers.Clear();
             }
 

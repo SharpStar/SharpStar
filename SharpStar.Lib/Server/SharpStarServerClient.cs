@@ -137,7 +137,7 @@ namespace SharpStar.Lib.Server
                         client.SendPacket(new HandshakeChallengePacket
                         {
                             Claim = String.Empty,
-                            Rounds = 5000,
+                            Rounds = StarboundConstants.Rounds,
                             Salt = SharpStarSecurity.GenerateSalt()
                         });
                     }
@@ -158,8 +158,7 @@ namespace SharpStar.Lib.Server
                         {
                             Success = false,
                             RejectionReason = SharpStarMain.Instance.Config.ConfigFile.ServerOfflineError,
-                            ClientId = 1,
-                            Unknown = new byte[2]
+                            ClientId = 1
                         });
                     }
 

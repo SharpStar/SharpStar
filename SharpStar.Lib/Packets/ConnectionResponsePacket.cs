@@ -13,6 +13,9 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+using System.Collections.Generic;
+using SharpStar.Lib.Misc;
 using SharpStar.Lib.Networking;
 
 namespace SharpStar.Lib.Packets
@@ -31,11 +34,11 @@ namespace SharpStar.Lib.Packets
 
         public string RejectionReason { get; set; }
 
-        public byte[] Unknown { get; set; }
+        public List<CelestialInfo> CelestialInfos { get; set; }
 
         public ConnectionResponsePacket()
         {
-            Unknown = new byte[0];
+            CelestialInfos = new List<CelestialInfo>();
         }
 
         public override void Read(IStarboundStream stream)
@@ -43,10 +46,14 @@ namespace SharpStar.Lib.Packets
             Success = stream.ReadBoolean();
             ClientId = stream.ReadVLQ();
             RejectionReason = stream.ReadString();
+            CelestialInfos = new List<CelestialInfo>();
 
-            Unknown = new byte[stream.Length - stream.Position];
+            ulong length = stream.ReadVLQ();
 
-            stream.Read(Unknown, 0, (int) (stream.Length - stream.Position));
+            for (ulong i = 0; i < length; i++)
+            {
+                CelestialInfos.Add(CelestialInfo.FromStream(stream));
+            }
         }
 
         public override void Write(IStarboundStream stream)
@@ -54,7 +61,12 @@ namespace SharpStar.Lib.Packets
             stream.WriteBoolean(Success);
             stream.WriteVLQ(ClientId);
             stream.WriteString(RejectionReason);
-            stream.Write(Unknown, 0, Unknown.Length);
+            stream.WriteVLQ((ulong)CelestialInfos.Count);
+
+            foreach (CelestialInfo cInfo in CelestialInfos)
+            {
+                cInfo.WriteTo(stream);
+            }
         }
     }
 }

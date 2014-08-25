@@ -196,14 +196,6 @@ namespace SharpStar.Lib.Server
 
         private void ServerClient_ClientDisconnected(object sender, ClientDisconnectedEventArgs e)
         {
-            if (e.Client.Server.Player == null) //client was unable to connect to the Starbound server
-            {
-                if (e.Client.Server.PlayerClient.Connected)
-                {
-                    //TODO: Send rejection message
-                }
-
-            }
 
             if (e.Client.Server != null)
             {

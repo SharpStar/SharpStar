@@ -10,6 +10,7 @@ namespace SharpStar.Lib.Misc
     {
 
         public const int ProtocolVersion = 643;
+        public const int Rounds = 5000;
 
     }
 }

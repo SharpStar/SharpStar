@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
+using SharpStar.Lib.Misc;
 using SharpStar.Lib.Security;
 using SharpStar.Lib.Server;
 
@@ -30,7 +31,7 @@ namespace SharpStar.Lib.Packets.Handlers
 
                 if (client.Server.Player.UserAccount != null || !client.Server.Player.AttemptedLogin)
                 {
-                    client.Server.ServerClient.SendPacket(new HandshakeResponsePacket { PasswordHash = SharpStarSecurity.GenerateHash("", "", packet.Salt, 5000) });
+                    client.Server.ServerClient.SendPacket(new HandshakeResponsePacket { PasswordHash = SharpStarSecurity.GenerateHash("", "", packet.Salt, StarboundConstants.Rounds) });
                 }
                 else if (client.Server.Player.AttemptedLogin)
                 {

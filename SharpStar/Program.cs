@@ -61,6 +61,9 @@ namespace SharpStar
             {
                 string line = Console.ReadLine();
 
+                if (string.IsNullOrEmpty(line))
+                    continue;
+
                 string[] cmd = line.Split(' ');
 
                 if (cmd.Length == 0)

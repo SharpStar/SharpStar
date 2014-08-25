@@ -159,12 +159,14 @@
     <Compile Include="Extensions\SocketExtensions.cs" />
     <Compile Include="Extensions\StarboundClientExtensions.cs" />
     <Compile Include="Logging\SharpStarLogger.cs" />
+    <Compile Include="Misc\CelestialInfo.cs" />
     <Compile Include="Misc\DamageKind.cs" />
     <Compile Include="Misc\HitResultKind.cs" />
     <Compile Include="Misc\InteractAction.cs" />
     <Compile Include="Misc\OS.cs" />
     <Compile Include="Misc\Python.cs" />
     <Compile Include="Misc\LogSector.cs" />
+    <Compile Include="Misc\Sector.cs" />
     <Compile Include="Misc\StarboundColorHelper.cs" />
     <Compile Include="Misc\StarboundConstants.cs" />
     <Compile Include="Misc\StarboundItem.cs" />

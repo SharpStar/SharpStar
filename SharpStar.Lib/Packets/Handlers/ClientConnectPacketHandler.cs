@@ -43,6 +43,7 @@ namespace SharpStar.Lib.Packets.Handlers
 
                 client.Server.Player = new StarboundPlayer(packet.PlayerName.StripColors(), uuid)
                 {
+                    NameWithColor = packet.PlayerName,
                     Claim = packet.Claim,
                     Species = packet.Species,
                     AssetDigest = packet.AssetDigest,

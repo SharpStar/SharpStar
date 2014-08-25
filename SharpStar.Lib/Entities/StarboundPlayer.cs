@@ -30,7 +30,12 @@ namespace SharpStar.Lib.Entities
         /// <summary>
         /// The player's name
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; set; }
+
+        /// <summary>
+        /// The name of the player including the color tags (if any)
+        /// </summary>
+        public string NameWithColor { get; set; }
 
         /// <summary>
         /// The player's UUID

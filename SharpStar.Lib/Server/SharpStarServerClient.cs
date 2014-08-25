@@ -123,6 +123,8 @@ namespace SharpStar.Lib.Server
                     return;
                 }
 
+
+                //simulate the connection process so we can return an error back to the client
                 var packetRecv = Observable.FromEventPattern<PacketEventArgs>(p => PlayerClient.PacketReceived += p, p => PlayerClient.PacketReceived -= p);
                 var clientConnPacket = (from p in packetRecv where p.EventArgs.Packet.PacketId == (int)KnownPacket.ClientConnect select p);
                 var subscribeConn = clientConnPacket.Subscribe(args =>

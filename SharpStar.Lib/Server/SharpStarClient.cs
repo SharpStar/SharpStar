@@ -214,8 +214,10 @@ namespace SharpStar.Lib.Server
 
         public void SendPacket(IPacket packet)
         {
-            if (SendingPacket != null)
-                SendingPacket(this, new PacketEventArgs(this, packet));
+
+            EventHandler<PacketEventArgs> sendingPacket = SendingPacket;
+            if (sendingPacket != null)
+                sendingPacket(this, new PacketEventArgs(this, packet));
 
             PacketQueue.Enqueue(packet);
             FlushPackets();
@@ -357,7 +359,7 @@ namespace SharpStar.Lib.Server
 
         public void WarpTo(StarboundPlayer player)
         {
-            WarpTo(player.Name);
+            WarpTo(player.NameWithColor);
         }
 
         public void WarpUp()

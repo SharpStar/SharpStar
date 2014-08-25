@@ -89,7 +89,7 @@ namespace SharpStar.Lib.Server
         private async void connectArgs_Completed(object sender, SocketAsyncEventArgs e)
         {
 
-            if (e.SocketError == SocketError.Success)
+            if (e.SocketError == SocketError.Success && ((AsyncUserToken)e.UserToken).Socket.Connected)
             {
                 ConnectionTime = DateTime.Now;
 

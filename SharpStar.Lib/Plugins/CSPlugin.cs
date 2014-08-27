@@ -235,8 +235,7 @@ namespace SharpStar.Lib.Plugins
             if (isAfter && !_registeredAfterEvents.Contains(kp))
                 return;
 
-            var tasks = new List<Task>();
-
+            
             try
             {
 
@@ -246,11 +245,10 @@ namespace SharpStar.Lib.Plugins
 
                     if (t.Value != null)
                     {
-                        tasks.Add(Task.Run(() => t.Value(packet, client)));
+                        t.Value(packet, client);
                     }
                 }
 
-                Task.WaitAll(tasks.ToArray());
             }
             catch (Exception ex)
             {

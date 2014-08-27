@@ -55,13 +55,15 @@ namespace SharpStar.Lib.Server
 
         private IDisposable heartbeatChecker;
 
-        private int connected;
+        private readonly object closeLocker = new object();
+
+        private long connected;
 
         public bool Connected
         {
             get
             {
-                return Convert.ToBoolean(connected);
+                return Convert.ToBoolean(Interlocked.Read(ref connected));
             }
         }
 
@@ -70,7 +72,6 @@ namespace SharpStar.Lib.Server
             this.readEventArgs = eventArgs;
             this.readEventArgs.Completed += IO_Completed;
             this.Direction = dir;
-
             PacketReader = new PacketReader();
             PacketQueue = new ConcurrentQueue<IPacket>();
         }
@@ -311,36 +312,38 @@ namespace SharpStar.Lib.Server
             }
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
         private void CloseClientSocket(SocketAsyncEventArgs e)
         {
-
-            if (readEventArgs == null || Socket == null || (Socket != null && !Socket.Connected) || !Connected)
-                return;
-
-            AsyncUserToken token = e.UserToken as AsyncUserToken;
-
-            if (token != null)
+            lock (closeLocker)
             {
-                try
-                {
-                    token.Socket.Shutdown(SocketShutdown.Both);
 
-                    if (ClientDisconnected != null && Connected)
-                        ClientDisconnected(this, new ClientDisconnectedEventArgs(this));
+                if (readEventArgs == null || Socket == null || (Socket != null && !Socket.Connected) || !Connected)
+                    return;
 
-                    if (InternalClientDisconnected != null && Connected)
-                        InternalClientDisconnected(this, new ClientDisconnectedEventArgs(this));
-                }
-                catch (Exception)
-                {
-                }
-                finally
-                {
-                    Interlocked.CompareExchange(ref connected, Convert.ToInt32(false), Convert.ToInt32(true));
+                AsyncUserToken token = e.UserToken as AsyncUserToken;
 
-                    if (token.Socket != null)
-                        token.Socket.Close();
+                if (token != null)
+                {
+                    try
+                    {
+                        token.Socket.Shutdown(SocketShutdown.Both);
+
+                        if (ClientDisconnected != null && Connected)
+                            ClientDisconnected(this, new ClientDisconnectedEventArgs(this));
+
+                        if (InternalClientDisconnected != null && Connected)
+                            InternalClientDisconnected(this, new ClientDisconnectedEventArgs(this));
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    finally
+                    {
+                        Interlocked.CompareExchange(ref connected, Convert.ToInt32(false), Convert.ToInt32(true));
+
+                        if (token.Socket != null)
+                            token.Socket.Close();
+                    }
                 }
             }
         }

@@ -197,8 +197,10 @@ namespace SharpStar.Lib.Server
         private void ServerClient_ClientDisconnected(object sender, ClientDisconnectedEventArgs e)
         {
 
+            e.Client.InternalClientDisconnected -= ServerClient_ClientDisconnected;
+
             if (e.Client.Server != null)
-            {
+            { 
                 _clients.Remove(e.Client.Server);
             }
 
@@ -226,8 +228,12 @@ namespace SharpStar.Lib.Server
 
         void PlayerClient_ClientDisconnected(object sender, ClientDisconnectedEventArgs e)
         {
+
+            e.Client.InternalClientDisconnected -= PlayerClient_ClientDisconnected;
+
             if (e.Client.Server != null && e.Client.Server.PlayerClient != null)
             {
+
                 if (e.Client.Server.Player == null)
                 {
                     SharpStarLogger.DefaultLogger.Info("{0} has disconnected", e.Client.Server.PlayerClient.RemoteEndPoint);
@@ -267,18 +273,24 @@ namespace SharpStar.Lib.Server
 
         public void Stop()
         {
-            foreach (SharpStarServerClient ssc in _clients)
+            try
             {
-                ssc.PlayerClient.ForceDisconnect();
-                ssc.ServerClient.ForceDisconnect();
+                foreach (SharpStarServerClient ssc in _clients.ToList())
+                {
+                    ssc.PlayerClient.ForceDisconnect();
+                    ssc.ServerClient.ForceDisconnect();
 
-                ssc.PlayerClient.Dispose();
-                ssc.ServerClient.Dispose();
+                    ssc.PlayerClient.Dispose();
+                    ssc.ServerClient.Dispose();
+                }
+            }
+            catch
+            {
             }
 
             try
             {
-                listenSocket.Shutdown(SocketShutdown.Send);
+                listenSocket.Shutdown(SocketShutdown.Both);
             }
             catch
             {

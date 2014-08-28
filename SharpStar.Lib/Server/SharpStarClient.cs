@@ -88,7 +88,7 @@ namespace SharpStar.Lib.Server
             if (Direction == Direction.Client)
             {
                 var afterPacket = Observable.FromEventPattern<PacketEventArgs>(p => AfterPacketReceived += p, p => AfterPacketReceived -= p);
-                var heartbeatPacket = (from p in afterPacket where p.EventArgs.Packet.PacketId == (int)KnownPacket.Heartbeat select p).Timeout(TimeSpan.FromSeconds(15));
+                var heartbeatPacket = (from p in afterPacket where p.EventArgs.Packet.PacketId == (int)KnownPacket.Heartbeat select p).Timeout(TimeSpan.FromSeconds(30));
                 heartbeatChecker = heartbeatPacket.Subscribe(e => { }, e =>
                 {
                     if (Server != null && Server.Player != null)
@@ -317,7 +317,7 @@ namespace SharpStar.Lib.Server
             lock (closeLocker)
             {
 
-                if (readEventArgs == null || Socket == null || (Socket != null && !Socket.Connected) || !Connected)
+                if (readEventArgs == null || Socket == null || !Connected || (Socket != null && !Socket.Connected) )
                     return;
 
                 AsyncUserToken token = e.UserToken as AsyncUserToken;
@@ -326,12 +326,16 @@ namespace SharpStar.Lib.Server
                 {
                     try
                     {
+                        bool conn = Connected;
+
+                        Interlocked.CompareExchange(ref connected, Convert.ToInt32(false), Convert.ToInt32(true));
+
                         token.Socket.Shutdown(SocketShutdown.Both);
 
-                        if (ClientDisconnected != null && Connected)
+                        if (ClientDisconnected != null && conn)
                             ClientDisconnected(this, new ClientDisconnectedEventArgs(this));
 
-                        if (InternalClientDisconnected != null && Connected)
+                        if (InternalClientDisconnected != null && conn)
                             InternalClientDisconnected(this, new ClientDisconnectedEventArgs(this));
                     }
                     catch (Exception)
@@ -339,8 +343,6 @@ namespace SharpStar.Lib.Server
                     }
                     finally
                     {
-                        Interlocked.CompareExchange(ref connected, Convert.ToInt32(false), Convert.ToInt32(true));
-
                         if (token.Socket != null)
                             token.Socket.Close();
                     }

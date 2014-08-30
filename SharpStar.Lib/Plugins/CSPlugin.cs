@@ -19,6 +19,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using SharpStar.Lib.Attributes;
 using SharpStar.Lib.Extensions;
 using SharpStar.Lib.Logging;
 using SharpStar.Lib.Packets;
@@ -33,7 +34,7 @@ namespace SharpStar.Lib.Plugins
 
         //private readonly Dictionary<string, Action<IPacket, SharpStarClient>> _registeredEvents;
 
-        private readonly Dictionary<string, Action<SharpStarClient, string[]>> _registeredCommands;
+        //private readonly Dictionary<string, Action<SharpStarClient, string[]>> _registeredCommands;
 
         private readonly Dictionary<string, Action<string[]>> _registeredConsoleCommands;
 
@@ -41,7 +42,7 @@ namespace SharpStar.Lib.Plugins
 
         private readonly List<KnownPacket> _registeredAfterEvents;
 
-        public readonly Dictionary<object, Dictionary<Tuple<string, string>, Action<SharpStarClient, string[]>>> RegisteredCommandObjects;
+        public readonly Dictionary<object, Dictionary<Tuple<string, string, string>, Action<SharpStarClient, string[]>>> RegisteredCommandObjects;
 
         public readonly Dictionary<object, Dictionary<Tuple<string, string>, Action<string[]>>> RegisteredConsoleCommandObjects;
 
@@ -52,10 +53,10 @@ namespace SharpStar.Lib.Plugins
             //_registeredEvents = new Dictionary<string, Action<IPacket, SharpStarClient>>();
             _registeredEvents = new List<KnownPacket>();
             _registeredAfterEvents = new List<KnownPacket>();
-            _registeredCommands = new Dictionary<string, Action<SharpStarClient, string[]>>();
+            //_registeredCommands = new Dictionary<string, Action<SharpStarClient, string[]>>();
             _registeredConsoleCommands = new Dictionary<string, Action<string[]>>();
 
-            RegisteredCommandObjects = new Dictionary<object, Dictionary<Tuple<string, string>, Action<SharpStarClient, string[]>>>();
+            RegisteredCommandObjects = new Dictionary<object, Dictionary<Tuple<string, string, string>, Action<SharpStarClient, string[]>>>();
             RegisteredPacketEventObjects = new Dictionary<object, Dictionary<Tuple<KnownPacket, bool>, Action<IPacket, SharpStarClient>>>();
             RegisteredConsoleCommandObjects = new Dictionary<object, Dictionary<Tuple<string, string>, Action<string[]>>>();
         }
@@ -90,7 +91,7 @@ namespace SharpStar.Lib.Plugins
 
             if (!RegisteredCommandObjects.ContainsKey(obj))
             {
-                var dict = new Dictionary<Tuple<string, string>, Action<SharpStarClient, string[]>>();
+                var dict = new Dictionary<Tuple<string, string, string>, Action<SharpStarClient, string[]>>();
 
                 MethodInfo[] methods = obj.GetType().GetMethods();
 
@@ -98,14 +99,23 @@ namespace SharpStar.Lib.Plugins
                 {
 
                     var attribs = mi.GetCustomAttributes(typeof(CommandAttribute), false).ToList();
+                    var permAttribs = mi.GetCustomAttributes(typeof(CommandPermissionAttribute), false).ToList();
 
                     if (attribs.Count == 1)
                     {
                         CommandAttribute attrib = (CommandAttribute)attribs[0];
 
-                        dict.Add(Tuple.Create(attrib.CommandName, attrib.CommandDescription), (Action<SharpStarClient, string[]>)Delegate.CreateDelegate(typeof(Action<SharpStarClient, string[]>), obj, mi));
-                    }
+                        if (permAttribs.Count > 0)
+                        {
+                            CommandPermissionAttribute cpa = (CommandPermissionAttribute)permAttribs[0];
 
+                            dict.Add(Tuple.Create(attrib.CommandName, attrib.CommandDescription, cpa.Permission), (Action<SharpStarClient, string[]>)Delegate.CreateDelegate(typeof(Action<SharpStarClient, string[]>), obj, mi));
+                        }
+                        else
+                        {
+                            dict.Add(Tuple.Create(attrib.CommandName, attrib.CommandDescription, String.Empty), (Action<SharpStarClient, string[]>)Delegate.CreateDelegate(typeof(Action<SharpStarClient, string[]>), obj, mi));
+                        }
+                    }
                 }
 
                 RegisteredCommandObjects.Add(obj, dict);
@@ -189,25 +199,25 @@ namespace SharpStar.Lib.Plugins
             }
         }
 
-        public void RegisterCommand(string name, Action<SharpStarClient, string[]> toCall)
-        {
+        //public void RegisterCommand(string name, Action<SharpStarClient, string[]> toCall)
+        //{
 
-            if (!_registeredCommands.ContainsKey(name))
-            {
-                _registeredCommands.Add(name, toCall);
-            }
+        //    if (!_registeredCommands.ContainsKey(name))
+        //    {
+        //        _registeredCommands.Add(name, toCall);
+        //    }
 
-        }
+        //}
 
-        public void UnregisterCommand(string name)
-        {
+        //public void UnregisterCommand(string name)
+        //{
 
-            if (_registeredCommands.ContainsKey(name))
-            {
-                _registeredCommands.Remove(name);
-            }
+        //    if (_registeredCommands.ContainsKey(name))
+        //    {
+        //        _registeredCommands.Remove(name);
+        //    }
 
-        }
+        //}
 
         public void RegisterConsoleCommand(string name, Action<string[]> toCall)
         {
@@ -235,7 +245,7 @@ namespace SharpStar.Lib.Plugins
             if (isAfter && !_registeredAfterEvents.Contains(kp))
                 return;
 
-            
+
             try
             {
 
@@ -265,28 +275,37 @@ namespace SharpStar.Lib.Plugins
 
         public virtual bool OnChatCommandReceived(SharpStarClient client, string command, string[] args)
         {
-            var cmd = _registeredCommands.SingleOrDefault(p => p.Key.Equals(command, StringComparison.OrdinalIgnoreCase));
+
+            //var cmd = _registeredCommands.SingleOrDefault(p => p.Key.Equals(command, StringComparison.OrdinalIgnoreCase));
 
             bool contained = false;
 
-            Parallel.ForEach(RegisteredCommandObjects, kvp =>
+            foreach (var kvp in RegisteredCommandObjects)
             {
                 var val = kvp.Value.SingleOrDefault(p => p.Key.Item1.Equals(command, StringComparison.OrdinalIgnoreCase));
 
                 if (val.Value != null)
                 {
-                    val.Value(client, args);
+
+                    if ((!string.IsNullOrEmpty(val.Key.Item3) && client.Server.Player == null) || (client.Server.Player != null && !client.Server.Player.HasPermission(val.Key.Item3)))
+                    {
+                        OnCommandPermissionDenied(client, val.Key.Item1);
+                    }
+                    else
+                    {
+                        val.Value(client, args);
+                    }
 
                     contained = true;
                 }
-            });
-
-            if (cmd.Value != null)
-            {
-                cmd.Value(client, args);
-
-                contained = true;
             }
+
+            //if (cmd.Value != null)
+            //{
+            //    cmd.Value(client, args);
+
+            //    contained = true;
+            //}
 
             return contained;
         }
@@ -297,7 +316,7 @@ namespace SharpStar.Lib.Plugins
 
             bool contained = false;
 
-            Parallel.ForEach(RegisteredConsoleCommandObjects, kvp =>
+            foreach (var kvp in RegisteredConsoleCommandObjects)
             {
                 var val = kvp.Value.SingleOrDefault(p => p.Key.Item1.Equals(command, StringComparison.OrdinalIgnoreCase));
 
@@ -307,7 +326,7 @@ namespace SharpStar.Lib.Plugins
 
                     contained = true;
                 }
-            });
+            }
 
             if (cmd.Value != null)
             {
@@ -317,6 +336,11 @@ namespace SharpStar.Lib.Plugins
             }
 
             return contained;
+        }
+
+        public virtual void OnCommandPermissionDenied(SharpStarClient client, string command)
+        {
+            client.SendChatMessage("Server", String.Format("Permission denied for command {0}!", command));
         }
     }
 }

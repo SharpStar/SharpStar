@@ -88,7 +88,7 @@ namespace SharpStar.Lib.Server
             if (Direction == Direction.Client)
             {
                 var afterPacket = Observable.FromEventPattern<PacketEventArgs>(p => AfterPacketReceived += p, p => AfterPacketReceived -= p);
-                var heartbeatPacket = (from p in afterPacket where p.EventArgs.Packet.PacketId == (int)KnownPacket.Heartbeat select p).Timeout(TimeSpan.FromSeconds(30));
+                var heartbeatPacket = (from p in afterPacket where p.EventArgs.Packet.PacketId == (int)KnownPacket.Heartbeat select p).Timeout(TimeSpan.FromMinutes(1));
                 heartbeatChecker = heartbeatPacket.Subscribe(e => { }, e =>
                 {
                     if (Server != null && Server.Player != null)

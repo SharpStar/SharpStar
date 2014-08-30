@@ -167,6 +167,9 @@ namespace SharpStar.Lib.Entities
             if (UserAccount == null)
                 return false;
 
+            if (UserAccount.IsAdmin)
+                return true;
+
             bool groupAllowed = false;
 
             if (UserGroupId.HasValue)

@@ -264,11 +264,11 @@ namespace SharpStar.Lib.Plugins
         {
             bool result = false;
 
-            Parallel.ForEach(_csPlugins.Values, plugin =>
+            foreach (ICSPlugin plugin in _csPlugins.Values)
             {
                 if (plugin.OnChatCommandReceived(client, command, args))
                     result = true;
-            });
+            }
 
             return result;
         }
@@ -277,11 +277,11 @@ namespace SharpStar.Lib.Plugins
         {
             bool result = false;
 
-            Parallel.ForEach(_csPlugins.Values, plugin =>
+            foreach (ICSPlugin plugin in _csPlugins.Values)
             {
                 if (plugin.OnConsoleCommand(command, args))
                     result = true;
-            });
+            }
 
             return result;
         }
@@ -290,12 +290,12 @@ namespace SharpStar.Lib.Plugins
         {
             if (AddinManager.IsInitialized)
             {
-                Parallel.ForEach(_csPlugins.Values, plugin =>
+                foreach (ICSPlugin plugin in _csPlugins.Values)
                 {
                     plugin.OnUnload();
 
                     Parallel.ForEach(_csPlugins.Values.Except(new[] { plugin }), otherPlugin => otherPlugin.OnPluginUnloaded(plugin));
-                });
+                }
 
                 foreach (Addin addin in AddinManager.Registry.GetAddins())
                 {

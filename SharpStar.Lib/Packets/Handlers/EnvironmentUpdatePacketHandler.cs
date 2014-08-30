@@ -26,15 +26,12 @@ namespace SharpStar.Lib.Packets.Handlers
     {
         public override void Handle(EnvironmentUpdatePacket packet, SharpStarClient client)
         {
-
-
             var coords = WorldCoordinate.GetGlobalCoords(packet.Sky);
 
             if (coords != null)
             {
                 client.Server.Player.Coordinates = coords;
             }
-
 
             SharpStarMain.Instance.PluginManager.CallEvent("environmentUpdate", packet, client);
 

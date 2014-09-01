@@ -48,11 +48,6 @@ namespace SharpStar.Lib.Entities
         public long EntityId { get; set; }
 
         /// <summary>
-        /// The player's claim which is received on connection
-        /// </summary>
-        public Variant Claim { get; set; }
-
-        /// <summary>
         /// The player's species
         /// </summary>
         public string Species { get; set; }
@@ -203,7 +198,6 @@ namespace SharpStar.Lib.Entities
             {
             }
 
-            Claim = null;
             UserAccount = null;
             Coordinates = null;
             HomeCoordinates = null;

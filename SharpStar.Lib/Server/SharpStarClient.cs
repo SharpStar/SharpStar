@@ -7,8 +7,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,6 +55,8 @@ namespace SharpStar.Lib.Server
 
         private IDisposable heartbeatChecker;
 
+        private IDisposable flushPackets;
+
         private readonly object closeLocker = new object();
 
         private long connected;
@@ -83,6 +85,8 @@ namespace SharpStar.Lib.Server
             AsyncUserToken token = (AsyncUserToken)readEventArgs.UserToken;
 
             Socket = token.Socket;
+            Socket.NoDelay = true;
+            
             RemoteEndPoint = (IPEndPoint)Socket.RemoteEndPoint;
 
             if (Direction == Direction.Client)
@@ -109,6 +113,10 @@ namespace SharpStar.Lib.Server
             {
                 ProcessReceive(readEventArgs);
             }
+
+            flushPackets = Observable.Interval(TimeSpan.FromMilliseconds(1)).ObserveOn(NewThreadScheduler.Default).Subscribe(p => FlushPackets());
+
+
         }
 
         private void IO_Completed(object sender, SocketAsyncEventArgs e)
@@ -221,7 +229,7 @@ namespace SharpStar.Lib.Server
                 sendingPacket(this, new PacketEventArgs(this, packet));
 
             PacketQueue.Enqueue(packet);
-            FlushPackets();
+            //FlushPackets();
         }
 
         public void RegisterPacketHandler(IPacketHandler packetHandler)
@@ -422,9 +430,13 @@ namespace SharpStar.Lib.Server
 
                 if (heartbeatChecker != null)
                     heartbeatChecker.Dispose();
+
+                if (flushPackets != null)
+                    flushPackets.Dispose();
             }
 
             heartbeatChecker = null;
+            flushPackets = null;
             Socket = null;
             readEventArgs = null;
 

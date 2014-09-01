@@ -54,7 +54,6 @@ namespace SharpStar.Lib.DataTypes
         {
             var variant = new Variant();
             byte type = stream.ReadUInt8();
-            int discarded;
             switch (type)
             {
                 case 1:
@@ -75,7 +74,7 @@ namespace SharpStar.Lib.DataTypes
                 case 6:
                     var array = new Variant[stream.ReadVLQ()];
                     for (int i = 0; i < array.Length; i++)
-                        array[i] = Variant.FromStream(stream);
+                        array[i] = FromStream(stream);
                     variant.Value = array;
                     break;
                 case 7:
@@ -83,7 +82,7 @@ namespace SharpStar.Lib.DataTypes
                     var length = stream.ReadVLQ();
                     while (length-- > 0)
                     {
-                        dict[stream.ReadString()] = Variant.FromStream(stream);
+                        dict[stream.ReadString()] = FromStream(stream);
                     }
 
                     variant.Value = dict;

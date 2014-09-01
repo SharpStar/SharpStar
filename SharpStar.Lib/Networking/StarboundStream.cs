@@ -177,17 +177,6 @@ namespace SharpStar.Lib.Networking
             Read(buf, 0, buf.Length);
 
             return buf;
-            //var result = new byte[length];
-            //if (length == 0) return result;
-            //int n = length;
-            //while (true)
-            //{
-            //    n -= Read(result, length - n, n);
-            //    if (n == 0)
-            //        break;
-            //    Thread.Sleep(1);
-            //}
-            //return result;
         }
 
         public void WriteUInt8Array(byte[] value, bool includeLength = true)

@@ -287,7 +287,11 @@ namespace SharpStar.Lib.Plugins
                 if (val.Value != null)
                 {
 
-                    if ((!string.IsNullOrEmpty(val.Key.Item3) && client.Server.Player == null) || (client.Server.Player != null && !client.Server.Player.HasPermission(val.Key.Item3)))
+                    if (string.IsNullOrEmpty(val.Key.Item3))
+                    {
+                        val.Value(client, args);
+                    }
+                    else if ((!string.IsNullOrEmpty(val.Key.Item3) && client.Server.Player == null) || (client.Server.Player != null && !client.Server.Player.HasPermission(val.Key.Item3)))
                     {
                         OnCommandPermissionDenied(client, val.Key.Item1);
                     }

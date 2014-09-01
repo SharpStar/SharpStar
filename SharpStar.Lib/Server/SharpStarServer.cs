@@ -156,6 +156,13 @@ namespace SharpStar.Lib.Server
 
             ((AsyncUserToken)readEventArgs.UserToken).Socket = e.AcceptSocket;
 
+            if (!e.AcceptSocket.Connected)
+            {
+                StartAccept(e);
+
+                return;
+            }
+
             SharpStarLogger.DefaultLogger.Info("Connection from {0}", e.AcceptSocket.RemoteEndPoint);
 
             StartAccept(e);

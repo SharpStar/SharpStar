@@ -34,22 +34,6 @@ namespace SharpStar.Lib.Packets
         public byte[] Shipworld;
         public string Account;
 
-        public ClientConnectPacket()
-        {
-        }
-
-        public ClientConnectPacket(string assetDigest, Variant claim, byte[] uuid, string playerName,
-            string species, byte[] shipworld, string account)
-        {
-            AssetDigest = assetDigest;
-            Claim = claim;
-            UUID = uuid;
-            PlayerName = playerName;
-            Species = species;
-            Shipworld = shipworld;
-            Account = account;
-        }
-
 
         public override void Read(IStarboundStream stream)
         {

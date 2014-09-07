@@ -18,6 +18,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -28,7 +29,6 @@ using System.Reactive.Subjects;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Ionic.Zlib;
 using SharpStar.Lib.DataTypes;
 using SharpStar.Lib.Entities;
 using SharpStar.Lib.Extensions;
@@ -36,6 +36,7 @@ using SharpStar.Lib.Logging;
 using SharpStar.Lib.Networking;
 using SharpStar.Lib.Packets;
 using SharpStar.Lib.Packets.Handlers;
+using SharpStar.Lib.Zlib;
 
 namespace SharpStar.Lib.Server
 {
@@ -100,7 +101,7 @@ namespace SharpStar.Lib.Server
 
             Socket = token.Socket;
             Socket.NoDelay = true;
-            
+
             RemoteEndPoint = (IPEndPoint)Socket.RemoteEndPoint;
 
             if (Direction == Direction.Client)
@@ -145,7 +146,7 @@ namespace SharpStar.Lib.Server
 
         }
 
-        private void ProcessReceive(SocketAsyncEventArgs e)
+        private async void ProcessReceive(SocketAsyncEventArgs e)
         {
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
             if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
@@ -153,7 +154,7 @@ namespace SharpStar.Lib.Server
 
                 PacketReader.NetworkBuffer = new ArraySegment<byte>(e.Buffer, e.Offset, e.BytesTransferred);
 
-                foreach (IPacket packet in PacketReader.UpdateBuffer(true))
+                foreach (IPacket packet in await PacketReader.UpdateBuffer(true))
                 {
 
                     try
@@ -177,7 +178,7 @@ namespace SharpStar.Lib.Server
                         SharpStarMain.Instance.PluginManager.CallEvent(packet, OtherClient);
 
                         if (!packet.Ignore && OtherClient != null)
-                            OtherClient.SendPacket(packet);
+                            await OtherClient.SendPacket(packet);
 
                         foreach (IPacketHandler handler in handlers)
                         {
@@ -231,7 +232,7 @@ namespace SharpStar.Lib.Server
             e.Dispose();
         }
 
-        public void SendPacket(IPacket packet)
+        public async Task SendPacket(IPacket packet)
         {
 
             EventHandler<PacketEventArgs> sendingPacket = SendingPacket;
@@ -239,17 +240,7 @@ namespace SharpStar.Lib.Server
                 sendingPacket(this, new PacketEventArgs(this, packet));
 
             PacketQueue.Enqueue(packet);
-            FlushPackets();
-        }
-
-        public void RegisterPacketHandler(IPacketHandler packetHandler)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void UnregisterPacketHandler(IPacketHandler handler)
-        {
-            throw new NotImplementedException();
+            await FlushPackets();
         }
 
         public void ForceDisconnect()
@@ -257,7 +248,7 @@ namespace SharpStar.Lib.Server
             this.CloseClientSocket(readEventArgs);
         }
 
-        public void FlushPackets()
+        public async Task FlushPackets()
         {
 
             while (PacketQueue.Count > 0)
@@ -271,13 +262,11 @@ namespace SharpStar.Lib.Server
 
                     if (!next.IsReceive)
                     {
-
                         foreach (var handler in Server.PacketHandlers)
                         {
                             if (next.PacketId == handler.PacketId)
                                 handler.Handle(next, OtherClient);
                         }
-
                     }
 
                     if (next.Ignore)
@@ -285,22 +274,18 @@ namespace SharpStar.Lib.Server
 
                     var stream = new StarboundStream();
                     next.Write(stream);
+
                     byte[] buffer = stream.ToArray();
+                    bool compressed = stream.Length >= 1024;
+
+                    if (compressed)
+                    {
+                        buffer = await ZlibUtils.CompressAsync(buffer);
+                    }
 
                     stream.Dispose();
 
-                    int length = buffer.Length;
-
-                    if (length >= 1024)
-                    {
-                        byte[] compressed = ZlibStream.CompressBuffer(buffer);
-
-                        if (compressed.Length < buffer.Length)
-                        {
-                            buffer = compressed;
-                            length = -buffer.Length;
-                        }
-                    }
+                    int length = compressed ? -buffer.Length : buffer.Length;
 
                     var finalStream = new StarboundStream();
 
@@ -312,6 +297,9 @@ namespace SharpStar.Lib.Server
 
                     finalStream.Dispose();
 
+                    if (Socket == null)
+                        return;
+
                     var token = new AsyncUserToken();
                     token.Socket = Socket;
 
@@ -322,7 +310,7 @@ namespace SharpStar.Lib.Server
                     writeArgs.Completed += IO_Completed;
 
                     Socket.SendAsync(writeArgs);
-                
+
                 }
                 catch
                 {
@@ -336,7 +324,7 @@ namespace SharpStar.Lib.Server
             lock (closeLocker)
             {
 
-                if (readEventArgs == null || Socket == null || !Connected || (Socket != null && !Socket.Connected) )
+                if (readEventArgs == null || Socket == null || !Connected || (Socket != null && !Socket.Connected))
                     return;
 
                 AsyncUserToken token = e.UserToken as AsyncUserToken;
@@ -376,9 +364,9 @@ namespace SharpStar.Lib.Server
 
         #region Commands
 
-        public void WarpTo(string name)
+        public async void WarpTo(string name)
         {
-            Server.ServerClient.SendPacket(new WarpCommandPacket { Player = name, WarpType = WarpType.WarpOtherShip });
+            await Server.ServerClient.SendPacket(new WarpCommandPacket { Player = name, WarpType = WarpType.WarpOtherShip });
         }
 
         public void WarpTo(StarboundPlayer player)
@@ -386,19 +374,19 @@ namespace SharpStar.Lib.Server
             WarpTo(player.NameWithColor);
         }
 
-        public void WarpUp()
+        public async void WarpUp()
         {
-            Server.ServerClient.SendPacket(new WarpCommandPacket { WarpType = WarpType.WarpUp });
+            await Server.ServerClient.SendPacket(new WarpCommandPacket { WarpType = WarpType.WarpUp });
         }
 
-        public void WarpDown()
+        public async void WarpDown()
         {
-            Server.ServerClient.SendPacket(new WarpCommandPacket { WarpType = WarpType.WarpDown });
+            await Server.ServerClient.SendPacket(new WarpCommandPacket { WarpType = WarpType.WarpDown });
         }
 
-        public void MoveShip(WorldCoordinate coordinates)
+        public async void MoveShip(WorldCoordinate coordinates)
         {
-            Server.ServerClient.SendPacket(new WarpCommandPacket
+            await Server.ServerClient.SendPacket(new WarpCommandPacket
             {
                 WarpType = WarpType.MoveShip,
                 Coordinates = coordinates
@@ -410,9 +398,9 @@ namespace SharpStar.Lib.Server
             SendChatMessage(message, 0, String.Empty, name);
         }
 
-        public void SendChatMessage(string message, int channel, string world, string name)
+        public async void SendChatMessage(string message, int channel, string world, string name)
         {
-            Server.PlayerClient.SendPacket(new ChatReceivedPacket
+            await Server.PlayerClient.SendPacket(new ChatReceivedPacket
             {
                 Message = message,
                 Channel = (byte)channel,

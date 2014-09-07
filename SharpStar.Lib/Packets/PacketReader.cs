@@ -16,12 +16,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Linq.Expressions;
-using Ionic.Zlib;
+using System.Threading.Tasks;
 using SharpStar.Lib.Logging;
 using SharpStar.Lib.Networking;
 using SharpStar.Lib.Extensions;
+using SharpStar.Lib.Zlib;
 
 namespace SharpStar.Lib.Packets
 {
@@ -90,12 +92,14 @@ namespace SharpStar.Lib.Packets
             RegisteredPacketTypes.Add(id, Expression.Lambda<Func<IPacket>>(Expression.New(packetType)).Compile());
         }
 
-        public IEnumerable<IPacket> UpdateBuffer(bool shouldCopy)
+        public async Task<List<IPacket>> UpdateBuffer(bool shouldCopy)
         {
             if (shouldCopy)
             {
                 PacketBuffer.AddRange(NetworkBuffer);
             }
+
+            List<IPacket> packets = new List<IPacket>();
 
             Queue<byte[]> toProcess = new Queue<byte[]>();
             toProcess.Enqueue(PacketBuffer.ToArray());
@@ -119,7 +123,7 @@ namespace SharpStar.Lib.Packets
                         {
                             WorkingLength = long.MaxValue;
 
-                            yield break;
+                            return packets;
                         }
 
                         DataIndex = (int)s.Position;
@@ -143,7 +147,7 @@ namespace SharpStar.Lib.Packets
 
                             if (Compressed)
                             {
-                                data = ZlibStream.UncompressBuffer(data);
+                                data = await ZlibUtils.DecompressAsync(data);
                             }
 
                             IPacket packet = Decode(_packetId, data);
@@ -156,7 +160,8 @@ namespace SharpStar.Lib.Packets
                             if (rest.Length > 0)
                                 toProcess.Enqueue(rest);
 
-                            yield return packet;
+                            packets.Add(packet);
+
                         }
 
                     }
@@ -164,6 +169,8 @@ namespace SharpStar.Lib.Packets
                 }
 
             }
+
+            return packets;
 
         }
 

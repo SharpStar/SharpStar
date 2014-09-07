@@ -19,8 +19,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Text;
-using Ionic.Zlib;
+using System.Threading.Tasks;
 using Mono;
+using SharpStar.Lib.Zlib;
 
 namespace SharpStar.Lib.Starbound
 {
@@ -106,11 +107,14 @@ namespace SharpStar.Lib.Starbound
 
         public byte[] Get(byte[] key)
         {
+            return GetAsync(key).Result;
+        }
 
+        public async Task<byte[]> GetAsync(byte[] key)
+        {
             byte[] enc = EncodeKey(key);
 
-            return ZlibStream.UncompressBuffer(GetBinary(enc));
-
+            return await ZlibUtils.DecompressAsync(GetBinary(enc));
         }
 
         public virtual byte[] EncodeKey(byte[] key)
@@ -127,8 +131,6 @@ namespace SharpStar.Lib.Starbound
             {
                 using (BinaryReader reader = new BinaryReader(ms))
                 {
-
-
                     string dbFormat = Encoding.UTF8.GetString(reader.ReadBytes(12));
 
                     if (dbFormat.Replace("\x00", "") != "BTreeDB4")

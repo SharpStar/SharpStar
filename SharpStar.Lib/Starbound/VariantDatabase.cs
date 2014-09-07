@@ -19,7 +19,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Ionic.Zlib;
 using SharpStar.Lib.DataTypes;
 using SharpStar.Lib.Networking;
 

@@ -150,13 +150,13 @@ namespace SharpStar.Lib.Plugins
             }
         }
 
-        public void SendPacket(SharpStarClient client, IPacket packet)
+        public async void SendPacket(SharpStarClient client, IPacket packet)
         {
             if (!Enabled)
                 return;
 
             if (client != null)
-                client.SendPacket(packet);
+                await client.SendPacket(packet);
         }
 
         public void SubscribeToEvent(string evtName, LuaFunction func)

@@ -24,13 +24,7 @@ namespace SharpStar.Lib.Server
 
         ConcurrentQueue<IPacket> PacketQueue { get; set; }
 
-        void RegisterPacketHandler(IPacketHandler packetHandler);
-
-        void UnregisterPacketHandler(IPacketHandler handler);
-
         void ForceDisconnect();
-
-        void FlushPackets();
 
     }
 }

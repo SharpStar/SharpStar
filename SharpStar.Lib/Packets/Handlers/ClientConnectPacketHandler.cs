@@ -25,7 +25,7 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class ClientConnectPacketHandler : PacketHandler<ClientConnectPacket>
     {
-        public override void Handle(ClientConnectPacket packet, SharpStarClient client)
+        public override async void Handle(ClientConnectPacket packet, SharpStarClient client)
         {
 
             if (packet.IsReceive)
@@ -58,7 +58,7 @@ namespace SharpStar.Lib.Packets.Handlers
 
                     if (user == null)
                     {
-                        client.Server.PlayerClient.SendPacket(new HandshakeChallengePacket { Salt = "" });
+                        await client.Server.PlayerClient.SendPacket(new HandshakeChallengePacket { Salt = "" });
 
                         return;
                     }
@@ -77,7 +77,7 @@ namespace SharpStar.Lib.Packets.Handlers
 
                     client.Server.Player.UserAccount = user;
 
-                    client.Server.PlayerClient.SendPacket(new HandshakeChallengePacket { Salt = user.Salt });
+                    await client.Server.PlayerClient.SendPacket(new HandshakeChallengePacket { Salt = user.Salt });
 
                 }
 

@@ -60,7 +60,7 @@ namespace SharpStar.Lib.Plugins
             _engine.SetFunction("UnregisterCommand", new Action<string>(UnregisterCommand));
             _engine.SetFunction("RegisterConsoleCommand", new Action<string, JsFunction>(RegisterConsoleCommand));
             _engine.SetFunction("UnregisterConsoleCommand", new Action<string>(UnregisterConsoleCommand));
-            _engine.SetFunction("SendPacket", new Action<IClient, IPacket>(SendPacket));
+            _engine.SetFunction("SendPacket", new Action<SharpStarClient, IPacket>(SendPacket));
             _engine.SetFunction("SendClientPacketToAll", new Action<IPacket>(SendClientPacketToAll));
             _engine.SetFunction("SendServerPacketToAll", new Action<IPacket>(SendServerPacketToAll));
             _engine.SetFunction("GetPlayerClients", new Func<IClient[]>(GetPlayerClients));
@@ -161,13 +161,13 @@ namespace SharpStar.Lib.Plugins
             return SharpStarMain.Instance.Server.Clients.Select(p => (IClient) p.ServerClient).ToArray();
         }
 
-        public void SendPacket(IClient client, IPacket packet)
+        public async void SendPacket(SharpStarClient client, IPacket packet)
         {
             if (!Enabled)
                 return;
 
             client.PacketQueue.Enqueue(packet);
-            client.FlushPackets();
+            await client.FlushPackets();
         }
 
         public void SendClientPacketToAll(IPacket packet)

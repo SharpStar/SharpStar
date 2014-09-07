@@ -32,14 +32,13 @@ namespace SharpStar.Lib.Packets.Handlers
 
                 if (client.Server.Player.UserAccount != null || !client.Server.Player.AttemptedLogin)
                 {
+                    string hash = SharpStarSecurity.GenerateHash("", "", packet.Salt, StarboundConstants.Rounds);
 
-                    string hash = await Task.Run(() => SharpStarSecurity.GenerateHash("", "", packet.Salt, StarboundConstants.Rounds));
-
-                    client.Server.ServerClient.SendPacket(new HandshakeResponsePacket { PasswordHash = hash });
+                    await client.Server.ServerClient.SendPacket(new HandshakeResponsePacket { PasswordHash = hash });
                 }
                 else if (client.Server.Player.AttemptedLogin)
                 {
-                    client.Server.ServerClient.SendPacket(new HandshakeResponsePacket { PasswordHash = packet.Salt });
+                    await client.Server.ServerClient.SendPacket(new HandshakeResponsePacket { PasswordHash = packet.Salt });
                 }
             }
 

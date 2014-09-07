@@ -142,7 +142,7 @@ namespace SharpStar.Lib.Server
                 //simulate the connection process so we can return an error back to the client
                 var packetRecv = Observable.FromEventPattern<PacketEventArgs>(p => PlayerClient.PacketReceived += p, p => PlayerClient.PacketReceived -= p);
                 var clientConnPacket = (from p in packetRecv where p.EventArgs.Packet.PacketId == (int)KnownPacket.ClientConnect select p);
-                var subscribeConn = clientConnPacket.Subscribe(args =>
+                var subscribeConn = clientConnPacket.Subscribe(async args =>
                 {
 
                     args.EventArgs.Packet.Ignore = true;
@@ -151,7 +151,7 @@ namespace SharpStar.Lib.Server
 
                     if (client != null)
                     {
-                        client.SendPacket(new HandshakeChallengePacket
+                        await client.SendPacket(new HandshakeChallengePacket
                         {
                             Claim = String.Empty,
                             Rounds = StarboundConstants.Rounds,
@@ -162,7 +162,7 @@ namespace SharpStar.Lib.Server
                 }, args => { }, () => { });
 
                 var handshakeRespPacket = (from p in packetRecv where p.EventArgs.Packet.PacketId == (int)KnownPacket.HandshakeResponse select p);
-                var subscribeHandshake = handshakeRespPacket.Subscribe(args =>
+                var subscribeHandshake = handshakeRespPacket.Subscribe(async args =>
                 {
 
                     SharpStarClient client = args.EventArgs.Client;
@@ -171,7 +171,7 @@ namespace SharpStar.Lib.Server
 
                     if (client != null)
                     {
-                        client.SendPacket(new ConnectionResponsePacket
+                        await client.SendPacket(new ConnectionResponsePacket
                         {
                             Success = false,
                             RejectionReason = SharpStarMain.Instance.Config.ConfigFile.ServerOfflineError,
@@ -182,7 +182,7 @@ namespace SharpStar.Lib.Server
                 }, args => { }, () => { });
 
                 PlayerClient.StartReceive();
-                PlayerClient.SendPacket(new ProtocolVersionPacket
+                await PlayerClient.SendPacket(new ProtocolVersionPacket
                 {
                     ProtocolVersion = StarboundConstants.ProtocolVersion
                 });

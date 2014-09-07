@@ -147,5 +147,7 @@ namespace SharpStar.Lib.Networking
 
         void WriteWorldCoordinate(WorldCoordinate coordinate);
 
+        byte[] ReadToEnd();
+
     }
 }

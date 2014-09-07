@@ -126,10 +126,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Zlib.Portable">
-      <HintPath>..\packages\Zlib.Portable.1.10.0\lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch+MonoAndroid\Zlib.Portable.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\CommandPermissionAttribute.cs" />
@@ -294,6 +290,8 @@
     <Compile Include="Starbound\VariantDatabase.cs" />
     <Compile Include="Starbound\VLQ.cs" />
     <Compile Include="Starbound\World.cs" />
+    <Compile Include="Zlib\Adler.cs" />
+    <Compile Include="Zlib\ZlibUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

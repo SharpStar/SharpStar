@@ -20,6 +20,7 @@ using System.Net.Sockets;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Ionic.Zlib;
 using SharpStar.Lib.DataTypes;
 using SharpStar.Lib.Entities;
 using SharpStar.Lib.Extensions;
@@ -281,7 +282,7 @@ namespace SharpStar.Lib.Server
 
                     if (compressed)
                     {
-                        buffer = ZlibUtils.Compress(buffer);
+                        buffer = ZlibStream.CompressBuffer(buffer);
                     }
 
                     stream.Dispose();

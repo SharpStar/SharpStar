@@ -20,6 +20,7 @@ using System.Linq;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Ionic.Zlib;
 using Mono;
 using SharpStar.Lib.Zlib;
 
@@ -107,7 +108,7 @@ namespace SharpStar.Lib.Starbound
 
         public byte[] Get(byte[] key)
         {
-            return ZlibUtils.Decompress(key);
+            return ZlibStream.UncompressBuffer(key);
         }
 
         public virtual byte[] EncodeKey(byte[] key)

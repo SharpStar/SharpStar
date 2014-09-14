@@ -20,6 +20,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Ionic.Zlib;
 using SharpStar.Lib.Logging;
 using SharpStar.Lib.Networking;
 using SharpStar.Lib.Extensions;
@@ -145,7 +146,7 @@ namespace SharpStar.Lib.Packets
 
                             if (Compressed)
                             {
-                                data = ZlibUtils.Decompress(data);
+                                data = ZlibStream.UncompressBuffer(data);
                             }
 
                             IPacket packet = Decode(_packetId, data);

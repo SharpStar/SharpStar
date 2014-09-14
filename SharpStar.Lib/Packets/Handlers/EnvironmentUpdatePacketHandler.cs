@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using SharpStar.Lib.DataTypes;
 using SharpStar.Lib.Server;
 
@@ -24,7 +25,7 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class EnvironmentUpdatePacketHandler : PacketHandler<EnvironmentUpdatePacket>
     {
-        public override void Handle(EnvironmentUpdatePacket packet, SharpStarClient client)
+        public override Task Handle(EnvironmentUpdatePacket packet, SharpStarClient client)
         {
             var coords = WorldCoordinate.GetGlobalCoords(packet.Sky);
 
@@ -35,11 +36,14 @@ namespace SharpStar.Lib.Packets.Handlers
 
             SharpStarMain.Instance.PluginManager.CallEvent("environmentUpdate", packet, client);
 
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(EnvironmentUpdatePacket packet, SharpStarClient client)
+        public override Task HandleAfter(EnvironmentUpdatePacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterEnvironmentUpdate", packet, client);
+
+            return base.HandleAfter(packet, client);
         }
     }
 }

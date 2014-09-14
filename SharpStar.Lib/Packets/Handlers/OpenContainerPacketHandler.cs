@@ -13,20 +13,25 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System.Threading.Tasks;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
 {
     public class OpenContainerPacketHandler : PacketHandler<OpenContainerPacket>
     {
-        public override void Handle(OpenContainerPacket packet, SharpStarClient client)
+        public override Task Handle(OpenContainerPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("openContainer", packet, client);
+
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(OpenContainerPacket packet, SharpStarClient client)
+        public override Task HandleAfter(OpenContainerPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterOpenContainer", packet, client);
+
+            return base.Handle(packet, client);
         }
     }
 }

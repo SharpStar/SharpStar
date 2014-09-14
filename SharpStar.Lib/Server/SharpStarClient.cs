@@ -15,18 +15,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SharpStar.Lib.DataTypes;
@@ -86,14 +77,14 @@ namespace SharpStar.Lib.Server
 
         public SharpStarClient(SocketAsyncEventArgs eventArgs, Direction dir)
         {
-            this.readEventArgs = eventArgs;
-            this.readEventArgs.Completed += IO_Completed;
-            this.Direction = dir;
+            readEventArgs = eventArgs;
+            readEventArgs.Completed += IO_Completed;
+            Direction = dir;
             PacketReader = new PacketReader();
             PacketQueue = new ConcurrentQueue<IPacket>();
         }
 
-        public void StartReceive()
+        public async Task StartReceive()
         {
             connected = Convert.ToInt32(true);
 
@@ -126,35 +117,45 @@ namespace SharpStar.Lib.Server
 
             if (!willRaiseEvent)
             {
-                ProcessReceive(readEventArgs);
+                await ProcessReceive(readEventArgs);
             }
         }
 
         private void IO_Completed(object sender, SocketAsyncEventArgs e)
         {
-            switch (e.LastOperation)
+            try
             {
-                case SocketAsyncOperation.Receive:
-                    ProcessReceive(e);
-                    break;
-                case SocketAsyncOperation.Send:
-                    ProcessSend(e);
-                    break;
-                default:
-                    throw new ArgumentException("The last operation completed on the socket was not a receive or send");
+                switch (e.LastOperation)
+                {
+                    case SocketAsyncOperation.Receive:
+                        ProcessReceive(e).ContinueWith(t => t.Exception.LogError(), TaskContinuationOptions.OnlyOnFaulted);
+                        break;
+                    case SocketAsyncOperation.Send:
+                        e.Completed -= IO_Completed;
+                        e.Dispose();
+                        //ProcessSend(e);
+                        break;
+                    default:
+                        throw new ArgumentException("The last operation completed on the socket was not a receive or send");
+                }
             }
+            catch (Exception ex)
+            {
+                ex.LogError();
 
+                CloseClientSocket(readEventArgs);
+            }
         }
 
-        private async void ProcessReceive(SocketAsyncEventArgs e)
+        private async Task ProcessReceive(SocketAsyncEventArgs e)
         {
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
             if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
             {
-
                 PacketReader.NetworkBuffer = new ArraySegment<byte>(e.Buffer, e.Offset, e.BytesTransferred);
 
-                foreach (IPacket packet in await PacketReader.UpdateBuffer(true))
+                var packets = PacketReader.UpdateBuffer(true);
+                foreach (IPacket packet in packets)
                 {
 
                     try
@@ -172,10 +173,10 @@ namespace SharpStar.Lib.Server
                         foreach (IPacketHandler handler in handlers)
                         {
                             if (packet.PacketId == handler.PacketId)
-                                handler.Handle(packet, this);
+                                await handler.Handle(packet, this);
                         }
 
-                        SharpStarMain.Instance.PluginManager.CallEvent(packet, OtherClient);
+                        await SharpStarMain.Instance.PluginManager.CallEvent(packet, OtherClient);
 
                         if (!packet.Ignore && OtherClient != null)
                             await OtherClient.SendPacket(packet);
@@ -183,14 +184,14 @@ namespace SharpStar.Lib.Server
                         foreach (IPacketHandler handler in handlers)
                         {
                             if (packet.PacketId == handler.PacketId)
-                                handler.HandleAfter(packet, this);
+                                await handler.HandleAfter(packet, this);
                         }
 
                         EventHandler<PacketEventArgs> afterPacketArgs = AfterPacketReceived;
                         if (afterPacketArgs != null)
                             afterPacketArgs(this, new PacketEventArgs(this, packet));
 
-                        SharpStarMain.Instance.PluginManager.CallEvent(packet, OtherClient, true);
+                        await SharpStarMain.Instance.PluginManager.CallEvent(packet, OtherClient, true);
                     }
                     catch (Exception ex)
                     {
@@ -204,7 +205,7 @@ namespace SharpStar.Lib.Server
 
                     if (!willRaiseEvent)
                     {
-                        ProcessReceive(e);
+                        await ProcessReceive(e);
                     }
                 }
                 catch
@@ -265,7 +266,7 @@ namespace SharpStar.Lib.Server
                         foreach (var handler in Server.PacketHandlers)
                         {
                             if (next.PacketId == handler.PacketId)
-                                handler.Handle(next, OtherClient);
+                                await handler.Handle(next, OtherClient);
                         }
                     }
 
@@ -276,11 +277,11 @@ namespace SharpStar.Lib.Server
                     next.Write(stream);
 
                     byte[] buffer = stream.ToArray();
-                    bool compressed = stream.Length >= 1024;
+                    bool compressed = stream.Length >= 512;
 
                     if (compressed)
                     {
-                        buffer = await ZlibUtils.CompressAsync(buffer);
+                        buffer = ZlibUtils.Compress(buffer);
                     }
 
                     stream.Dispose();
@@ -364,29 +365,29 @@ namespace SharpStar.Lib.Server
 
         #region Commands
 
-        public async void WarpTo(string name)
+        public Task WarpTo(string name)
         {
-            await Server.ServerClient.SendPacket(new WarpCommandPacket { Player = name, WarpType = WarpType.WarpOtherShip });
+            return Server.ServerClient.SendPacket(new WarpCommandPacket { Player = name, WarpType = WarpType.WarpOtherShip });
         }
 
-        public void WarpTo(StarboundPlayer player)
+        public Task WarpTo(StarboundPlayer player)
         {
-            WarpTo(player.NameWithColor);
+            return WarpTo(player.NameWithColor);
         }
 
-        public async void WarpUp()
+        public Task WarpUp()
         {
-            await Server.ServerClient.SendPacket(new WarpCommandPacket { WarpType = WarpType.WarpUp });
+            return Server.ServerClient.SendPacket(new WarpCommandPacket { WarpType = WarpType.WarpUp });
         }
 
-        public async void WarpDown()
+        public Task WarpDown()
         {
-            await Server.ServerClient.SendPacket(new WarpCommandPacket { WarpType = WarpType.WarpDown });
+            return Server.ServerClient.SendPacket(new WarpCommandPacket { WarpType = WarpType.WarpDown });
         }
 
-        public async void MoveShip(WorldCoordinate coordinates)
+        public Task MoveShip(WorldCoordinate coordinates)
         {
-            await Server.ServerClient.SendPacket(new WarpCommandPacket
+            return Server.ServerClient.SendPacket(new WarpCommandPacket
             {
                 WarpType = WarpType.MoveShip,
                 Coordinates = coordinates
@@ -398,9 +399,9 @@ namespace SharpStar.Lib.Server
             SendChatMessage(message, 0, String.Empty, name);
         }
 
-        public async void SendChatMessage(string message, int channel, string world, string name)
+        public Task SendChatMessage(string message, int channel, string world, string name)
         {
-            await Server.PlayerClient.SendPacket(new ChatReceivedPacket
+            return Server.PlayerClient.SendPacket(new ChatReceivedPacket
             {
                 Message = message,
                 Channel = (byte)channel,

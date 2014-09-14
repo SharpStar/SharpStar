@@ -138,9 +138,9 @@ namespace SharpStar.Lib.Plugins
             }
         }
 
-        public void CallEvent(IPacket packet, SharpStarClient client, bool isAfter = false)
+        public async Task CallEvent(IPacket packet, SharpStarClient client, bool isAfter = false)
         {
-            _csPluginManager.CallEvent(packet, client, isAfter);
+            await _csPluginManager.CallEvent(packet, client, isAfter);
         }
 
         public bool PassConsoleCommand(string command, string[] args)
@@ -149,27 +149,24 @@ namespace SharpStar.Lib.Plugins
 
             anyRegistered = _csPluginManager.PassConsoleCommand(command, args);
 
-            Parallel.ForEach(_plugins, plugin =>
+            foreach (var plugin in _plugins)
             {
                 if (plugin.PassConsoleCommand(command, args))
                     anyRegistered = true;
-            });
+            }
 
             return anyRegistered;
         }
 
-        public bool PassChatCommand(SharpStarClient client, string command, string[] args)
+        public async Task<bool> PassChatCommand(SharpStarClient client, string command, string[] args)
         {
+            bool anyRegistered = await _csPluginManager.PassChatCommand(client, command, args).ConfigureAwait(false);
 
-            bool anyRegistered;
-
-            anyRegistered = _csPluginManager.PassChatCommand(client, command, args);
-
-            Parallel.ForEach(_plugins, plugin =>
+            foreach (var plugin in _plugins)
             {
                 if (plugin.PassChatCommand(command, client, args))
                     anyRegistered = true;
-            });
+            }
 
             return anyRegistered;
         }

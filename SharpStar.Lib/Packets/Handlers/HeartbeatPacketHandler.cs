@@ -13,20 +13,25 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System.Threading.Tasks;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
 {
     internal class HeartbeatPacketHandler : PacketHandler<HeartbeatPacket>
     {
-        public override void Handle(HeartbeatPacket packet, SharpStarClient client)
+        public override Task Handle(HeartbeatPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("heartbeat", packet, client);
+
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(HeartbeatPacket packet, SharpStarClient client)
+        public override Task HandleAfter(HeartbeatPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterHeartbeat", packet, client);
+
+            return base.HandleAfter(packet, client);
         }
     }
 }

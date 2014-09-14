@@ -13,6 +13,7 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System.Threading.Tasks;
 using SharpStar.Lib.DataTypes;
 using SharpStar.Lib.Server;
 
@@ -20,14 +21,18 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class ClientContextUpdatePacketHandler : PacketHandler<ClientContextUpdatePacket>
     {
-        public override void Handle(ClientContextUpdatePacket packet, SharpStarClient client)
+        public override Task Handle(ClientContextUpdatePacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("clientContextUpdate", packet, client);
+
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(ClientContextUpdatePacket packet, SharpStarClient client)
+        public override Task HandleAfter(ClientContextUpdatePacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterClientContextUpdate", packet, client);
+
+            return base.HandleAfter(packet, client);
         }
     }
 }

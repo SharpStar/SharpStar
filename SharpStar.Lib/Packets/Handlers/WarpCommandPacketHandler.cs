@@ -13,13 +13,14 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System.Threading.Tasks;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
 {
     public class WarpCommandPacketHandler : PacketHandler<WarpCommandPacket>
     {
-        public override void Handle(WarpCommandPacket packet, SharpStarClient client)
+        public override Task Handle(WarpCommandPacket packet, SharpStarClient client)
         {
 
             if (packet.WarpType == WarpType.WarpHome)
@@ -38,12 +39,15 @@ namespace SharpStar.Lib.Packets.Handlers
             }
 
             SharpStarMain.Instance.PluginManager.CallEvent("warpCommand", packet, client);
-        
+
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(WarpCommandPacket packet, SharpStarClient client)
+        public override Task HandleAfter(WarpCommandPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterWarpCommand", packet, client);
+
+            return base.HandleAfter(packet, client);
         }
     }
 }

@@ -28,7 +28,7 @@ using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib
 {
-    public sealed class SharpStarMain
+    public sealed class SharpStarMain : IDisposable
     {
         private static readonly object SyncRoot = new object();
 
@@ -40,12 +40,7 @@ namespace SharpStar.Lib
             {
                 lock (SyncRoot)
                 {
-                    if (_instance == null)
-                    {
-                        _instance = new SharpStarMain();
-                    }
-
-                    return _instance;
+                    return _instance ?? (_instance = new SharpStarMain());
                 }
             }
         }
@@ -146,7 +141,6 @@ namespace SharpStar.Lib
 
         public void Shutdown()
         {
-
             if (addinUpdateChecker != null)
             {
                 addinUpdateChecker.Stop();
@@ -157,8 +151,32 @@ namespace SharpStar.Lib
             PluginManager.UnloadPlugins();
 
             Server.Stop();
-            UDPServer.Stop();
 
+            UDPServer.Stop();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Shutdown();
+            }
+
+            PluginManager = null;
+            Server = null;
+            UDPServer = null;
+        }
+
+        ~SharpStarMain()
+        {
+            Dispose(false);
         }
     }
 }

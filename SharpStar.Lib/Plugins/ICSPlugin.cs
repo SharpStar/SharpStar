@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
+using System.Threading.Tasks;
 using Mono.Addins;
 using SharpStar.Lib.Packets;
 using SharpStar.Lib.Server;
@@ -34,9 +35,9 @@ namespace SharpStar.Lib.Plugins
 
         void OnPluginUnloaded(ICSPlugin plugin);
 
-        void OnEventOccurred(IPacket packet, SharpStarClient client, bool isAfter = false);
+        Task OnEventOccurred(IPacket packet, SharpStarClient client, bool isAfter = false);
 
-        bool OnChatCommandReceived(SharpStarClient client, string command, string[] args);
+        Task<bool> OnChatCommandReceived(SharpStarClient client, string command, string[] args);
 
         bool OnConsoleCommand(string command, string[] args);
 

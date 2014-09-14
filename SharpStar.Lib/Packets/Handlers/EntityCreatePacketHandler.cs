@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using SharpStar.Lib.Entities;
 using SharpStar.Lib.Misc;
 using SharpStar.Lib.Server;
@@ -23,7 +24,7 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class EntityCreatePacketHandler : PacketHandler<EntityCreatePacket>
     {
-        public override void Handle(EntityCreatePacket packet, SharpStarClient client)
+        public override Task Handle(EntityCreatePacket packet, SharpStarClient client)
         {
             foreach (var ent in packet.Entities)
             {
@@ -39,11 +40,15 @@ namespace SharpStar.Lib.Packets.Handlers
             }
 
             SharpStarMain.Instance.PluginManager.CallEvent("entityCreate", packet, client);
+
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(EntityCreatePacket packet, SharpStarClient client)
+        public override Task HandleAfter(EntityCreatePacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterEntityCreate", packet, client);
+
+            return base.HandleAfter(packet, client);
         }
     }
 }

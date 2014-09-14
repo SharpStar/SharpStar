@@ -23,7 +23,7 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class HandshakeChallengePacketHandler : PacketHandler<HandshakeChallengePacket>
     {
-        public override async void Handle(HandshakeChallengePacket packet, SharpStarClient client)
+        public override async Task Handle(HandshakeChallengePacket packet, SharpStarClient client)
         {
 
             if (packet.IsReceive)
@@ -32,7 +32,7 @@ namespace SharpStar.Lib.Packets.Handlers
 
                 if (client.Server.Player.UserAccount != null || !client.Server.Player.AttemptedLogin)
                 {
-                    string hash = SharpStarSecurity.GenerateHash("", "", packet.Salt, StarboundConstants.Rounds);
+                    string hash = await Task.Run(() => SharpStarSecurity.GenerateHash("", "", packet.Salt, StarboundConstants.Rounds));
 
                     await client.Server.ServerClient.SendPacket(new HandshakeResponsePacket { PasswordHash = hash });
                 }
@@ -44,11 +44,6 @@ namespace SharpStar.Lib.Packets.Handlers
 
             //SharpStarMain.Instance.PluginManager.CallEvent("handshakeChallenge", packet, client);
 
-        }
-
-        public override void HandleAfter(HandshakeChallengePacket packet, SharpStarClient client)
-        {
-            //SharpStarMain.Instance.PluginManager.CallEvent("afterHandshakeChallenge", packet, client);
         }
     }
 }

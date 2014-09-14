@@ -107,14 +107,7 @@ namespace SharpStar.Lib.Starbound
 
         public byte[] Get(byte[] key)
         {
-            return GetAsync(key).Result;
-        }
-
-        public async Task<byte[]> GetAsync(byte[] key)
-        {
-            byte[] enc = EncodeKey(key);
-
-            return await ZlibUtils.DecompressAsync(GetBinary(enc));
+            return ZlibUtils.Decompress(key);
         }
 
         public virtual byte[] EncodeKey(byte[] key)

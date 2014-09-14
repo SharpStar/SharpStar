@@ -17,20 +17,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
 {
     public class ClientDisconnectPacketHandler : PacketHandler<ClientDisconnectPacket>
     {
-        public override void Handle(ClientDisconnectPacket packet, SharpStarClient client)
+        public override Task Handle(ClientDisconnectPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("clientDisconnected", packet, client);
+
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(ClientDisconnectPacket packet, SharpStarClient client)
+        public override Task HandleAfter(ClientDisconnectPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterClientDisconnected", packet, client);
+
+            return base.Handle(packet, client);
         }
     }
 }

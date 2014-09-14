@@ -30,7 +30,6 @@ namespace SharpStar.Lib.Server
     public sealed class SharpStarServer : IServer, IDisposable
     {
 
-        private int m_numConnections;
         private Socket listenSocket;
         private int m_numConnectedSockets;
 
@@ -39,7 +38,6 @@ namespace SharpStar.Lib.Server
         private List<SharpStarServerClient> _clients;
 
         private readonly string _starboundBind = SharpStarMain.Instance.Config.ConfigFile.StarboundBind;
-        private readonly string _sharpstarBind = SharpStarMain.Instance.Config.ConfigFile.SharpStarBind;
 
         public event EventHandler<ClientConnectedEventArgs> ClientConnected;
 
@@ -51,7 +49,7 @@ namespace SharpStar.Lib.Server
             }
         }
 
-        public List<IPacketHandler> DefaultPacketHandlers = new List<IPacketHandler>
+        public static List<IPacketHandler> DefaultPacketHandlers = new List<IPacketHandler>
         {
             new UnknownPacketHandler(),
             new ProtocolVersionPacketHandler(),
@@ -87,7 +85,6 @@ namespace SharpStar.Lib.Server
         public SharpStarServer(int sbPort, int numConnections)
         {
             m_numConnectedSockets = 0;
-            m_numConnections = numConnections;
 
             if (!string.IsNullOrEmpty(_starboundBind))
             {
@@ -179,6 +176,8 @@ namespace SharpStar.Lib.Server
             }
 
             SharpStarLogger.DefaultLogger.Info("Connection from {0}", e.AcceptSocket.RemoteEndPoint);
+
+            Interlocked.Increment(ref m_numConnectedSockets);
 
             StartAccept(e);
 

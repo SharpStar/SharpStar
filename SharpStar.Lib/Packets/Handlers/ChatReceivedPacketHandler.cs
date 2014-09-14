@@ -13,20 +13,25 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System.Threading.Tasks;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
 {
     public class ChatReceivedPacketHandler : PacketHandler<ChatReceivedPacket>
     {
-        public override void Handle(ChatReceivedPacket packet, SharpStarClient client)
+        public override Task Handle(ChatReceivedPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("chatReceived", packet, client);
+
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(ChatReceivedPacket packet, SharpStarClient client)
+        public override Task HandleAfter(ChatReceivedPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterChatReceived", packet, client);
+
+            return base.Handle(packet, client);
         }
     }
 }

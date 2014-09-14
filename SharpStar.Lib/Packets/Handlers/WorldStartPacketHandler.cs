@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
+using System.Threading.Tasks;
 using SharpStar.Lib.DataTypes;
 using SharpStar.Lib.Server;
 
@@ -21,7 +22,7 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class WorldStartPacketHandler : PacketHandler<WorldStartPacket>
     {
-        public override void Handle(WorldStartPacket packet, SharpStarClient client)
+        public override Task Handle(WorldStartPacket packet, SharpStarClient client)
         {
             Variant planet = packet.Planet;
             VariantDict planetDict = (VariantDict) planet.Value;
@@ -69,11 +70,15 @@ namespace SharpStar.Lib.Packets.Handlers
             client.Server.Player.SpawnY = packet.SpawnY;
 
             SharpStarMain.Instance.PluginManager.CallEvent("worldStart", packet, client);
+
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(WorldStartPacket packet, SharpStarClient client)
+        public override Task HandleAfter(WorldStartPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterWorldStart", packet, client);
+
+            return base.HandleAfter(packet, client);
         }
     }
 }

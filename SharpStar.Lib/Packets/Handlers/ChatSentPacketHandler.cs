@@ -15,13 +15,14 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
 {
     public class ChatSentPacketHandler : PacketHandler<ChatSentPacket>
     {
-        public override void Handle(ChatSentPacket packet, SharpStarClient client)
+        public override async Task Handle(ChatSentPacket packet, SharpStarClient client)
         {
 
             SharpStarMain.Instance.PluginManager.CallEvent("chatSent", packet, client);
@@ -72,7 +73,7 @@ namespace SharpStar.Lib.Packets.Handlers
 
                     if (!SharpStarMain.Instance.Config.ConfigFile.AllowedStarboundCommands.Any(p => p.Equals(cmd, StringComparison.OrdinalIgnoreCase)))
                     {
-                        if (!SharpStarMain.Instance.PluginManager.PassChatCommand(client, cmd, args))
+                        if (!await SharpStarMain.Instance.PluginManager.PassChatCommand(client, cmd, args).ConfigureAwait(false))
                             client.SendChatMessage("Server", "Unknown Command!");
 
                         packet.Ignore = true;
@@ -81,9 +82,11 @@ namespace SharpStar.Lib.Packets.Handlers
             }
         }
 
-        public override void HandleAfter(ChatSentPacket packet, SharpStarClient client)
+        public override Task HandleAfter(ChatSentPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterChatSent", packet, client);
+
+            return base.HandleAfter(packet, client);
         }
     }
 }

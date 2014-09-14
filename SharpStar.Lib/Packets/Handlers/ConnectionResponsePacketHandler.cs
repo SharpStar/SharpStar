@@ -16,6 +16,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using SharpStar.Lib.Logging;
 using SharpStar.Lib.Server;
 
@@ -23,7 +24,7 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class ConnectionResponsePacketHandler : PacketHandler<ConnectionResponsePacket>
     {
-        public override void Handle(ConnectionResponsePacket packet, SharpStarClient client)
+        public override Task Handle(ConnectionResponsePacket packet, SharpStarClient client)
         {
             if (packet.IsReceive)
             {
@@ -35,7 +36,7 @@ namespace SharpStar.Lib.Packets.Handlers
 
                 if (client.Server.Player == null)
                 {
-                    return;
+                    return base.Handle(packet, client);
                 }
 
                 if (client.Server.Player.UserAccount == null && SharpStarMain.Instance.Config.ConfigFile.RequireAccountLogin)
@@ -53,11 +54,15 @@ namespace SharpStar.Lib.Packets.Handlers
             }
 
             SharpStarMain.Instance.PluginManager.CallEvent("connectionResponse", packet, client);
+
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(ConnectionResponsePacket packet, SharpStarClient client)
+        public override Task HandleAfter(ConnectionResponsePacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterConnectionResponse", packet, client);
+
+            return base.HandleAfter(packet, client);
         }
     }
 }

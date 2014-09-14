@@ -45,15 +45,10 @@ namespace SharpStar.Lib.Starbound
 
         }
 
-        public List<Document> GetEntities(byte x, byte y)
-        {
-            return GetEntitiesAsync(x, y).Result;
-        }
-
-        public async Task<List<Document>> GetEntitiesAsync(byte x, byte y)
+        public List<Document> GetEntitiesAsync(byte x, byte y)
         {
 
-            byte[] data = await GetAsync(new byte[] { 2, x, y });
+            byte[] data = Get(new byte[] { 2, x, y });
 
             return Document.ListFromStream(data);
 
@@ -61,13 +56,8 @@ namespace SharpStar.Lib.Starbound
 
         public List<Tile> GetTiles(byte x, byte y)
         {
-            return GetTilesAsync(x, y).Result;
-        }
 
-        public async Task<List<Tile>> GetTilesAsync(byte x, byte y)
-        {
-
-            byte[] data = await GetAsync(new byte[] { 1, x, y });
+            byte[] data = Get(new byte[] { 1, x, y });
 
             var tiles = new List<Tile>();
 
@@ -76,7 +66,7 @@ namespace SharpStar.Lib.Starbound
 
                 byte[] unknown = new byte[3];
 
-                await ms.ReadAsync(unknown, 0, unknown.Length);
+                ms.ReadAsync(unknown, 0, unknown.Length);
 
                 for (int i = 0; i < TilesPerRegion; i++)
                 {

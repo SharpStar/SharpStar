@@ -32,32 +32,26 @@ namespace SharpStar.Lib.Plugins
 
         public abstract string Name { get; }
 
-        //private readonly Dictionary<string, Action<IPacket, SharpStarClient>> _registeredEvents;
-
-        //private readonly Dictionary<string, Action<SharpStarClient, string[]>> _registeredCommands;
-
         private readonly Dictionary<string, Action<string[]>> _registeredConsoleCommands;
 
         private readonly List<KnownPacket> _registeredEvents;
 
         private readonly List<KnownPacket> _registeredAfterEvents;
 
-        public readonly Dictionary<object, Dictionary<Tuple<string, string, string>, Action<SharpStarClient, string[]>>> RegisteredCommandObjects;
+        public readonly Dictionary<object, List<CallableCommandEvent>> RegisteredCommandObjects;
 
         public readonly Dictionary<object, Dictionary<Tuple<string, string>, Action<string[]>>> RegisteredConsoleCommandObjects;
 
-        public readonly Dictionary<object, Dictionary<Tuple<KnownPacket, bool>, Action<IPacket, SharpStarClient>>> RegisteredPacketEventObjects;
+        public readonly Dictionary<object, List<CallablePacketEvent>> RegisteredPacketEventObjects;
 
         protected CSPlugin()
         {
-            //_registeredEvents = new Dictionary<string, Action<IPacket, SharpStarClient>>();
             _registeredEvents = new List<KnownPacket>();
             _registeredAfterEvents = new List<KnownPacket>();
-            //_registeredCommands = new Dictionary<string, Action<SharpStarClient, string[]>>();
             _registeredConsoleCommands = new Dictionary<string, Action<string[]>>();
 
-            RegisteredCommandObjects = new Dictionary<object, Dictionary<Tuple<string, string, string>, Action<SharpStarClient, string[]>>>();
-            RegisteredPacketEventObjects = new Dictionary<object, Dictionary<Tuple<KnownPacket, bool>, Action<IPacket, SharpStarClient>>>();
+            RegisteredCommandObjects = new Dictionary<object, List<CallableCommandEvent>>();
+            RegisteredPacketEventObjects = new Dictionary<object, List<CallablePacketEvent>>();
             RegisteredConsoleCommandObjects = new Dictionary<object, Dictionary<Tuple<string, string>, Action<string[]>>>();
         }
 
@@ -91,7 +85,7 @@ namespace SharpStar.Lib.Plugins
 
             if (!RegisteredCommandObjects.ContainsKey(obj))
             {
-                var dict = new Dictionary<Tuple<string, string, string>, Action<SharpStarClient, string[]>>();
+                var list = new List<CallableCommandEvent>();
 
                 MethodInfo[] methods = obj.GetType().GetMethods();
 
@@ -105,20 +99,37 @@ namespace SharpStar.Lib.Plugins
                     {
                         CommandAttribute attrib = (CommandAttribute)attribs[0];
 
+                        CallableCommandEvent ce;
+
+                        if (mi.ReturnType == typeof(Task))
+                        {
+                            ce = new CallableCommandEvent(Delegate.CreateDelegate(typeof(Func<SharpStarClient, string[], Task>), obj, mi));
+                            ce.IsAsync = true;
+                        }
+                        else
+                        {
+                            ce = new CallableCommandEvent(Delegate.CreateDelegate(typeof(Action<SharpStarClient, string[]>), obj, mi));
+                        }
+
+                        ce.CommandName = attrib.CommandName;
+                        ce.CommandDescription = attrib.CommandDescription;
+
                         if (permAttribs.Count > 0)
                         {
                             CommandPermissionAttribute cpa = (CommandPermissionAttribute)permAttribs[0];
 
-                            dict.Add(Tuple.Create(attrib.CommandName, attrib.CommandDescription, cpa.Permission), (Action<SharpStarClient, string[]>)Delegate.CreateDelegate(typeof(Action<SharpStarClient, string[]>), obj, mi));
+                            ce.CommandPermission = cpa.Permission;
                         }
                         else
                         {
-                            dict.Add(Tuple.Create(attrib.CommandName, attrib.CommandDescription, String.Empty), (Action<SharpStarClient, string[]>)Delegate.CreateDelegate(typeof(Action<SharpStarClient, string[]>), obj, mi));
+                            ce.CommandDescription = String.Empty;
                         }
+
+                        list.Add(ce);
                     }
                 }
 
-                RegisteredCommandObjects.Add(obj, dict);
+                RegisteredCommandObjects.Add(obj, list);
             }
 
         }
@@ -161,7 +172,7 @@ namespace SharpStar.Lib.Plugins
         {
             if (!RegisteredPacketEventObjects.ContainsKey(obj))
             {
-                var dict = new Dictionary<Tuple<KnownPacket, bool>, Action<IPacket, SharpStarClient>>();
+                var list = new List<CallablePacketEvent>();
 
                 MethodInfo[] methods = obj.GetType().GetMethods();
 
@@ -173,12 +184,28 @@ namespace SharpStar.Lib.Plugins
                     {
                         PacketEventAttribute attrib = (PacketEventAttribute)attribs[0];
 
-                        var act = (Action<IPacket, SharpStarClient>)Delegate.CreateDelegate(typeof(Action<IPacket, SharpStarClient>), obj, mi);
+                        bool isAsync = mi.ReturnType == typeof(Task);
+
+                        Delegate toCall;
+                        if (isAsync)
+                        {
+                            toCall = Delegate.CreateDelegate(typeof(Func<IPacket, SharpStarClient, Task>), obj, mi);
+                        }
+                        else
+                        {
+                            toCall = Delegate.CreateDelegate(typeof(Action<IPacket, SharpStarClient>), obj, mi);
+                        }
 
                         bool isAfter = attrib is AfterPacketEventAttribute;
 
                         foreach (KnownPacket kp in attrib.PacketTypes)
                         {
+                            CallablePacketEvent cevt = new CallablePacketEvent(toCall);
+                            cevt.IsAfter = isAfter;
+                            cevt.PacketType = kp;
+                            cevt.IsAsync = isAsync;
+                            cevt.ToCall = toCall;
+
                             if (!isAfter)
                             {
                                 if (!_registeredEvents.Contains(kp))
@@ -190,34 +217,14 @@ namespace SharpStar.Lib.Plugins
                                     _registeredAfterEvents.Add(kp);
                             }
 
-                            dict.Add(Tuple.Create(kp, isAfter), act);
+                            list.Add(cevt);
                         }
                     }
                 }
 
-                RegisteredPacketEventObjects.Add(obj, dict);
+                RegisteredPacketEventObjects.Add(obj, list);
             }
         }
-
-        //public void RegisterCommand(string name, Action<SharpStarClient, string[]> toCall)
-        //{
-
-        //    if (!_registeredCommands.ContainsKey(name))
-        //    {
-        //        _registeredCommands.Add(name, toCall);
-        //    }
-
-        //}
-
-        //public void UnregisterCommand(string name)
-        //{
-
-        //    if (_registeredCommands.ContainsKey(name))
-        //    {
-        //        _registeredCommands.Remove(name);
-        //    }
-
-        //}
 
         public void RegisterConsoleCommand(string name, Action<string[]> toCall)
         {
@@ -235,7 +242,7 @@ namespace SharpStar.Lib.Plugins
             }
         }
 
-        public virtual void OnEventOccurred(IPacket packet, SharpStarClient client, bool isAfter = false)
+        public async Task OnEventOccurred(IPacket packet, SharpStarClient client, bool isAfter = false)
         {
             KnownPacket kp = (KnownPacket)packet.PacketId;
 
@@ -245,17 +252,35 @@ namespace SharpStar.Lib.Plugins
             if (isAfter && !_registeredAfterEvents.Contains(kp))
                 return;
 
-
             try
             {
 
-                foreach (var kvp in RegisteredPacketEventObjects)
+                foreach (List<CallablePacketEvent> evts in RegisteredPacketEventObjects.Values)
                 {
-                    var t = kvp.Value.SingleOrDefault(p => p.Key.Item1 == (KnownPacket)packet.PacketId && p.Key.Item2 == isAfter);
-
-                    if (t.Value != null)
+                    foreach (CallablePacketEvent evt in evts)
                     {
-                        t.Value(packet, client);
+                        if (evt.PacketType == kp && evt.IsAfter == isAfter)
+                        {
+                            if (evt.IsAsync)
+                            {
+                                var toCall = evt.ToCall as Func<IPacket, SharpStarClient, Task>;
+
+                                if (toCall != null)
+                                {
+                                    await toCall(packet, client);
+                                }
+                            }
+                            else
+                            {
+                                var toCall = evt.ToCall as Action<IPacket, SharpStarClient>;
+
+                                if (toCall != null)
+                                {
+                                    toCall(packet, client);
+                                }
+                            }
+                        }
+
                     }
                 }
 
@@ -273,43 +298,68 @@ namespace SharpStar.Lib.Plugins
             }
         }
 
-        public virtual bool OnChatCommandReceived(SharpStarClient client, string command, string[] args)
+        public virtual async Task<bool> OnChatCommandReceived(SharpStarClient client, string command, string[] args)
         {
-
-            //var cmd = _registeredCommands.SingleOrDefault(p => p.Key.Equals(command, StringComparison.OrdinalIgnoreCase));
-
             bool contained = false;
 
-            foreach (var kvp in RegisteredCommandObjects)
+            foreach (List<CallableCommandEvent> list in RegisteredCommandObjects.Values)
             {
-                var val = kvp.Value.SingleOrDefault(p => p.Key.Item1.Equals(command, StringComparison.OrdinalIgnoreCase));
-
-                if (val.Value != null)
+                foreach (CallableCommandEvent cce in list)
                 {
+                    if (cce.CommandName.Equals(command, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (string.IsNullOrEmpty(cce.CommandPermission))
+                        {
+                            if (cce.IsAsync)
+                            {
+                                var toCall = cce.ToCall as Func<SharpStarClient, string[], Task>;
 
-                    if (string.IsNullOrEmpty(val.Key.Item3))
-                    {
-                        val.Value(client, args);
-                    }
-                    else if ((!string.IsNullOrEmpty(val.Key.Item3) && client.Server.Player == null) || (client.Server.Player != null && !client.Server.Player.HasPermission(val.Key.Item3)))
-                    {
-                        OnCommandPermissionDenied(client, val.Key.Item1);
-                    }
-                    else
-                    {
-                        val.Value(client, args);
-                    }
+                                if (toCall != null)
+                                {
+                                    await toCall(client, args);
+                                }
+                            }
+                            else
+                            {
+                                var toCall = cce.ToCall as Action<SharpStarClient, string[]>;
 
-                    contained = true;
+                                if (toCall != null)
+                                {
+                                    toCall(client, args);
+                                }
+                            }
+                        }
+                        else if ((!string.IsNullOrEmpty(cce.CommandPermission) && client.Server.Player == null) || (client.Server.Player != null &&
+                            !client.Server.Player.HasPermission(cce.CommandPermission)))
+                        {
+                            OnCommandPermissionDenied(client, cce.CommandName);
+                        }
+                        else
+                        {
+                            if (cce.IsAsync)
+                            {
+                                var toCall = cce.ToCall as Func<SharpStarClient, string[], Task>;
+
+                                if (toCall != null)
+                                {
+                                    await toCall(client, args);
+                                }
+                            }
+                            else
+                            {
+                                var toCall = cce.ToCall as Action<SharpStarClient, string[]>;
+
+                                if (toCall != null)
+                                {
+                                    toCall(client, args);
+                                }
+                            }
+                        }
+
+                        contained = true;
+                    }
                 }
             }
-
-            //if (cmd.Value != null)
-            //{
-            //    cmd.Value(client, args);
-
-            //    contained = true;
-            //}
 
             return contained;
         }

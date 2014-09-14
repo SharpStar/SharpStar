@@ -13,20 +13,25 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System.Threading.Tasks;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
 {
     public class WorldStopPacketHandler : PacketHandler<WorldStopPacket>
     {
-        public override void Handle(WorldStopPacket packet, SharpStarClient client)
+        public override Task Handle(WorldStopPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("worldStop", packet, client);
+
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(WorldStopPacket packet, SharpStarClient client)
+        public override Task HandleAfter(WorldStopPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterWorldStop", packet, client);
+
+            return base.HandleAfter(packet, client);
         }
     }
 }

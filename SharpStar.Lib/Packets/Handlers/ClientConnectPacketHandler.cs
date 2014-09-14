@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using SharpStar.Lib.Database;
 using SharpStar.Lib.Entities;
 using SharpStar.Lib.Logging;
@@ -25,7 +26,7 @@ namespace SharpStar.Lib.Packets.Handlers
 {
     public class ClientConnectPacketHandler : PacketHandler<ClientConnectPacket>
     {
-        public override async void Handle(ClientConnectPacket packet, SharpStarClient client)
+        public override async Task Handle(ClientConnectPacket packet, SharpStarClient client)
         {
 
             if (packet.IsReceive)
@@ -86,9 +87,11 @@ namespace SharpStar.Lib.Packets.Handlers
             SharpStarMain.Instance.PluginManager.CallEvent("clientConnected", packet, client);
         }
 
-        public override void HandleAfter(ClientConnectPacket packet, SharpStarClient client)
+        public override Task HandleAfter(ClientConnectPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterClientConnected", packet, client);
+
+            return base.HandleAfter(packet, client);
         }
     }
 }

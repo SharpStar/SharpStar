@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Threading;
+using System.Threading.Tasks;
 using log4net.Config;
 using SharpStar.Lib;
 using SharpStar.Lib.Database;
@@ -29,15 +31,14 @@ namespace SharpStar
             SharpStarMain m = SharpStarMain.Instance;
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
             Version ver = Assembly.GetExecutingAssembly().GetName().Version;
 
             Logger.Info("SharpStar Version {0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision);
 
-
             if (MonoHelper.IsRunningOnMono())
             {
-
                 string monoVer = MonoHelper.GetMonoVersion();
 
                 if (!string.IsNullOrEmpty(monoVer))
@@ -56,8 +57,7 @@ namespace SharpStar
 
             m.Start();
 
-            bool running = true;
-            while (running)
+            while (true)
             {
                 string line = Console.ReadLine();
 
@@ -167,8 +167,6 @@ namespace SharpStar
 
                         m.Shutdown();
 
-                        running = false;
-
                         Environment.Exit(0);
 
                         break;
@@ -177,7 +175,6 @@ namespace SharpStar
 
                         if (cmd.Length == 4)
                         {
-
                             user = m.Database.GetUser(cmd[1]);
 
                             if (user == null)
@@ -186,7 +183,6 @@ namespace SharpStar
                             }
                             else
                             {
-
                                 bool allowed;
 
                                 bool.TryParse(cmd[3], out allowed);
@@ -208,7 +204,6 @@ namespace SharpStar
 
                         if (cmd.Length == 3)
                         {
-
                             user = m.Database.GetUser(cmd[1]);
 
                             if (user == null)
@@ -234,7 +229,6 @@ namespace SharpStar
 
                         if (cmd.Length == 2)
                         {
-
                             user = m.Database.GetUser(cmd[1]);
 
                             if (user == null)
@@ -243,13 +237,10 @@ namespace SharpStar
                             }
                             else
                             {
-
                                 m.Database.ChangeAdminStatus(user.Id, true);
 
                                 Logger.Info("{0} is now an admin!", user.Username);
-
                             }
-
                         }
 
                         break;
@@ -264,11 +255,9 @@ namespace SharpStar
                         }
                         else
                         {
-
                             m.Database.ChangeAdminStatus(user.Id, false);
 
                             Logger.Info("{0} is no longer an admin!", user.Username);
-
                         }
 
                         break;
@@ -285,7 +274,16 @@ namespace SharpStar
             }
         }
 
-        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        [HandleProcessCorruptedStateExceptions]
+        private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        {
+            e.SetObserved();
+
+            e.Exception.LogError();
+        }
+
+        [HandleProcessCorruptedStateExceptions]
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             (((Exception)e.ExceptionObject)).LogError();
         }

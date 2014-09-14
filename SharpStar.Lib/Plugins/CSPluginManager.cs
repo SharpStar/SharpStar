@@ -204,7 +204,6 @@ namespace SharpStar.Lib.Plugins
 
             if (addins.Any())
             {
-
                 AddinRepositoryEntry avAddin = addins.First();
 
                 var property = avAddin.Addin.Properties.SingleOrDefault(p => p.Name.Equals("sharpstar", StringComparison.OrdinalIgnoreCase));
@@ -252,21 +251,21 @@ namespace SharpStar.Lib.Plugins
             }
         }
 
-        public void CallEvent(IPacket packet, SharpStarClient client, bool isAfter = false)
+        public async Task CallEvent(IPacket packet, SharpStarClient client, bool isAfter = false)
         {
             foreach (ICSPlugin csPlugin in _csPlugins.Values.ToList())
             {
-                csPlugin.OnEventOccurred(packet, client, isAfter);
+                await csPlugin.OnEventOccurred(packet, client, isAfter);
             }
         }
 
-        public bool PassChatCommand(SharpStarClient client, string command, string[] args)
+        public async Task<bool> PassChatCommand(SharpStarClient client, string command, string[] args)
         {
             bool result = false;
 
             foreach (ICSPlugin plugin in _csPlugins.Values)
             {
-                if (plugin.OnChatCommandReceived(client, command, args))
+                if (await plugin.OnChatCommandReceived(client, command, args).ConfigureAwait(false))
                     result = true;
             }
 
@@ -383,7 +382,7 @@ namespace SharpStar.Lib.Plugins
 
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
-                Parallel.ForEach(assemblies.Where(p => p.GetTypes().Any(x => typeof(ICSPlugin).IsAssignableFrom(x))), assm =>
+                foreach (var assm in assemblies.Where(p => p.GetTypes().Any(x => typeof(ICSPlugin).IsAssignableFrom(x))))
                 {
                     Type[] types = assm.GetTypes();
 
@@ -428,7 +427,7 @@ namespace SharpStar.Lib.Plugins
 
                     }
 
-                });
+                }
             }
         }
 

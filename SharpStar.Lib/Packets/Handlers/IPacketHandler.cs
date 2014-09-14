@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
+using System.Threading.Tasks;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
@@ -23,9 +24,9 @@ namespace SharpStar.Lib.Packets.Handlers
 
         Type GetPacketType();
 
-        void Handle(IPacket packet, IClient client);
+        Task Handle(IPacket packet, IClient client);
 
-        void HandleAfter(IPacket packet, IClient client);
+        Task HandleAfter(IPacket packet, IClient client);
 
         int PacketId { get; }
 

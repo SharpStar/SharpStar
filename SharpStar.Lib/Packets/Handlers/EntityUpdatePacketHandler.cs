@@ -13,20 +13,25 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System.Threading.Tasks;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
 {
     public class EntityUpdatePacketHandler : PacketHandler<EntityUpdatePacket>
     {
-        public override void Handle(EntityUpdatePacket packet, SharpStarClient client)
+        public override Task Handle(EntityUpdatePacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("entityUpdate", packet, client);
+
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(EntityUpdatePacket packet, SharpStarClient client)
+        public override Task HandleAfter(EntityUpdatePacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterEntityUpdate", packet, client);
+
+            return base.HandleAfter(packet, client);
         }
     }
 }

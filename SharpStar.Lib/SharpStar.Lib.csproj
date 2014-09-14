@@ -169,6 +169,9 @@
     <Compile Include="Misc\StarboundSector.cs" />
     <Compile Include="Packets\Handlers\SpawnEntityPacketHandler.cs" />
     <Compile Include="Plugins\AfterPacketEventAttribute.cs" />
+    <Compile Include="Plugins\CallableCommandEvent.cs" />
+    <Compile Include="Plugins\CallableEvent.cs" />
+    <Compile Include="Plugins\CallablePacketEvent.cs" />
     <Compile Include="Server\AsyncUserToken.cs" />
     <Compile Include="Server\BufferManager.cs" />
     <Compile Include="Server\IServer.cs" />

@@ -14,15 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
+using System.Threading.Tasks;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
 {
     public abstract class PacketHandler<T> : IPacketHandler where T : Packet, new()
     {
-        public abstract void Handle(T packet, SharpStarClient client);
+        public virtual Task Handle(T packet, SharpStarClient client)
+        {
+            return Task.FromResult(false);
+        }
 
-        public abstract void HandleAfter(T packet, SharpStarClient client);
+        public virtual Task HandleAfter(T packet, SharpStarClient client)
+        {
+            return Task.FromResult(false);
+        }
 
         private static readonly int _packetId = new T().PacketId;
 
@@ -36,25 +43,17 @@ namespace SharpStar.Lib.Packets.Handlers
 
         public Type GetPacketType()
         {
-            return typeof (T);
+            return typeof(T);
         }
 
-        public void Handle(IPacket packet, IClient client)
+        public Task Handle(IPacket packet, IClient client)
         {
-            if (packet is T)
-                Handle((T) packet, (SharpStarClient) client);
-            else
-                throw new Exception(String.Format("Was given packet type {0}, expected {1}", packet.GetType().Name,
-                    typeof (T).Name));
+            return Handle((T)packet, (SharpStarClient)client);
         }
 
-        public void HandleAfter(IPacket packet, IClient client)
+        public Task HandleAfter(IPacket packet, IClient client)
         {
-            if (packet is T)
-                HandleAfter((T) packet, (SharpStarClient) client);
-            else
-                throw new Exception(String.Format("Was given packet type {0}, expected {1}", packet.GetType().Name,
-                    typeof (T).Name));
+            return HandleAfter((T)packet, (SharpStarClient)client);
         }
 
     }

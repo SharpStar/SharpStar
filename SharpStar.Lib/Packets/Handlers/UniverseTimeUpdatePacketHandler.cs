@@ -13,20 +13,25 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System.Threading.Tasks;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
 {
     public class UniverseTimeUpdatePacketHandler : PacketHandler<UniverseTimeUpdatePacket>
     {
-        public override void Handle(UniverseTimeUpdatePacket packet, SharpStarClient client)
+        public override Task Handle(UniverseTimeUpdatePacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("universeTimeUpdate", packet, client);
+
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(UniverseTimeUpdatePacket packet, SharpStarClient client)
+        public override Task HandleAfter(UniverseTimeUpdatePacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterUniverseTimeUpdate", packet, client);
+
+            return base.HandleAfter(packet, client);
         }
     }
 }

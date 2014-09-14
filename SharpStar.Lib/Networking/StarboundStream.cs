@@ -43,7 +43,7 @@ namespace SharpStar.Lib.Networking
         }
 
         public Encoding StringEncoding { get; set; }
-        
+
         public byte ReadUInt8()
         {
             int value = ReadByte();
@@ -205,7 +205,6 @@ namespace SharpStar.Lib.Networking
 
         public ushort[] ReadUInt16Array()
         {
-            int discarded;
             int length = (int)ReadVLQ();
             return ReadUInt16Array(length);
         }
@@ -244,7 +243,6 @@ namespace SharpStar.Lib.Networking
 
         public uint[] ReadUInt32Array()
         {
-            int discarded;
             int length = (int)ReadVLQ();
             return ReadUInt32Array(length);
         }
@@ -283,7 +281,6 @@ namespace SharpStar.Lib.Networking
 
         public ulong[] ReadUInt64Array()
         {
-            int discarded;
             int length = (int)ReadVLQ();
             return ReadUInt64Array(length);
         }

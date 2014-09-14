@@ -13,20 +13,25 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System.Threading.Tasks;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
 {
     public class RequestDropPacketHandler : PacketHandler<RequestDropPacket>
     {
-        public override void Handle(RequestDropPacket packet, SharpStarClient client)
+        public override Task Handle(RequestDropPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("requestDrop", packet, client);
+
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(RequestDropPacket packet, SharpStarClient client)
+        public override Task HandleAfter(RequestDropPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterRequestDrop", packet, client);
+
+            return base.HandleAfter(packet, client);
         }
     }
 }

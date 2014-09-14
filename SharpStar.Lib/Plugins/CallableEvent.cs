@@ -13,25 +13,28 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
+using SharpStar.Lib.Packets;
 using SharpStar.Lib.Server;
 
-namespace SharpStar.Lib.Packets.Handlers
+namespace SharpStar.Lib.Plugins
 {
-    public class CloseContainerPacketHandler : PacketHandler<CloseContainerPacket>
+    public class CallableEvent
     {
-        public override Task Handle(CloseContainerPacket packet, SharpStarClient client)
-        {
-            SharpStarMain.Instance.PluginManager.CallEvent("closeContainer", packet, client);
 
-            return base.Handle(packet, client);
+        public bool IsAsync { get; set; }
+
+        public Delegate ToCall { get; set; }
+
+        public CallableEvent(Delegate toCall)
+        {
+            ToCall = toCall;
         }
 
-        public override Task HandleAfter(CloseContainerPacket packet, SharpStarClient client)
-        {
-            SharpStarMain.Instance.PluginManager.CallEvent("afterCloseContainer", packet, client);
-
-            return base.HandleAfter(packet, client);
-        }
     }
 }

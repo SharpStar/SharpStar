@@ -92,14 +92,12 @@ namespace SharpStar.Lib.Packets
             RegisteredPacketTypes.Add(id, Expression.Lambda<Func<IPacket>>(Expression.New(packetType)).Compile());
         }
 
-        public async Task<List<IPacket>> UpdateBuffer(bool shouldCopy)
+        public IEnumerable<IPacket> UpdateBuffer(bool shouldCopy)
         {
             if (shouldCopy)
             {
                 PacketBuffer.AddRange(NetworkBuffer);
             }
-
-            List<IPacket> packets = new List<IPacket>();
 
             Queue<byte[]> toProcess = new Queue<byte[]>();
             toProcess.Enqueue(PacketBuffer.ToArray());
@@ -123,7 +121,7 @@ namespace SharpStar.Lib.Packets
                         {
                             WorkingLength = long.MaxValue;
 
-                            return packets;
+                            yield break;
                         }
 
                         DataIndex = (int)s.Position;
@@ -147,7 +145,7 @@ namespace SharpStar.Lib.Packets
 
                             if (Compressed)
                             {
-                                data = await ZlibUtils.DecompressAsync(data);
+                                data = ZlibUtils.Decompress(data);
                             }
 
                             IPacket packet = Decode(_packetId, data);
@@ -160,8 +158,7 @@ namespace SharpStar.Lib.Packets
                             if (rest.Length > 0)
                                 toProcess.Enqueue(rest);
 
-                            packets.Add(packet);
-
+                            yield return packet;
                         }
 
                     }
@@ -169,8 +166,6 @@ namespace SharpStar.Lib.Packets
                 }
 
             }
-
-            return packets;
 
         }
 

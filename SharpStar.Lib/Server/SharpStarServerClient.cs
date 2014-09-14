@@ -79,7 +79,6 @@ namespace SharpStar.Lib.Server
             _packetHandlers.Remove(handler);
         }
 
-
         public void Connect(IPEndPoint ipe)
         {
             var connectArgs = new SocketAsyncEventArgs();
@@ -101,7 +100,7 @@ namespace SharpStar.Lib.Server
             }
         }
 
-        private async void connectArgs_Completed(object sender, SocketAsyncEventArgs e)
+        private void connectArgs_Completed(object sender, SocketAsyncEventArgs e)
         {
 
             if (e.SocketError == SocketError.Success && ((AsyncUserToken)e.UserToken).Socket.Connected)
@@ -125,24 +124,21 @@ namespace SharpStar.Lib.Server
                 if (SClientConnected != null)
                     SClientConnected(this, new ClientConnectedEventArgs(ServerClient));
 
-                PlayerClient.StartReceive();
-                ServerClient.StartReceive();
+                PlayerClient.StartReceive().ContinueWith(t => t.Exception.LogError(), TaskContinuationOptions.OnlyOnFaulted);
+                ServerClient.StartReceive().ContinueWith(t => t.Exception.LogError(), TaskContinuationOptions.OnlyOnFaulted);
             }
             else
             {
 
                 if (PlayerClient == null)
-                {
-                    new SocketException((int)e.SocketError).LogError();
-
                     return;
-                }
 
+                new SocketException((int)e.SocketError).LogError();
 
                 //simulate the connection process so we can return an error back to the client
                 var packetRecv = Observable.FromEventPattern<PacketEventArgs>(p => PlayerClient.PacketReceived += p, p => PlayerClient.PacketReceived -= p);
                 var clientConnPacket = (from p in packetRecv where p.EventArgs.Packet.PacketId == (int)KnownPacket.ClientConnect select p);
-                var subscribeConn = clientConnPacket.Subscribe(async args =>
+                var subscribeConn = clientConnPacket.Subscribe(args =>
                 {
 
                     args.EventArgs.Packet.Ignore = true;
@@ -151,18 +147,18 @@ namespace SharpStar.Lib.Server
 
                     if (client != null)
                     {
-                        await client.SendPacket(new HandshakeChallengePacket
+                        client.SendPacket(new HandshakeChallengePacket
                         {
                             Claim = String.Empty,
                             Rounds = StarboundConstants.Rounds,
                             Salt = SharpStarSecurity.GenerateSalt()
-                        });
+                        }).ContinueWith(t => t.Exception.LogError(), TaskContinuationOptions.OnlyOnFaulted);
                     }
 
                 }, args => { }, () => { });
 
                 var handshakeRespPacket = (from p in packetRecv where p.EventArgs.Packet.PacketId == (int)KnownPacket.HandshakeResponse select p);
-                var subscribeHandshake = handshakeRespPacket.Subscribe(async args =>
+                var subscribeHandshake = handshakeRespPacket.Subscribe(args =>
                 {
 
                     SharpStarClient client = args.EventArgs.Client;
@@ -171,23 +167,23 @@ namespace SharpStar.Lib.Server
 
                     if (client != null)
                     {
-                        await client.SendPacket(new ConnectionResponsePacket
+                        client.SendPacket(new ConnectionResponsePacket
                         {
                             Success = false,
                             RejectionReason = SharpStarMain.Instance.Config.ConfigFile.ServerOfflineError,
                             ClientId = 1
-                        });
+                        }).ContinueWith(t => t.Exception.LogError(), TaskContinuationOptions.OnlyOnFaulted);
                     }
 
                 }, args => { }, () => { });
 
-                PlayerClient.StartReceive();
-                await PlayerClient.SendPacket(new ProtocolVersionPacket
+                PlayerClient.StartReceive().ContinueWith(t => t.Exception.LogError(), TaskContinuationOptions.OnlyOnFaulted);
+                PlayerClient.SendPacket(new ProtocolVersionPacket
                 {
                     ProtocolVersion = StarboundConstants.ProtocolVersion
-                });
+                }).ContinueWith(t => t.Exception.LogError(), TaskContinuationOptions.OnlyOnFaulted);
 
-                await Task.Run(() =>
+                Task.Run(() =>
                 {
                     Thread.Sleep(5000);
 

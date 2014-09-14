@@ -17,20 +17,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
 {
     public class SpawnEntityPacketHandler : PacketHandler<SpawnEntityPacket>
     {
-        public override void Handle(SpawnEntityPacket packet, SharpStarClient client)
+        public override Task Handle(SpawnEntityPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("spawnEntity", packet, client);
+
+            return base.Handle(packet, client);
         }
 
-        public override void HandleAfter(SpawnEntityPacket packet, SharpStarClient client)
+        public override Task HandleAfter(SpawnEntityPacket packet, SharpStarClient client)
         {
             SharpStarMain.Instance.PluginManager.CallEvent("afterSpawnEntity", packet, client);
+
+            return base.HandleAfter(packet, client);
         }
     }
 }

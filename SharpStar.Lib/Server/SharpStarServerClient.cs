@@ -56,7 +56,7 @@ namespace SharpStar.Lib.Server
                 if (_packetHandlers == null)
                     _packetHandlers = new List<IPacketHandler>();
 
-                return _packetHandlers;
+                return _packetHandlers.ToList();
             }
         }
 

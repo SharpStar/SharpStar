@@ -33,6 +33,10 @@ namespace SharpStar.Lib.Packets.Handlers
 
                 if (client.Server.Player.UserAccount != null && client.Server.Player.UserAccount.Hash != packet.PasswordHash)
                     client.Server.Player.UserAccount = null;
+
+                if (client.Server.Player.Guest && SharpStarMain.Instance.Config.ConfigFile.GuestPasswordHash != packet.PasswordHash)
+                    client.Server.Player.JoinSuccessful = false;
+
             }
 
             //SharpStarMain.Instance.PluginManager.CallEvent("handshakeResponse", packet, client);

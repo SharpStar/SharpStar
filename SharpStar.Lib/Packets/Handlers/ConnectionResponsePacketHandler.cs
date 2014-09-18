@@ -41,12 +41,20 @@ namespace SharpStar.Lib.Packets.Handlers
 
                 if (client.Server.Player.UserAccount == null && SharpStarMain.Instance.Config.ConfigFile.RequireAccountLogin)
                 {
+                    client.Server.Player.JoinSuccessful = false;
                     packet.Success = false;
                     packet.RejectionReason = SharpStarMain.Instance.Config.ConfigFile.RequireAccountLoginError;
                 }
                 else if (client.Server.Player.UserAccount != null)
                 {
                     SharpStarMain.Instance.Database.UpdateUserLastLogin(client.Server.Player.UserAccount.Username, DateTime.Now);
+
+                    client.Server.Player.JoinSuccessful = true;
+                }
+                else if (client.Server.Player.Guest && !client.Server.Player.JoinSuccessful)
+                {
+                    packet.Success = false;
+                    packet.RejectionReason = SharpStarMain.Instance.Config.ConfigFile.GuestPasswordFailMessage;
                 }
 
                 if (packet.Success && client.Server.Player != null && !string.IsNullOrEmpty(client.Server.Player.Name))

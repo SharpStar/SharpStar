@@ -47,7 +47,7 @@ namespace SharpStar.Lib
 
         public static string AssemblyPath = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.FullName;
 
-        private const string ConfigFile = "sharpstar.json";
+        public const string ConfigFile = "sharpstar.json";
 
         private const int DefaultListenPort = 21025;
         private const int DefaultServerPort = 21024;

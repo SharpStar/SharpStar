@@ -20,6 +20,7 @@ using SharpStar.Lib.Database;
 using SharpStar.Lib.Entities;
 using SharpStar.Lib.Logging;
 using SharpStar.Lib.Misc;
+using SharpStar.Lib.Security;
 using SharpStar.Lib.Server;
 
 namespace SharpStar.Lib.Packets.Handlers
@@ -53,6 +54,7 @@ namespace SharpStar.Lib.Packets.Handlers
                 if (!string.IsNullOrEmpty(packet.Account.Trim()))
                 {
 
+                    client.Server.Player.Guest = false;
                     client.Server.Player.AttemptedLogin = true;
 
                     SharpStarUser user = SharpStarMain.Instance.Database.GetUser(packet.Account.Trim());
@@ -77,9 +79,29 @@ namespace SharpStar.Lib.Packets.Handlers
                     packet.Account = "";
 
                     client.Server.Player.UserAccount = user;
+                    client.Server.Player.JoinSuccessful = true;
 
                     await client.Server.PlayerClient.SendPacket(new HandshakeChallengePacket { Salt = user.Salt });
 
+                }
+                else if (string.IsNullOrEmpty(packet.Account.Trim()) && !string.IsNullOrEmpty(SharpStarMain.Instance.Config.ConfigFile.GuestPassword))
+                {
+                    client.Server.Player.AttemptedLogin = true;
+                    client.Server.Player.Guest = true;
+
+                    if (string.IsNullOrEmpty(SharpStarMain.Instance.Config.ConfigFile.GuestPasswordSalt) || string.IsNullOrEmpty(SharpStarMain.Instance.Config.ConfigFile.GuestPasswordHash))
+                    {
+                        string salt = SharpStarSecurity.GenerateSalt();
+                        string hash = SharpStarSecurity.GenerateHash("", SharpStarMain.Instance.Config.ConfigFile.GuestPassword, salt, StarboundConstants.Rounds);
+
+                        SharpStarMain.Instance.Config.ConfigFile.GuestPasswordSalt = salt;
+                        SharpStarMain.Instance.Config.ConfigFile.GuestPasswordHash = hash;
+                        SharpStarMain.Instance.Config.Save(SharpStarMain.ConfigFile);
+                    }
+
+                    client.Server.Player.JoinSuccessful = true;
+
+                    await client.Server.PlayerClient.SendPacket(new HandshakeChallengePacket { Salt = SharpStarMain.Instance.Config.ConfigFile.GuestPasswordSalt });
                 }
 
             }

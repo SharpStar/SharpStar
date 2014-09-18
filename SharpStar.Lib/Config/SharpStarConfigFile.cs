@@ -63,6 +63,18 @@ namespace SharpStar.Lib.Config
         [JsonProperty("serverOfflineError")]
         public string ServerOfflineError { get; set; }
 
+        [JsonProperty("guestPassword")]
+        public string GuestPassword { get; set; }
+        
+        [JsonProperty("guestPasswordHash")]
+        public string GuestPasswordHash { get; set; }
+
+        [JsonProperty("guestPasswordSalt")]
+        public string GuestPasswordSalt { get; set; }
+
+        [JsonProperty("guestPasswordFailMessage")]
+        public string GuestPasswordFailMessage { get; set; }
+
         public SharpStarConfigFile()
         {
             EnableAccounts = true;
@@ -76,6 +88,10 @@ namespace SharpStar.Lib.Config
             SharpStarBind = "*";
             AllowedStarboundCommands = new List<string>();
             ServerOfflineError = "This server is currently offline! Please try again later.";
+            GuestPassword = "";
+            GuestPasswordHash = "";
+            GuestPasswordSalt = "";
+            GuestPasswordFailMessage = "The password you entered is incorrect!";
         }
 
     }

@@ -110,6 +110,16 @@ namespace SharpStar.Lib.Entities
         /// </summary>
         public bool AttemptedLogin { get; set; }
 
+        /// <summary>
+        /// True if logged in as guest, false if not
+        /// </summary>
+        public bool Guest { get; set; }
+
+        /// <summary>
+        /// True if the player joined successfully, false if not
+        /// </summary>
+        public bool JoinSuccessful { get; set; }
+
         public StarboundPlayer()
         {
         }

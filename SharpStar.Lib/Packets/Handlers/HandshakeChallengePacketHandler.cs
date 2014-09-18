@@ -30,7 +30,7 @@ namespace SharpStar.Lib.Packets.Handlers
             {
                 packet.Ignore = true;
 
-                if (client.Server.Player.UserAccount != null || !client.Server.Player.AttemptedLogin)
+                if (client.Server.Player.UserAccount != null || !client.Server.Player.AttemptedLogin || client.Server.Player.Guest)
                 {
                     string hash = await Task.Run(() => SharpStarSecurity.GenerateHash("", "", packet.Salt, StarboundConstants.Rounds));
 

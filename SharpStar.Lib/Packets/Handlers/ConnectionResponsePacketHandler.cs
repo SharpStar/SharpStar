@@ -74,11 +74,6 @@ namespace SharpStar.Lib.Packets.Handlers
 
         public override Task HandleAfter(ConnectionResponsePacket packet, SharpStarClient client)
         {
-            if (!packet.Success && client.Server != null && client.Server.PlayerClient != null)
-            {
-                client.Server.PlayerClient.ForceDisconnect();
-            }
-
             SharpStarMain.Instance.PluginManager.CallEvent("afterConnectionResponse", packet, client);
 
             return base.HandleAfter(packet, client);

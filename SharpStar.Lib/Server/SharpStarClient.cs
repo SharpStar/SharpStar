@@ -209,7 +209,6 @@ namespace SharpStar.Lib.Server
                 catch
                 {
                 }
-
             }
             else
             {
@@ -220,7 +219,6 @@ namespace SharpStar.Lib.Server
 
         public async Task SendPacket(IPacket packet)
         {
-
             EventHandler<PacketEventArgs> sendingPacket = SendingPacket;
             if (sendingPacket != null)
                 sendingPacket(this, new PacketEventArgs(this, packet));
@@ -296,7 +294,6 @@ namespace SharpStar.Lib.Server
                     writeArgs.Completed += IO_Completed;
 
                     Socket.SendAsync(writeArgs);
-
                 }
                 catch
                 {
@@ -309,7 +306,6 @@ namespace SharpStar.Lib.Server
         {
             lock (closeLocker)
             {
-
                 if (readEventArgs == null || Socket == null || !Connected || (Socket != null && !Socket.Connected))
                     return;
 

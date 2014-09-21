@@ -66,16 +66,6 @@ namespace SharpStar.Lib.Packets.Handlers
                         return;
                     }
 
-                    if (user.GroupId.HasValue)
-                    {
-                        var group = SharpStarMain.Instance.Database.GetGroup(user.GroupId.Value);
-
-                        if (group != null)
-                        {
-                            client.Server.Player.UserGroupId = group.Id;
-                        }
-                    }
-
                     packet.Account = "";
 
                     client.Server.Player.UserAccount = user;

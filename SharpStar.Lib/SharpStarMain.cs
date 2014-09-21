@@ -49,8 +49,10 @@ namespace SharpStar.Lib
 
         public const string ConfigFile = "sharpstar.json";
 
-        private const int DefaultListenPort = 21025;
-        private const int DefaultServerPort = 21024;
+        public const int DefaultListenPort = 21025;
+        public const int DefaultServerPort = 21024;
+
+        public const string DatabaseName = "SharpStarDb.db";
 
         private Timer addinUpdateChecker;
 
@@ -90,18 +92,26 @@ namespace SharpStar.Lib
 
             if (string.IsNullOrEmpty(Config.ConfigFile.PythonLibLocation))
             {
-
                 string pythonLoc = Python.GetPythonInstallDir();
 
                 if (!string.IsNullOrEmpty(pythonLoc))
                     Config.ConfigFile.PythonLibLocation = Path.Combine(pythonLoc, "Lib");
 
                 Config.Save(configFile);
-
             }
 
-            Database = new SharpStarDb("SharpStar.db");
-            Database.CreateTables();
+            Database = new SharpStarDb(DatabaseName);
+
+            if (File.Exists("SharpStar.db"))
+            {
+                SharpStarLogger.DefaultLogger.Info("Migrating SharpStar database...");
+
+                SqlNetToNHibernate.Migrate("SharpStar.db", DatabaseName);
+                
+                SharpStarLogger.DefaultLogger.Info("Migration complete!");
+
+                File.Move("SharpStar.db", "SharpStar-" + Guid.NewGuid() + ".db.old");
+            }
 
             SharpStarLogger.DefaultLogger.Info("Listening on port {0}", Config.ConfigFile.ListenPort);
 
@@ -135,8 +145,6 @@ namespace SharpStar.Lib
                 addinUpdateChecker.Elapsed += (s, e) => PluginManager.CSPluginManager.UpdatePlugins();
                 addinUpdateChecker.Start();
             }
-
-
         }
 
         public void Shutdown()

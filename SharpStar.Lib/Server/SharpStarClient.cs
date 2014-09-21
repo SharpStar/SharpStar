@@ -134,7 +134,6 @@ namespace SharpStar.Lib.Server
                     case SocketAsyncOperation.Send:
                         e.Completed -= IO_Completed;
                         e.Dispose();
-                        //ProcessSend(e);
                         break;
                     default:
                         throw new ArgumentException("The last operation completed on the socket was not a receive or send");
@@ -158,10 +157,8 @@ namespace SharpStar.Lib.Server
                 var packets = PacketReader.UpdateBuffer(true);
                 foreach (IPacket packet in packets)
                 {
-
                     try
                     {
-
                         if (Server == null)
                             break;
 
@@ -219,19 +216,6 @@ namespace SharpStar.Lib.Server
                 CloseClientSocket(e);
             }
 
-        }
-
-        private void ProcessSend(SocketAsyncEventArgs e)
-        {
-            if (e.SocketError == SocketError.Success)
-            {
-            }
-            else
-            {
-                CloseClientSocket(e);
-            }
-
-            e.Dispose();
         }
 
         public async Task SendPacket(IPacket packet)

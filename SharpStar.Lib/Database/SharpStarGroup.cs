@@ -24,12 +24,21 @@ namespace SharpStar.Lib.Database
     public class SharpStarGroup
     {
 
-        [PrimaryKey, AutoIncrement]
-        public int Id { get; set; }
+        public virtual int Id { get; set; }
 
-        public string GroupName { get; set; }
+        public virtual string GroupName { get; set; }
 
-        public bool IsDefaultGroup { get; set; }
+        public virtual bool IsDefaultGroup { get; set; }
+
+        public virtual IList<SharpStarUser> Users { get; set; }
+
+        public virtual IList<SharpStarGroupPermission> Permissions { get; set; }
+
+        public SharpStarGroup()
+        {
+            Users = new List<SharpStarUser>();
+            Permissions = new List<SharpStarGroupPermission>();
+        }
 
     }
 }

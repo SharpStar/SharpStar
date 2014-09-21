@@ -64,6 +64,8 @@ namespace SharpStar.Lib.Plugins
             Commands = new List<Tuple<string, string, string, bool>>();
             ConsoleCommands = new Dictionary<string, string>();
 
+            AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolved;
+
             if (!AddinManager.IsInitialized)
             {
                 AddinManager.Initialize(".", "./addins");
@@ -79,9 +81,17 @@ namespace SharpStar.Lib.Plugins
 
         }
 
+        private static Assembly AssemblyResolved(object sender, ResolveEventArgs args)
+        {
+            var asm = (from a in AppDomain.CurrentDomain.GetAssemblies()
+                       where a.GetName().FullName == args.Name
+                       select a).FirstOrDefault();
+
+            return asm;
+        }
+
         public void LoadPlugins()
         {
-
             if (!Directory.Exists(CSPluginDirectory))
                 Directory.CreateDirectory(CSPluginDirectory);
 
@@ -94,12 +104,10 @@ namespace SharpStar.Lib.Plugins
 
             foreach (Addin addin in AddinManager.Registry.GetAddins())
             {
-
                 var property = addin.Properties.SingleOrDefault(p => p.Name.Equals("sharpstar", StringComparison.OrdinalIgnoreCase));
 
                 if (property != null)
                 {
-
                     Version ver = Assembly.GetEntryAssembly().GetName().Version;
 
                     string verStr = String.Format("{0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision);
@@ -359,7 +367,6 @@ namespace SharpStar.Lib.Plugins
 
         public void UnloadPlugin(ICSPlugin plugin)
         {
-
             var plugins = _csPlugins.Where(p => p.Value.Equals(plugin)).ToList();
 
             if (plugins.Count > 1)
@@ -370,7 +377,6 @@ namespace SharpStar.Lib.Plugins
             {
                 AddinManager.Registry.DisableAddin(plugins[0].Key);
             }
-
         }
 
         private void RefreshCommands()
@@ -397,15 +403,12 @@ namespace SharpStar.Lib.Plugins
 
                             if (consoleCmdAttribs.Count == 1)
                             {
-
                                 ConsoleCommandAttribute cCmdAttr = (ConsoleCommandAttribute)cmdAttribs[0];
 
                                 ConsoleCommands.Add(cCmdAttr.CommandName, cCmdAttr.CommandDescription);
-
                             }
                             else if (cmdAttribs.Count == 1)
                             {
-
                                 var permAttribs = mi.GetCustomAttributes(typeof(CommandPermissionAttribute), false).ToList();
 
                                 CommandAttribute cmdAttrib = (CommandAttribute)cmdAttribs[0];
@@ -420,7 +423,6 @@ namespace SharpStar.Lib.Plugins
                                 {
                                     Commands.Add(Tuple.Create(cmdAttrib.CommandName, cmdAttrib.CommandDescription, String.Empty, false));
                                 }
-
                             }
 
                         }

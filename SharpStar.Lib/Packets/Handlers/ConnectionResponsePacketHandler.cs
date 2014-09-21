@@ -28,15 +28,19 @@ namespace SharpStar.Lib.Packets.Handlers
         {
             if (packet.IsReceive)
             {
+                if (client.Server.Player == null)
+                {
+                    packet.Success = false;
+
+                    return base.Handle(packet, client);
+                }
+
                 if (SharpStarMain.Instance.Server.Clients.Count > SharpStarMain.Instance.Config.ConfigFile.MaxPlayers)
                 {
                     packet.Success = false;
                     packet.RejectionReason = SharpStarMain.Instance.Config.ConfigFile.MaxPlayerRejectionReason;
-                }
 
-                if (client.Server.Player == null)
-                {
-                    return base.Handle(packet, client);
+                    client.Server.Player.JoinSuccessful = false;
                 }
 
                 if (client.Server.Player.UserAccount == null && SharpStarMain.Instance.Config.ConfigFile.RequireAccountLogin)
@@ -57,8 +61,10 @@ namespace SharpStar.Lib.Packets.Handlers
                     packet.RejectionReason = SharpStarMain.Instance.Config.ConfigFile.GuestPasswordFailMessage;
                 }
 
-                if (packet.Success && client.Server.Player != null && !string.IsNullOrEmpty(client.Server.Player.Name))
+                if (packet.Success && client.Server.Player != null && !string.IsNullOrEmpty(client.Server.Player.Name) && client.Server.Player.JoinSuccessful)
+                {
                     SharpStarLogger.DefaultLogger.Info("Player {0} has successfully joined!", client.Server.Player.Name);
+                }
             }
 
             SharpStarMain.Instance.PluginManager.CallEvent("connectionResponse", packet, client);
@@ -68,6 +74,11 @@ namespace SharpStar.Lib.Packets.Handlers
 
         public override Task HandleAfter(ConnectionResponsePacket packet, SharpStarClient client)
         {
+            if (!packet.Success && client.Server != null && client.Server.PlayerClient != null)
+            {
+                client.Server.PlayerClient.ForceDisconnect();
+            }
+
             SharpStarMain.Instance.PluginManager.CallEvent("afterConnectionResponse", packet, client);
 
             return base.HandleAfter(packet, client);

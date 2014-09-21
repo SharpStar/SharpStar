@@ -108,6 +108,8 @@ namespace SharpStar.Lib.Server
                     {
                     }
                 }
+
+                return true;
             });
 
         }

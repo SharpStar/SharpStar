@@ -71,6 +71,7 @@ namespace SharpStar.Lib.Database
             {
                 config = config.Database(SQLiteConfiguration.Standard.UsingFile(DatabaseName));
             }
+
             _config = config
               .Mappings(p => p.FluentMappings.AddFromAssemblyOf<SharpStarUser>())
               .BuildConfiguration();
@@ -79,7 +80,6 @@ namespace SharpStar.Lib.Database
 
             return config.BuildSessionFactory();
         }
-
 
         public ISession CreateSession()
         {

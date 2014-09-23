@@ -40,13 +40,13 @@ namespace SharpStar.Lib.Server
         private IPEndPoint sIpe;
         private IPEndPoint cIpe;
 
-        private int running;
+        private long running;
 
         public bool Running
         {
             get
             {
-                return Convert.ToBoolean(running);
+                return Convert.ToBoolean(Interlocked.Read(ref running));
             }
         }
 
@@ -86,32 +86,31 @@ namespace SharpStar.Lib.Server
 
             udpClient.Connect(cIpe);
 
-            Task.Run(async () =>
+            Task.Run(() => RunUdp().Wait()).ContinueWith(_ => {}, TaskContinuationOptions.OnlyOnFaulted);
+        }
+
+        private async Task RunUdp()
+        {
+            while (Running)
             {
-                while (Running)
+                try
                 {
-                    try
-                    {
-                        UdpReceiveResult result = await udpServer.ReceiveAsync();
+                    UdpReceiveResult result = await udpServer.ReceiveAsync();
 
-                        byte[] buffer = result.Buffer;
+                    byte[] buffer = result.Buffer;
 
-                        await udpClient.SendAsync(buffer, buffer.Length);
+                    await udpClient.SendAsync(buffer, buffer.Length);
 
-                        UdpReceiveResult result2 = await udpClient.ReceiveAsync();
+                    UdpReceiveResult result2 = await udpClient.ReceiveAsync();
 
-                        byte[] buffer2 = result2.Buffer;
+                    byte[] buffer2 = result2.Buffer;
 
-                        await udpServer.SendAsync(buffer2, buffer2.Length);
-                    }
-                    catch
-                    {
-                    }
+                    await udpServer.SendAsync(buffer2, buffer2.Length);
                 }
-
-                return true;
-            });
-
+                catch
+                {
+                }
+            }
         }
 
         public void Stop()

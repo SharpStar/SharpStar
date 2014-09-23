@@ -16,7 +16,7 @@ namespace SharpStar.Lib.Database.Mappings
             Map(m => m.Hash);
             Map(m => m.Salt);
             Map(m => m.IsAdmin);
-            References(m => m.Group).Nullable().LazyLoad().Column("GroupId");
+            References(m => m.Group).Not.LazyLoad().Nullable().Column("GroupId");
             Map(m => m.LastLogin);
             HasMany(m => m.Permissions).LazyLoad().Cascade.AllDeleteOrphan().KeyColumn("UserId").Inverse();
         }

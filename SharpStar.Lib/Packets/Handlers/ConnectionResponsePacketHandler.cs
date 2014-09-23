@@ -31,6 +31,7 @@ namespace SharpStar.Lib.Packets.Handlers
                 if (client.Server.Player == null)
                 {
                     packet.Success = false;
+                    packet.RejectionReason = "An error has occurred!";
 
                     return base.Handle(packet, client);
                 }
@@ -46,6 +47,7 @@ namespace SharpStar.Lib.Packets.Handlers
                 if (client.Server.Player.UserAccount == null && SharpStarMain.Instance.Config.ConfigFile.RequireAccountLogin)
                 {
                     client.Server.Player.JoinSuccessful = false;
+
                     packet.Success = false;
                     packet.RejectionReason = SharpStarMain.Instance.Config.ConfigFile.RequireAccountLoginError;
                 }
@@ -59,6 +61,10 @@ namespace SharpStar.Lib.Packets.Handlers
                 {
                     packet.Success = false;
                     packet.RejectionReason = SharpStarMain.Instance.Config.ConfigFile.GuestPasswordFailMessage;
+                }
+                else
+                {
+                    client.Server.Player.JoinSuccessful = true;
                 }
 
                 if (packet.Success && client.Server.Player != null && !string.IsNullOrEmpty(client.Server.Player.Name) && client.Server.Player.JoinSuccessful)

@@ -29,10 +29,8 @@ namespace SharpStar.Lib.Packets.Handlers
     {
         public override async Task Handle(ClientConnectPacket packet, SharpStarClient client)
         {
-
             if (packet.IsReceive)
             {
-
                 string uuid = BitConverter.ToString(packet.UUID, 0).Replace("-", String.Empty).ToLower();
 
                 var clients = SharpStarMain.Instance.Server.Clients.Where(p => p.Player != null && p.Player.UUID == uuid);
@@ -47,13 +45,11 @@ namespace SharpStar.Lib.Packets.Handlers
                 {
                     NameWithColor = packet.PlayerName,
                     Species = packet.Species,
-                    AssetDigest = packet.AssetDigest,
                     OnOwnShip = true
                 };
 
                 if (!string.IsNullOrEmpty(packet.Account.Trim()))
                 {
-
                     client.Server.Player.Guest = false;
                     client.Server.Player.AttemptedLogin = true;
 
@@ -72,7 +68,6 @@ namespace SharpStar.Lib.Packets.Handlers
                     client.Server.Player.JoinSuccessful = true;
 
                     await client.Server.PlayerClient.SendPacket(new HandshakeChallengePacket { Salt = user.Salt });
-
                 }
                 else if (string.IsNullOrEmpty(packet.Account.Trim()) && !string.IsNullOrEmpty(SharpStarMain.Instance.Config.ConfigFile.GuestPassword))
                 {
@@ -93,7 +88,6 @@ namespace SharpStar.Lib.Packets.Handlers
 
                     await client.Server.PlayerClient.SendPacket(new HandshakeChallengePacket { Salt = SharpStarMain.Instance.Config.ConfigFile.GuestPasswordSalt });
                 }
-
             }
 
             SharpStarMain.Instance.PluginManager.CallEvent("clientConnected", packet, client);

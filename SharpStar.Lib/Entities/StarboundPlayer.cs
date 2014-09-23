@@ -51,8 +51,6 @@ namespace SharpStar.Lib.Entities
         /// </summary>
         public string Species { get; set; }
 
-        public string AssetDigest { get; set; }
-
         /// <summary>
         /// The client's Id
         /// </summary>
@@ -63,11 +61,6 @@ namespace SharpStar.Lib.Entities
         /// It is null when the player is not authenticated.
         /// </summary>
         public SharpStarUser UserAccount { get; set; }
-
-        /// <summary>
-        /// A nullable integer representing a user's group id
-        /// </summary>
-        public int? UserGroupId { get; set; }
 
         /// <summary>
         /// The player's coordinates
@@ -176,13 +169,11 @@ namespace SharpStar.Lib.Entities
 
             bool groupAllowed = false;
 
-            if (UserGroupId.HasValue)
+            if (UserAccount.Group != null)
             {
-
-                var groupPerm = SharpStarMain.Instance.Database.GetGroupPermission(UserGroupId.Value, permission);
+                var groupPerm = SharpStarMain.Instance.Database.GetGroupPermission(UserAccount.Group.Id, permission);
 
                 groupAllowed = groupPerm != null && groupPerm.Allowed;
-
             }
 
             if (groupAllowed)

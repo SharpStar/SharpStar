@@ -28,7 +28,6 @@ using SharpStar.Lib.Logging;
 using SharpStar.Lib.Networking;
 using SharpStar.Lib.Packets;
 using SharpStar.Lib.Packets.Handlers;
-using SharpStar.Lib.Zlib;
 
 namespace SharpStar.Lib.Server
 {

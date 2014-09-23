@@ -159,7 +159,6 @@ namespace SharpStar.Lib
             PluginManager.UnloadPlugins();
 
             Server.Stop();
-
             UDPServer.Stop();
         }
 

@@ -25,7 +25,6 @@ namespace SharpStar.Lib.Packets.Handlers
     {
         public override async Task Handle(HandshakeChallengePacket packet, SharpStarClient client)
         {
-
             if (packet.IsReceive)
             {
                 packet.Ignore = true;

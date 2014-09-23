@@ -12,7 +12,7 @@ namespace SharpStar.Lib.Database.Mappings
         public PermissionMap()
         {
             Id(m => m.Id);
-            References(m => m.User).LazyLoad().Not.Nullable().Column("UserId");
+            References(m => m.User).Not.LazyLoad().Not.Nullable().Column("UserId");
             Map(m => m.Permission);
             Map(m => m.Allowed);
         }
